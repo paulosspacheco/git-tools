@@ -1,2 +1,3 @@
-{ VERSION_STR := '0.3.0'}
-{ BUILD_DATE := '2026-03-27 10:17:07'}
+const
+  VERSION_STR = '0.3.1';
+  BUILD_DATE  = '2026-03-27 11:33:55';
