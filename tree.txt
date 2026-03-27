@@ -1,0 +1,13 @@
+.
+├── git-config.sh
+├── git-hook.sh
+├── git-ini.sh
+├── git-lib.md
+├── git-lib.sh
+├── git-lib-test.sh
+├── git-tools.code-workspace
+├── # Projeto git-tools para gerenciamento d.md
+├── README.md
+└── tree.txt
+
+1 directory, 10 files
