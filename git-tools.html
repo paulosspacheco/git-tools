@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>git-tools</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+/* From extension bierner.markdown-checkbox */
+.contains-task-list {
+    padding-left: 0;
+}
+
+.contains-task-list li {
+    margin-left: 24px;
+}
+
+.contains-task-list .task-list-item {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.contains-task-list .contains-task-list {
+    padding-left: 20px;
+} 
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="git-tools">git-tools</h1>
+<p>Conjunto de scripts Bash para gerenciamento de projetos Git com foco em simplicidade. Permite que qualquer pessoa — mesmo sem experiência com Git — siga boas práticas de versionamento automaticamente.</p>
+<p><strong>Versão:</strong> 0.3.0<br>
+<strong>Requisito:</strong> Bash 4.3+ · Git · Debian/Ubuntu (para instalação automática do Git)</p>
+<hr>
+<h2 id="o-que-o-projeto-entrega">O que o projeto entrega</h2>
+<ul>
+<li>Obriga o padrão de mensagens de commit (Conventional Commits)</li>
+<li>Impede erros humanos com validações e confirmações</li>
+<li>Calcula a versão semântica automaticamente (SemVer)</li>
+<li>Cria tags Git automaticamente a cada release</li>
+<li>Gera <code>version.inc</code> pronto para uso em projetos Lazarus/FPC</li>
+<li>Funciona em qualquer pasta após instalação</li>
+</ul>
+<hr>
+<h2 id="instalação">Instalação</h2>
+<p>Clone o repositório e execute o instalador:</p>
+<pre><code class="language-bash">git <span class="hljs-built_in">clone</span> https://github.com/seu-usuario/git-tools.git
+<span class="hljs-built_in">cd</span> git-tools
+./git-install.sh
+</code></pre>
+<p>Os scripts serão copiados para <code>/usr/local/bin</code> e estarão disponíveis globalmente.</p>
+<hr>
+<h2 id="scripts">Scripts</h2>
+<h3 id="git-inish--inicialização-de-projeto"><code>git-ini.sh</code> — Inicialização de projeto</h3>
+<p>Prepara um repositório Git do zero. Deve ser executado uma única vez por projeto.</p>
+<p><strong>O que faz:</strong></p>
+<ul>
+<li>Instala o Git se ausente (Debian/Ubuntu)</li>
+<li>Configura nome e e-mail do usuário Git se ainda não configurados</li>
+<li>Inicializa o repositório com branch <code>main</code></li>
+<li>Gera <code>.gitignore</code> básico</li>
+<li>Gera <code>.gitproject</code> com nome e versão inicial</li>
+<li>Instala o hook de validação de commits</li>
+<li>Cria o commit inicial com <code>README.md</code></li>
+<li>Oferece configuração de repositório remoto</li>
+</ul>
+<p><strong>Uso:</strong></p>
+<pre><code class="language-bash"><span class="hljs-built_in">cd</span> /meu/projeto
+git-ini.sh
+</code></pre>
+<p><strong>Exemplo de execução:</strong></p>
+<pre><code>🚀 Inicializando projeto
+Seu nome completo: Paulo Pacheco
+Seu e-mail: paulo@email.com
+✔ .gitignore criado
+✔ .gitproject criado
+✔ Hook instalado
+
+Arquivos que serão incluídos no commit inicial:
+A  .gitignore
+A  .gitproject
+A  README.md
+
+Confirmar? [S/n]: s
+[main a1b2c3d] feat: inicialização do projeto
+URL do repositório remoto (Enter para pular):
+✔ Projeto pronto
+</code></pre>
+<hr>
+<h3 id="git-featsh--commit-de-nova-funcionalidade"><code>git-feat.sh</code> — Commit de nova funcionalidade</h3>
+<p>Usado quando algo <strong>novo</strong> é adicionado ao projeto.</p>
+<p><strong>Uso:</strong></p>
+<pre><code class="language-bash">git-feat.sh <span class="hljs-string">&quot;descrição da funcionalidade&quot;</span>
+<span class="hljs-comment"># ou sem argumento — o script pergunta</span>
+git-feat.sh
+</code></pre>
+<p><strong>Exemplo:</strong></p>
+<pre><code class="language-bash">git-feat.sh <span class="hljs-string">&quot;adiciona tela de login&quot;</span>
+<span class="hljs-comment"># → [main c4d5e6f] feat: adiciona tela de login</span>
+</code></pre>
+<hr>
+<h3 id="git-fixsh--commit-de-correção-de-bug"><code>git-fix.sh</code> — Commit de correção de bug</h3>
+<p>Usado quando algo que <strong>já existia</strong> é corrigido.</p>
+<p><strong>Uso:</strong></p>
+<pre><code class="language-bash">git-fix.sh <span class="hljs-string">&quot;descrição da correção&quot;</span>
+</code></pre>
+<p><strong>Exemplo:</strong></p>
+<pre><code class="language-bash">git-fix.sh <span class="hljs-string">&quot;corrige validação de senha em branco&quot;</span>
+<span class="hljs-comment"># → [main d5e6f7a] fix: corrige validação de senha em branco</span>
+</code></pre>
+<hr>
+<h3 id="git-breakingsh--commit-de-quebra-de-compatibilidade"><code>git-breaking.sh</code> — Commit de quebra de compatibilidade</h3>
+<p>Usado quando uma mudança <strong>quebra compatibilidade</strong> com versões anteriores. Incrementa o MAJOR na versão (ex: <code>1.4.2 → 2.0.0</code>).</p>
+<p><strong>Uso:</strong></p>
+<pre><code class="language-bash">git-breaking.sh <span class="hljs-string">&quot;descrição da mudança&quot;</span>
+</code></pre>
+<p><strong>Exemplo:</strong></p>
+<pre><code class="language-bash">git-breaking.sh <span class="hljs-string">&quot;remove suporte ao formato de config antigo&quot;</span>
+<span class="hljs-comment"># → [main e6f7a8b] feat!: remove suporte ao formato de config antigo</span>
+</code></pre>
+<hr>
+<h3 id="git-releasesh--geração-de-release"><code>git-release.sh</code> — Geração de release</h3>
+<p>Executa o fluxo completo de release: calcula a nova versão, cria a tag Git e gera o <code>version.inc</code>.</p>
+<p><strong>Uso:</strong></p>
+<pre><code class="language-bash">git-release.sh
+</code></pre>
+<p><strong>Exemplo:</strong></p>
+<pre><code>🚀 Gerando release
+[main f7a8b9c] chore: bump version para v0.3.0
+✔ Versão atualizada: v0.2.1 → v0.3.0
+[main a8b9c0d] chore: atualiza version.inc para v0.3.0
+✔ version.inc gerado: v0.3.0 — 2026-03-26 22:00:00
+✔ Release criado: v0.3.0
+</code></pre>
+<hr>
+<h3 id="git-versionsh--cálculo-de-versão-semântica"><code>git-version.sh</code> — Cálculo de versão semântica</h3>
+<p>Analisa os commits desde a última tag e incrementa a versão conforme o tipo:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo de commit</th>
+<th>Efeito</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>feat!:</code></td>
+<td>MAJOR+1, MINOR=0, PATCH=0</td>
+</tr>
+<tr>
+<td><code>feat:</code></td>
+<td>MINOR+1, PATCH=0</td>
+</tr>
+<tr>
+<td><code>fix:</code></td>
+<td>PATCH+1</td>
+</tr>
+</tbody>
+</table>
+<p>Atualiza <code>.gitproject</code> e cria a tag Git automaticamente. Chamado internamente pelo <code>git-release.sh</code>.</p>
+<hr>
+<h3 id="git-version-incsh--geração-do-versioninc-para-lazarusfpc"><code>git-version-inc.sh</code> — Geração do version.inc para Lazarus/FPC</h3>
+<p>Gera o arquivo <code>version.inc</code> com defines de pré-processador prontos para uso em projetos Lazarus.</p>
+<p><strong>Arquivo gerado:</strong></p>
+<pre><code class="language-pascal"><span class="hljs-meta">{$DEFINE VERSION_STR := &#x27;0.3.0&#x27;}</span>
+<span class="hljs-meta">{$DEFINE BUILD_DATE := &#x27;2026-03-26 22:00:00&#x27;}</span>
+</code></pre>
+<p><strong>Como usar no projeto Lazarus:</strong></p>
+<pre><code class="language-pascal"><span class="hljs-meta">{$I version.inc}</span>
+
+<span class="hljs-function"><span class="hljs-keyword">procedure</span> <span class="hljs-title">TFormMain</span>.<span class="hljs-title">FormCreate</span><span class="hljs-params">(Sender: TObject)</span>;</span>
+<span class="hljs-keyword">begin</span>
+  Caption := <span class="hljs-string">&#x27;Meu Projeto v&#x27;</span> + <span class="hljs-meta">{$IFDEF VERSION_STR}</span> VERSION_STR <span class="hljs-meta">{$ENDIF}</span>;
+<span class="hljs-keyword">end</span>;
+</code></pre>
+<hr>
+<h3 id="git-hooksh--instalação-do-hook-de-commits"><code>git-hook.sh</code> — Instalação do hook de commits</h3>
+<p>Instala o hook <code>commit-msg</code> que rejeita automaticamente mensagens fora do padrão. Chamado internamente pelo <code>git-ini.sh</code>. Os hooks ficam em <code>.githooks/</code> (versionado) e se propagam para quem clonar o repositório.</p>
+<p><strong>Prefixos aceitos:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Prefixo</th>
+<th>Quando usar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>feat:</code></td>
+<td>Nova funcionalidade</td>
+</tr>
+<tr>
+<td><code>fix:</code></td>
+<td>Correção de bug</td>
+</tr>
+<tr>
+<td><code>feat!:</code></td>
+<td>Quebra de compatibilidade</td>
+</tr>
+<tr>
+<td><code>docs:</code></td>
+<td>Documentação</td>
+</tr>
+<tr>
+<td><code>chore:</code></td>
+<td>Tarefas internas (build, versão)</td>
+</tr>
+<tr>
+<td><code>refactor:</code></td>
+<td>Refatoração sem mudança de comportamento</td>
+</tr>
+<tr>
+<td><code>test:</code></td>
+<td>Testes</td>
+</tr>
+<tr>
+<td><code>style:</code></td>
+<td>Formatação, espaços, ponto e vírgula</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Exemplo de rejeição:</strong></p>
+<pre><code>$ git commit -m &quot;arrumei o bug&quot;
+❌ Mensagem de commit inválida!
+   Use um dos prefixos: feat:, fix:, docs:, chore:, refactor:, test:, style:, feat!:
+   Exemplo: feat: adiciona tela de login
+</code></pre>
+<hr>
+<h3 id="git-configsh--configuração-do-projeto"><code>git-config.sh</code> — Configuração do projeto</h3>
+<p>Gera o arquivo <code>.gitproject</code> com os metadados do projeto. Chamado internamente pelo <code>git-ini.sh</code>.</p>
+<p><strong>Arquivo gerado:</strong></p>
+<pre><code>PROJECT_NAME=meu-projeto
+VERSION=0.1.0
+</code></pre>
+<hr>
+<h3 id="git-libsh--biblioteca-utilitária"><code>git-lib.sh</code> — Biblioteca utilitária</h3>
+<p>Base compartilhada pelos demais scripts. Não é executado diretamente.</p>
+<p><strong>Funções disponíveis para outros scripts:</strong></p>
+<p><code>ask_required VAR &quot;prompt&quot; [valor]</code> — garante que um valor obrigatório existe<br>
+<code>load_config</code> — carrega variáveis do <code>.gitproject</code></p>
+<hr>
+<h3 id="git-installsh--instalação-global"><code>git-install.sh</code> — Instalação global</h3>
+<p>Copia todos os scripts para <code>/usr/local/bin</code>, tornando-os disponíveis em qualquer pasta do sistema.</p>
+<p><strong>Uso:</strong></p>
+<pre><code class="language-bash"><span class="hljs-built_in">cd</span> git-tools
+./git-install.sh
+</code></pre>
+<hr>
+<h2 id="fluxo-de-trabalho-típico">Fluxo de trabalho típico</h2>
+<h3 id="iniciando-um-projeto-novo">Iniciando um projeto novo</h3>
+<pre><code class="language-bash"><span class="hljs-built_in">cd</span> /meu/projeto
+git-ini.sh
+</code></pre>
+<h3 id="dia-a-dia-de-desenvolvimento">Dia a dia de desenvolvimento</h3>
+<pre><code class="language-bash"><span class="hljs-comment"># Adicionou algo novo</span>
+git-feat.sh <span class="hljs-string">&quot;adiciona exportação para PDF&quot;</span>
+
+<span class="hljs-comment"># Corrigiu um bug</span>
+git-fix.sh <span class="hljs-string">&quot;corrige crash ao abrir arquivo vazio&quot;</span>
+
+<span class="hljs-comment"># Mudança que quebra compatibilidade</span>
+git-breaking.sh <span class="hljs-string">&quot;altera formato do arquivo de configuração&quot;</span>
+</code></pre>
+<h3 id="gerando-um-release">Gerando um release</h3>
+<pre><code class="language-bash">git-release.sh
+</code></pre>
+<p>O sistema calcula automaticamente a nova versão com base nos commits feitos desde o último release.</p>
+<hr>
+<h2 id="estrutura-de-arquivos-gerados">Estrutura de arquivos gerados</h2>
+<pre><code>meu-projeto/
+├── .git/               # Repositório Git (gerado automaticamente)
+├── .githooks/          # Hooks versionados (propagam ao clonar)
+│   └── commit-msg
+├── .gitignore          # Arquivos ignorados pelo Git
+├── .gitproject         # Metadados do projeto (nome, versão)
+├── version.inc         # Defines para Lazarus/FPC
+└── README.md           # Documentação inicial
+</code></pre>
+<hr>
+<h2 id="compatibilidade">Compatibilidade</h2>
+<table>
+<thead>
+<tr>
+<th>Ambiente</th>
+<th>Suporte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux (Bash 4.3+)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>macOS (Bash 5 via Homebrew)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>macOS (Bash 3.x padrão)</td>
+<td>❌ nameref não disponível</td>
+</tr>
+<tr>
+<td>Git Bash / MSYS2 (Windows)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>WSL</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>

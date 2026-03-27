@@ -1,0 +1,96 @@
+#!/bin/bash
+# =============================================================================
+# git-generator-lcl.sh — Gera version.inc e scripts de atualização para Lazarus
+# =============================================================================
+# Para cada arquivo .lpi encontrado na pasta atual:
+#   - Cria/atualiza version.inc com versão, hash, branch e data do Git
+#   - Cria/atualiza update-<projeto>.sh para atualização automática do .lpi
+#
+# Uso: git-generator-lcl.sh
+#
+# Versão: 1.1.0
+# Dependências: git-lib.sh, .gitproject
+# =============================================================================
+
+source "/usr/local/bin/git-lib.sh"
+load_config
+
+if [ -z "$VERSION" ]; then
+  echo "❌ VERSION não definida em .gitproject" >&2
+  exit 1
+fi
+
+if [ ! -d ".git" ]; then
+  echo "❌ Nenhum repositório Git encontrado. Execute git-ini.sh primeiro." >&2
+  exit 1
+fi
+
+FOUND=0
+
+for LPI_FILE in *.lpi; do
+  [ -f "$LPI_FILE" ] || continue
+  FOUND=1
+
+  PROJECT="${LPI_FILE%.lpi}"
+  INC_FILE="version.inc"
+  UPDATE_SCRIPT="update-${PROJECT}.sh"
+
+  GIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+  GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+  DATE=$(date "+%Y-%m-%d %H:%M:%S")
+
+  # version.inc
+  cat > "$INC_FILE" <<EOF
+{$DEFINE VERSION_STR := '$VERSION'}
+{$DEFINE BUILD_DATE := '$DATE'}
+{$DEFINE GIT_HASH := '$GIT_HASH'}
+{$DEFINE GIT_BRANCH := '$GIT_BRANCH'}
+EOF
+
+  # update-<projeto>.sh
+  cat > "$UPDATE_SCRIPT" <<EOF
+#!/bin/bash
+# =============================================================================
+# update-$PROJECT.sh — Atualiza $LPI_FILE e version.inc com dados do Git
+# =============================================================================
+
+source "/usr/local/bin/git-lib.sh"
+load_config
+
+if [ -z "\$VERSION" ]; then
+  echo "❌ VERSION não definida em .gitproject" >&2
+  exit 1
+fi
+
+MAJOR=\${VERSION%%.*}
+MINOR=\$(echo "\$VERSION" | cut -d. -f2)
+PATCH=\$(echo "\$VERSION" | cut -d. -f3)
+
+sed -i "/<VersionInfo>/,/<\/VersionInfo>/ s/<MajorVersionNr Value=\"[0-9]*\"/<MajorVersionNr Value=\"\$MAJOR\"/" "$LPI_FILE"
+sed -i "/<VersionInfo>/,/<\/VersionInfo>/ s/<MinorVersionNr Value=\"[0-9]*\"/<MinorVersionNr Value=\"\$MINOR\"/" "$LPI_FILE"
+# sed -i "/<VersionInfo>/,/<\/VersionInfo>/ s/<BuildNr Value=\"[0-9]*\"/<BuildNr Value=\"\$PATCH\"/" "$LPI_FILE"
+
+DATE=\$(date "+%Y-%m-%d %H:%M:%S")
+GIT_HASH=\$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+GIT_BRANCH=\$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+
+cat > "version.inc" <<EOFINC
+{\$DEFINE VERSION_STR := '\$VERSION'}
+{\$DEFINE BUILD_DATE := '\$DATE'}
+{\$DEFINE GIT_HASH := '\$GIT_HASH'}
+{\$DEFINE GIT_BRANCH := '\$GIT_BRANCH'}
+EOFINC
+
+echo "✔ $PROJECT atualizado: \$VERSION — \$DATE"
+EOF
+
+  chmod +x "$UPDATE_SCRIPT"
+  echo "✔ $PROJECT: $INC_FILE e $UPDATE_SCRIPT criados/atualizados"
+done
+
+if [ $FOUND -eq 0 ]; then
+  echo "⚠ Nenhum arquivo .lpi encontrado na pasta atual." >&2
+  exit 1
+fi
+
+echo "🎯 Todos os projetos processados com sucesso!"

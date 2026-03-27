@@ -23,8 +23,9 @@ fi
 DATE=$(date "+%Y-%m-%d %H:%M:%S")
 
 cat > version.inc <<EOF
-{$DEFINE VERSION_STR := '$VERSION'}
-{$DEFINE BUILD_DATE := '$DATE'}
+const
+  VERSION_STR = '$VERSION';
+  BUILD_DATE  = '$DATE';
 EOF
 
 git add version.inc
