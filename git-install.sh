@@ -1,13 +1,14 @@
 #!/bin/bash
 # =============================================================================
-# git-install.sh — Instalação global das ferramentas Git
+# git-install.sh — Instalação global das ferramentas Git + integração Lazarus
 # =============================================================================
 # Copia todos os scripts git-tools para /usr/local/bin, tornando-os
-# disponíveis em qualquer pasta do sistema.
+# disponíveis em qualquer pasta do sistema. Opcionalmente configura
+# o menu Tools do Lazarus com acesso direto aos scripts.
 #
 # Uso: ./git-install.sh
 #
-# Versão: 1.0.0
+# Versão: 2.1.0
 # =============================================================================
 
 INSTALL_DIR="/usr/local/bin"
@@ -23,24 +24,24 @@ SCRIPTS=(
   git-breaking.sh
   git-version.sh
   git-version-inc.sh
-  git-release.sh
   git-generator-lcl.sh
+  git-changelog.sh
+  git-release.sh
 )
 
 echo "🚀 Instalando git-tools em $INSTALL_DIR"
 
 for SCRIPT in "${SCRIPTS[@]}"; do
   SRC="$SCRIPT_DIR/$SCRIPT"
-  DST="$INSTALL_DIR/$SCRIPT"
 
   if [ ! -f "$SRC" ]; then
     echo "❌ Arquivo não encontrado: $SRC" >&2
     exit 1
   fi
 
-  sudo cp "$SRC" "$DST"
-  sudo chmod +x "$DST"
+  sudo cp "$SRC" "$INSTALL_DIR/$SCRIPT"
+  sudo chmod +x "$INSTALL_DIR/$SCRIPT"
   echo "  ✔ $SCRIPT"
 done
 
-echo "✔ Instalação concluída — scripts disponíveis em qualquer pasta"
+echo "✔ Scripts instalados com sucesso"

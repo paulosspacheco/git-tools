@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG Version="3" Count="5">
+  <Tool1>
+    <Title Value="Git Feat"/>
+    <Filename Value="/usr/local/bin/git-feat.sh"/>
+    <CmdLineParams Value="$Prompt('Descreva a funcionalidade adicionada:')"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool1>
+  <Tool2>
+    <Title Value="Git Fix"/>
+    <Filename Value="/usr/local/bin/git-fix.sh"/>
+    <CmdLineParams Value="$Prompt('Descreva a correção realizada:')"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool2>
+  <Tool3>
+    <Title Value="Git Breaking"/>
+    <Filename Value="/usr/local/bin/git-breaking.sh"/>
+    <CmdLineParams Value="$Prompt('Breaking change (impacto):')"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool3>
+  <Tool4>
+    <Title Value="Git Release"/>
+    <Filename Value="/usr/local/bin/git-release.sh"/>
+    <CmdLineParams Value=""/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool4>
+  <Tool5>
+    <Title Value="Git Version Inc"/>
+    <Filename Value="/usr/local/bin/git-version-inc.sh"/>
+    <CmdLineParams Value=""/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool5>
+</CONFIG>
