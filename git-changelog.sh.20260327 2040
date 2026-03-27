@@ -6,11 +6,11 @@
 # Opcionalmente salva em CHANGELOG.md.
 #
 # Uso: git-changelog.sh [--write] [versão]
-#   git-changelog.sh            — histórico completo
+#   git-changelog.sh            — mudanças desde a última tag
 #   git-changelog.sh v1.2.0     — mudanças desde a versão informada
 #   git-changelog.sh --write    — salva em CHANGELOG.md
 #
-# Versão: 1.2.0
+# Versão: 1.1.0
 # Dependências: git-lib.sh
 # =============================================================================
 
@@ -28,7 +28,7 @@ Opções:
   --help      Exibe esta ajuda
 
 Argumentos:
-  versão      Tag de referência (ex: v1.2.0). Se omitida, lista tudo.
+  versão      Tag de referência (ex: v1.2.0). Se omitida, usa a última tag.
 
 Tipos de commit reconhecidos:
   feat:       Nova funcionalidade         → ➕ Funcionalidades
@@ -41,7 +41,7 @@ Tipos de commit reconhecidos:
 
 Exemplos:
   git-changelog.sh
-      Lista todo o histórico
+      Lista todas as mudanças desde a última tag
 
   git-changelog.sh v0.2.0
       Lista mudanças desde a tag v0.2.0
@@ -70,6 +70,13 @@ for arg in "$@"; do
   esac
 done
 
+# if [ -z "$VERSION" ]; then
+#   LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+#   if [ -n "$LAST_TAG" ]; then
+#     VERSION="${LAST_TAG#v}"
+#   fi
+# fi
+
 if [ -n "$VERSION" ] && git rev-parse "v$VERSION" >/dev/null 2>&1; then
   RANGE="v$VERSION..HEAD"
   HEADER="## 📦 Mudanças desde v$VERSION"
@@ -84,16 +91,14 @@ list_section() {
   local commits
 
   if [ -n "$RANGE" ]; then
-    commits=$(git log "$RANGE" --pretty=format:"%ad %s" --date=format:"%Y-%m-%d %H:%M" | grep " $pattern" || true)
+    commits=$(git log "$RANGE" --pretty=format:"%s" | grep "^$pattern" || true)
   else
-    commits=$(git log --pretty=format:"%ad %s" --date=format:"%Y-%m-%d %H:%M" | grep " $pattern" || true)
+    commits=$(git log --pretty=format:"%s" | grep "^$pattern" || true)
   fi
-
-  commits=$(echo "$commits" | grep -vE "(bump version|atualiza version\.inc) para v" || true)
 
   if [ -n "$commits" ]; then
     printf "\n### %s\n\n" "$title"
-    printf "%s\n" "$commits" | sed -E "s/^/- /" | sed -E "s/^(- [0-9-]+ [0-9:]+) [a-z!]+:/\1/"
+    printf "%s\n" "$commits" | sed -E "s/^$pattern[[:space:]]*/- /"
   fi
 }
 
@@ -108,9 +113,9 @@ OUTPUT+="$(list_section "refactor:" "♻️  Refatoração")"
 OUTPUT+="$(list_section "chore:" "🔧 Manutenção")"
 
 if [ -n "$RANGE" ]; then
-  others=$(git log "$RANGE" --pretty=format:"%ad %s" --date=format:"%Y-%m-%d %H:%M" | grep -vE " (feat|fix|docs|refactor|chore)(!)?:" || true)
+  others=$(git log "$RANGE" --pretty=format:"%s" | grep -vE "^(feat|fix|docs|refactor|chore)(!)?:" || true)
 else
-  others=$(git log --pretty=format:"%ad %s" --date=format:"%Y-%m-%d %H:%M" | grep -vE " (feat|fix|docs|refactor|chore)(!)?:" || true)
+  others=$(git log --pretty=format:"%s" | grep -vE "^(feat|fix|docs|refactor|chore)(!)?:" || true)
 fi
 
 if [ -n "$others" ]; then
