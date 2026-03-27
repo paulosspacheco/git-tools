@@ -8,9 +8,11 @@
 #   feat:  incrementa MINOR (nova funcionalidade)
 #   fix:   incrementa PATCH (correção de bug)
 #
+# Ao final, cria uma tag Git com a nova versão e atualiza .gitproject.
+#
 # Uso: ./git-version.sh
 #
-# Versão: 1.0.0
+# Versão: 1.1.0
 # Dependências: git-lib.sh, .gitproject
 # =============================================================================
 
@@ -23,16 +25,18 @@ if [ -z "$VERSION" ]; then
 fi
 
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+
 if [ -z "$LAST_TAG" ]; then
-  LAST_TAG="v$VERSION"
+  echo "ℹ Nenhuma tag encontrada — analisando todos os commits"
+  COMMITS=$(git log --pretty=format:"%s" 2>/dev/null)
+  IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+else
+  COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s" 2>/dev/null)
+  IFS='.' read -r MAJOR MINOR PATCH <<< "${LAST_TAG#v}"
 fi
 
-IFS='.' read -r MAJOR MINOR PATCH <<< "${LAST_TAG#v}"
-
-COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s" 2>/dev/null)
-
 if [ -z "$COMMITS" ]; then
-  echo "⚠ Nenhum commit novo desde $LAST_TAG — versão mantida: $MAJOR.$MINOR.$PATCH" >&2
+  echo "⚠ Nenhum commit novo desde v$VERSION — versão mantida" >&2
   exit 0
 fi
 
@@ -62,5 +66,10 @@ else
 fi
 
 NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
 sed -i "s/^VERSION=.*/VERSION=$NEW_VERSION/" .gitproject
-echo "✔ Versão atualizada: $LAST_TAG → v$NEW_VERSION"
+git add .gitproject
+git commit -m "chore: bump version para v$NEW_VERSION"
+git tag "v$NEW_VERSION"
+
+echo "✔ Versão atualizada: v$VERSION → v$NEW_VERSION"

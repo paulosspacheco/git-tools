@@ -4,10 +4,11 @@
 # =============================================================================
 # Gera o arquivo version.inc com defines de pré-processador contendo
 # a versão atual do projeto e a data/hora do build.
+# Commita o arquivo gerado automaticamente.
 #
 # Uso: ./git-version-inc.sh
 #
-# Versão: 1.0.0
+# Versão: 1.1.0
 # Dependências: git-lib.sh, .gitproject
 # =============================================================================
 
@@ -25,5 +26,8 @@ cat > version.inc <<EOF
 {$DEFINE VERSION_STR := '$VERSION'}
 {$DEFINE BUILD_DATE := '$DATE'}
 EOF
+
+git add version.inc
+git commit -m "chore: atualiza version.inc para v$VERSION" || true
 
 echo "✔ version.inc gerado: v$VERSION — $DATE"
