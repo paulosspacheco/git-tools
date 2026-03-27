@@ -1,0 +1,24 @@
+# Binários e compilados
+*.o
+*.a
+*.so
+*.exe
+*.out
+
+# Lazarus / FPC
+*.compiled
+*.bak
+*.lps
+*.ppu
+*.or
+lib/
+
+# Temporários
+*.tmp
+*.log
+*~
+
+# Segredos
+.env
+*.key
+*.pem
