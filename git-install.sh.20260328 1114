@@ -9,7 +9,7 @@
 #
 # Uso: ./git-install.sh
 #
-# Versão: 3.2.0 (sem executar o Lazarus)
+# Versão: 3.1.0 (automático com suporte a seleção gráfica)
 # =============================================================================
 
 set -e
@@ -97,36 +97,45 @@ echo ""
 # Localizar e editar automaticamente o environmentoptions.xml
 # =============================================================================
 
-# Lista de possíveis locais (ordem de preferência)
-CANDIDATES=(
-  "$HOME/.lazarus/environmentoptions.xml"
-  "/etc/lazarus/environmentoptions.xml"
-  "$HOME/Lazarus/lazarus-fixe/config_lazarus/environmentoptions.xml"
-  "$HOME/Lazarus/config_lazarus/environmentoptions.xml"
-  "$HOME/Lazarus*/config_lazarus/environmentoptions.xml"  # wildcard não funciona diretamente
-)
-
-# Expande wildcards
-EXPANDED_CANDIDATES=()
-for cand in "${CANDIDATES[@]}"; do
-  if [[ "$cand" == *"*"* ]]; then
-    # Usa globbing
-    for file in $cand; do
-      [ -f "$file" ] && EXPANDED_CANDIDATES+=("$file")
-    done
-  else
-    [ -f "$cand" ] && EXPANDED_CANDIDATES+=("$cand")
+find_lazarus_config() {
+  # 1) Se o comando lazarus existir, tenta obter --pcp
+  if command -v lazarus &>/dev/null; then
+    # O --pcp mostra o diretório de configuração primário
+    PCP=$(lazarus --pcp 2>/dev/null | head -1)
+    if [ -n "$PCP" ] && [ -d "$PCP" ]; then
+      echo "$PCP/environmentoptions.xml"
+      return
+    fi
   fi
-done
 
-# Também busca em ~/Lazarus* de forma recursiva (limitado a 3 níveis)
-if [ ${#EXPANDED_CANDIDATES[@]} -eq 0 ]; then
-  while IFS= read -r file; do
-    EXPANDED_CANDIDATES+=("$file")
-  done < <(find "$HOME" -maxdepth 3 -path "*/Lazarus*/config_lazarus/environmentoptions.xml" 2>/dev/null)
-fi
+  # 2) Locais comuns
+  COMMON_PATHS=(
+    "$HOME/.lazarus/environmentoptions.xml"
+    "/etc/lazarus/environmentoptions.xml"
+  )
+  for path in "${COMMON_PATHS[@]}"; do
+    if [ -f "$path" ]; then
+      echo "$path"
+      return
+    fi
+  done
 
-LAZ_CONFIG="${EXPANDED_CANDIDATES[0]}"  # pega o primeiro encontrado
+  # 3) Procura em ~/Lazarus* (pode ser lento, mas útil)
+  find "$HOME" -name "environmentoptions.xml" 2>/dev/null | head -1
+}
+
+# Função para selecionar arquivo via GUI
+select_file_gui() {
+  if command -v zenity &>/dev/null; then
+    zenity --file-selection --title="Selecione o arquivo environmentoptions.xml" --file-filter="*.xml" 2>/dev/null
+  elif command -v kdialog &>/dev/null; then
+    kdialog --getopenfilename "$HOME" "*.xml" 2>/dev/null
+  else
+    echo ""
+  fi
+}
+
+LAZ_CONFIG=$(find_lazarus_config)
 
 if [ -n "$LAZ_CONFIG" ] && [ -f "$LAZ_CONFIG" ]; then
   echo "✔ Arquivo de configuração do Lazarus encontrado: $LAZ_CONFIG"
@@ -139,11 +148,7 @@ else
     echo "🔍 Deseja localizar o arquivo manualmente usando uma janela gráfica? [S/n]"
     read -r answer
     if [[ ! "$answer" =~ ^[Nn]$ ]]; then
-      if command -v zenity &>/dev/null; then
-        LAZ_CONFIG=$(zenity --file-selection --title="Selecione o arquivo environmentoptions.xml" --file-filter="*.xml" 2>/dev/null)
-      elif command -v kdialog &>/dev/null; then
-        LAZ_CONFIG=$(kdialog --getopenfilename "$HOME" "*.xml" 2>/dev/null)
-      fi
+      LAZ_CONFIG=$(select_file_gui)
       if [ -z "$LAZ_CONFIG" ]; then
         echo "❌ Nenhum arquivo selecionado."
       fi
