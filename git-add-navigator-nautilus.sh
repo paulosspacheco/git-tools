@@ -1,13 +1,13 @@
 #!/bin/bash
 # =============================================================================
-# git-add-navigator.sh — Integração git-tools no Nemo
-# Versão: 4.0.0
+# git-add-navigator-nautilus.sh — Integração git-tools no Nautilus
+# Versão: 0.4.0
 # =============================================================================
 
 set -e
 
 INSTALL_DIR="/usr/local/bin"
-NEMO_SCRIPTS_DIR="$HOME/.local/share/nemo/scripts/Git Tools"
+NAUTILUS_SCRIPTS_DIR="$HOME/.local/share/nautilus/scripts/Git Tools"
 
 # =============================================================================
 # Pré-verificações
@@ -42,14 +42,12 @@ check_scripts() {
 
 # =============================================================================
 # Helpers de geração de wrappers
-# Todas as variáveis do runtime ($DESC, $TARGET, etc.) são gravadas literalmente
-# via printf '%s\n'. Somente $INSTALL_DIR expande em tempo de instalação.
 # =============================================================================
 
-# Cabeçalho comum: resolve TARGET e faz cd
+# Cabeçalho comum: resolve TARGET a partir da variável do Nautilus e faz cd
 _write_header() {
     printf '#!/bin/bash\nset -e\n\n'
-    printf '%s\n' 'TARGET="${NEMO_SCRIPT_SELECTED_FILE_PATHS%%$'"'"'\n'"'"'*}"'
+    printf '%s\n' 'TARGET="${NAUTILUS_SCRIPT_SELECTED_FILE_PATHS%%$'"'"'\n'"'"'*}"'
     printf 'if [ -d "$TARGET" ]; then\n    cd "$TARGET"\nelse\n    cd "$(dirname "$TARGET")"\nfi\n\n'
 }
 
@@ -63,7 +61,7 @@ _write_git_guard() {
         '        --ok-label="Inicializar" \' \
         '        --cancel-label="Cancelar" \' \
         '        --width=380 || exit 0'
-    # $INSTALL_DIR expande aqui (tempo de instalação) — correto
+    # $INSTALL_DIR expande aqui (tempo de instalação)
     printf '    bash "%s/git-ini.sh"\n' "$INSTALL_DIR"
     printf '%s\n' \
         '    git -C "$TARGET" rev-parse --git-dir > /dev/null 2>&1 || exit 1' \
@@ -75,7 +73,7 @@ _write_git_guard() {
 make_wrapper() {
     local name="$1"
     local body="$2"
-    local file="$NEMO_SCRIPTS_DIR/$name"
+    local file="$NAUTILUS_SCRIPTS_DIR/$name"
     { _write_header; printf '%s\n' "$body"; } > "$file"
     chmod +x "$file"
     echo "  ✔ $name"
@@ -85,22 +83,22 @@ make_wrapper() {
 make_wrapper_git() {
     local name="$1"
     local body="$2"
-    local file="$NEMO_SCRIPTS_DIR/$name"
+    local file="$NAUTILUS_SCRIPTS_DIR/$name"
     { _write_header; _write_git_guard; printf '%s\n' "$body"; } > "$file"
     chmod +x "$file"
     echo "  ✔ $name"
 }
 
 # =============================================================================
-# Instalação no Nemo
+# Instalação no Nautilus
 # =============================================================================
 
-install_nemo() {
-    echo "🔧 Configurando Nemo..."
+install_nautilus() {
+    echo "🔧 Configurando Nautilus..."
 
-    # Remove TODAS as variantes anteriores (idempotente)
+    # Remove instalações anteriores (idempotente)
     echo "  ↻ Removendo instalações anteriores..."
-    local SCRIPTS_BASE="$HOME/.local/share/nemo/scripts"
+    local SCRIPTS_BASE="$HOME/.local/share/nautilus/scripts"
     for dir in \
         "$SCRIPTS_BASE/Git Tools" \
         "$SCRIPTS_BASE/Git-Tools" \
@@ -110,7 +108,7 @@ install_nemo() {
     do
         [ -d "$dir" ] && rm -rf "$dir" && echo "    🗑 Removido: $dir"
     done
-    mkdir -p "$NEMO_SCRIPTS_DIR"
+    mkdir -p "$NAUTILUS_SCRIPTS_DIR"
 
     echo "  Criando wrappers..."
 
@@ -168,38 +166,22 @@ bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
         "bash \"$INSTALL_DIR/git-changelog.sh\" --write"
 
     echo ""
-    echo "✔ Scripts instalados em: $NEMO_SCRIPTS_DIR"
+    echo "✔ Scripts instalados em: $NAUTILUS_SCRIPTS_DIR"
     echo ""
-
-    # Garante que o menu Scripts está habilitado no Nemo
-    if command -v gsettings >/dev/null 2>&1; then
-        local current
-        current=$(gsettings get org.nemo.preferences show-scripts-in-context-menus 2>/dev/null || echo "not-set")
-        if [ "$current" != "true" ]; then
-            gsettings set org.nemo.preferences show-scripts-in-context-menus true
-            echo "✔ Menu 'Scripts' habilitado no Nemo via gsettings"
-        else
-            echo "✔ Menu 'Scripts' já estava habilitado"
-        fi
-    else
-        echo "⚠ gsettings não disponível — habilite manualmente:"
-        echo "   Nemo → Editar → Preferências → Comportamento → Mostrar scripts no menu de contexto"
-    fi
-
-    echo ""
-    echo "👉 Reinicie o Nemo: nemo -q && nemo &"
+    echo "👉 Reinicie o Nautilus (ou faça logout/login) para que as alterações tenham efeito."
+    echo "   Para recarregar rapidamente: nautilus -q && nautilus &"
 }
 
 # =============================================================================
 # Principal
 # =============================================================================
 
-echo "🚀 Instalando integração git-tools no Nemo"
+echo "🚀 Instalando integração git-tools no Nautilus"
 echo ""
 
 check_deps
 check_scripts
-install_nemo
+install_nautilus
 
 echo ""
 echo "✔ Concluído! Botão direito em qualquer pasta → Scripts → Git Tools"

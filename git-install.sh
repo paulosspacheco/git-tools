@@ -29,7 +29,7 @@ SCRIPTS=(
   git-version-inc.sh
   git-generator-lcl.sh
   git-release.sh
-  git-changelog.sh
+  git-changelog.sh  
   git-docs.sh
 )
 

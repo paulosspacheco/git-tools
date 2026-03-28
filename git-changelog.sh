@@ -11,7 +11,7 @@
 #   git-changelog.sh --html     — salva em CHANGELOG.md e CHANGELOG.html
 #   git-changelog.sh v1.2.0     — mudanças desde a versão informada
 #
-# Versão: 1.4.0
+# Versão: 1.3.0
 # Dependências: git-lib.sh, pandoc (opcional, para --html)
 # =============================================================================
 
@@ -85,49 +85,22 @@ else
   HEADER="## 📦 Histórico completo"
 fi
 
-# Formata uma linha de commit: "- DATA [**vX.Y.Z**] Mensagem"
-# Usa tab como separador interno para não colidir com o conteúdo dos commits.
-# %D contém as decorações de ref (ex: "tag: v1.2.0, HEAD -> main").
-_format_line() {
-  local date="$1"
-  local deco="$2"
-  local subj="$3"
-
-  # Extrai tag de versão semântica da decoração, se houver
-  local ver
-  ver=$(printf '%s' "$deco" | grep -oE 'tag: v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/tag: //' | head -1)
-
-  # Remove prefixo de tipo do subject (ex: "feat: " ou "fix!: ")
-  local msg
-  msg=$(printf '%s' "$subj" | sed -E 's/^[a-z]+(!)?:[[:space:]]*//')
-
-  if [ -n "$ver" ]; then
-    printf -- "- %s **%s** %s\n" "$date" "$ver" "$msg"
-  else
-    printf -- "- %s %s\n" "$date" "$msg"
-  fi
-}
-
 list_section() {
   local pattern="$1"
   local title="$2"
-  local raw commits
+  local commits
 
   if [ -n "$RANGE" ]; then
-    raw=$(git log "$RANGE" --pretty=format:"%ad	%D	%s" --date=format:"%Y-%m-%d %H:%M")
+    commits=$(git log "$RANGE" --pretty=format:"%ad %s" --date=format:"%Y-%m-%d %H:%M" | grep " $pattern" || true)
   else
-    raw=$(git log --pretty=format:"%ad	%D	%s" --date=format:"%Y-%m-%d %H:%M")
+    commits=$(git log --pretty=format:"%ad %s" --date=format:"%Y-%m-%d %H:%M" | grep " $pattern" || true)
   fi
 
-  # Filtra pelo padrão no subject (3º campo) e exclui commits de bump de versão
-  commits=$(printf '%s\n' "$raw" \
-    | awk -F'\t' -v p=" $pattern" '$3 ~ p && $3 !~ /(bump version|atualiza version\.inc) para v/')
+  commits=$(echo "$commits" | grep -vE "(bump version|atualiza version\.inc) para v" || true)
 
   if [ -n "$commits" ]; then
     printf "\n### %s\n\n" "$title"
-    while IFS=$'\t' read -r date deco subj; do
-      _format_line "$date" "$deco" "$subj"
-    done <<< "$commits"
+    printf "%s\n" "$commits" | sed -E "s/^/- /" | sed -E "s/^(- [0-9-]+ [0-9:]+) [a-z!]+:/\1/"
   fi
 }
 
@@ -141,21 +114,15 @@ OUTPUT+="$(list_section "docs:"  "📚 Documentação")"
 OUTPUT+="$(list_section "refactor:" "♻️  Refatoração")"
 OUTPUT+="$(list_section "chore:" "🔧 Manutenção")"
 
-# Seção de commits sem tipo reconhecido
 if [ -n "$RANGE" ]; then
-  others_raw=$(git log "$RANGE" --pretty=format:"%ad	%D	%s" --date=format:"%Y-%m-%d %H:%M")
+  others=$(git log "$RANGE" --pretty=format:"%ad %s" --date=format:"%Y-%m-%d %H:%M" | grep -vE " (feat|fix|docs|refactor|chore)(!)?:" || true)
 else
-  others_raw=$(git log --pretty=format:"%ad	%D	%s" --date=format:"%Y-%m-%d %H:%M")
+  others=$(git log --pretty=format:"%ad %s" --date=format:"%Y-%m-%d %H:%M" | grep -vE " (feat|fix|docs|refactor|chore)(!)?:" || true)
 fi
-
-others=$(printf '%s\n' "$others_raw" \
-  | awk -F'\t' '$3 !~ / (feat|fix|docs|refactor|chore)(!)?:/')
 
 if [ -n "$others" ]; then
   OUTPUT+="\n### 🧩 Outras mudanças\n\n"
-  while IFS=$'\t' read -r date deco subj; do
-    OUTPUT+="$(_format_line "$date" "$deco" "$subj")"$'\n'
-  done <<< "$others"
+  OUTPUT+="$(printf "%s\n" "$others" | sed 's/^/- /')\n"
 fi
 
 OUTPUT+="\n---\n"

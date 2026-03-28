@@ -4,6 +4,7 @@
 
 ### ➕ Funcionalidades
 
+- 2026-03-28 14:47 Adiciona ao script git-changelog.sh uma coluna com o número da versão do projeto.
 - 2026-03-28 12:04 Adicionado o script git-add-navigator.sh para adicionar o submenu no gerenciador de arquivos Nemo.
 - 2026-03-28 11:22 Adicionada a integração automática do projeto git-tools com a LCL.
 - 2026-03-28 09:09 Adicionado o script git-docs.sh ao projeto git-tools
@@ -26,4 +27,4 @@
 
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-03-28 14:41:04_
+_Gerado automaticamente em 2026-03-28 15:34:52_

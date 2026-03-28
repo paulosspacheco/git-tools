@@ -1,0 +1,220 @@
+#!/bin/bash
+# =============================================================================
+# git-add-navigator.sh — Integração dos scripts git-tools ao gerenciador
+#                               de arquivos (Thunar, Nautilus, etc.)
+# =============================================================================
+# Detecta o gerenciador de arquivos em uso e adiciona submenus com as ações
+# dos scripts git-tools, permitindo executar os comandos diretamente do
+# menu de contexto do arquivo/pasta.
+#
+# Uso: ./git-tools-add-navigator.sh
+#
+# Versão: 1.0.0
+# =============================================================================
+
+set -e
+
+INSTALL_DIR="/usr/local/bin"
+SCRIPTS=(
+  "git-ini.sh"
+  "git-feat.sh"
+  "git-fix.sh"
+  "git-breaking.sh"
+  "git-release.sh"
+  "git-version-inc.sh"
+  "git-version.sh"
+  "git-docs.sh"
+  "git-changelog.sh"
+)
+
+# =============================================================================
+# Funções de detecção e instalação para cada gerenciador
+# =============================================================================
+
+detect_file_manager() {
+    # Tenta identificar qual gerenciador está sendo usado (processo em execução)
+    local fm=""
+    if pgrep -x "nautilus" >/dev/null; then
+        fm="nautilus"
+    elif pgrep -x "thunar" >/dev/null; then
+        fm="thunar"
+    elif pgrep -x "pcmanfm" >/dev/null; then
+        fm="pcmanfm"
+    elif pgrep -x "nemo" >/dev/null; then
+        fm="nemo"
+    elif pgrep -x "dolphin" >/dev/null; then
+        fm="dolphin"
+    fi
+    echo "$fm"
+}
+
+install_nautilus() {
+    echo "🔧 Configurando Nautilus..."
+    SCRIPT_DIR="$HOME/.local/share/nautilus/scripts/Git-Tools"
+    mkdir -p "$SCRIPT_DIR"
+
+    for script in "${SCRIPTS[@]}"; do
+        SRC="$INSTALL_DIR/$script"
+        if [ -f "$SRC" ]; then
+            ln -sf "$SRC" "$SCRIPT_DIR/$script"
+            chmod +x "$SCRIPT_DIR/$script"
+        fi
+    done
+
+    echo "✔ Scripts adicionados ao Nautilus (menu de contexto → Scripts → Git-Tools)"
+    echo "👉 Reinicie o Nautilus: nautilus -q"
+}
+
+install_thunar() {
+    echo "🔧 Configurando Thunar..."
+    CONFIG_DIR="$HOME/.config/Thunar"
+    mkdir -p "$CONFIG_DIR"
+    UCA_FILE="$CONFIG_DIR/uca.xml"
+
+    # Verifica se o arquivo existe; se não, cria um esqueleto
+    if [ ! -f "$UCA_FILE" ]; then
+        cat > "$UCA_FILE" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+</actions>
+EOF
+    fi
+
+    # Função para adicionar uma ação (se já existir, pula)
+    add_action() {
+        local name="$1"
+        local script="$2"
+        local params="$3"
+        local menu_name="Git Tools"
+
+        # Escapa para XML
+        local name_escaped=$(echo "$name" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+
+        # Verifica se ação já existe
+        if grep -q "<name>$name_escaped</name>" "$UCA_FILE"; then
+            echo "  ✔ Ação '$name' já existe, ignorando."
+            return
+        fi
+
+        # Monta o bloco XML
+        cat >> "$UCA_FILE" <<EOF
+  <action>
+    <name>$name_escaped</name>
+    <submenu>$menu_name</submenu>
+    <command>bash "$INSTALL_DIR/$script" $params</command>
+    <description>Executa $script</description>
+    <patterns>*</patterns>
+    <directories/>
+    <text-files/>
+    <other-files/>
+  </action>
+EOF
+    }
+
+    # Adiciona ações para cada script
+    add_action "Inicializar repositório Git" "git-ini.sh" ""
+    add_action "Nova funcionalidade (feat)" "git-feat.sh" "\$(\$Prompt('Descrição:'))"
+    add_action "Correção (fix)" "git-fix.sh" "\$(\$Prompt('Descrição:'))"
+    add_action "Breaking change" "git-breaking.sh" "\$(\$Prompt('Descrição:'))"
+    add_action "Fazer release" "git-release.sh" ""
+    add_action "Incrementar versão" "git-version-inc.sh" ""
+    add_action "Calcular próxima versão" "git-version.sh" ""
+    add_action "Commit de documentação" "git-docs.sh" "\$(\$Prompt('Descrição:'))"
+    add_action "Gerar CHANGELOG" "git-changelog.sh" "--write"
+
+    echo "✔ Ações adicionadas ao Thunar (menu de contexto → Git Tools)"
+    echo "👉 Reinicie o Thunar: thunar -q"
+}
+
+install_pcmanfm() {
+    echo "🔧 Configurando PCManFM..."
+    ACTION_DIR="$HOME/.local/share/file-manager/actions"
+    mkdir -p "$ACTION_DIR"
+
+    for script in "${SCRIPTS[@]}"; do
+        NAME=$(basename "$script" .sh)
+        cat > "$ACTION_DIR/git-$NAME.desktop" <<EOF
+[Desktop Entry]
+Type=Action
+Name=Git $NAME
+Icon=git
+Profiles=profile-zero
+MimeTypes=inode/directory;
+EOF
+        # Configura perfil
+        mkdir -p "$ACTION_DIR/profile-zero"
+        cat > "$ACTION_DIR/profile-zero/git-$NAME.desktop" <<EOF
+[Desktop Entry]
+Type=Action
+Name=Git $NAME
+Exec=bash "$INSTALL_DIR/$script" %f
+MimeTypes=inode/directory;
+EOF
+    done
+    echo "✔ Ações adicionadas ao PCManFM"
+    echo "👉 Reinicie o PCManFM: pcmanfm -q"
+}
+
+install_nemo() {
+    # Nemo usa o mesmo sistema do Nautilus (scripts)
+    install_nautilus
+    echo "✔ Nemo configurado via scripts do Nautilus"
+    echo "👉 Reinicie o Nemo: nemo -q"
+}
+
+install_dolphin() {
+    echo "🔧 Configurando Dolphin (KDE)..."
+    SERVICE_DIR="$HOME/.local/share/kio/servicemenus"
+    mkdir -p "$SERVICE_DIR"
+
+    for script in "${SCRIPTS[@]}"; do
+        NAME=$(basename "$script" .sh)
+        cat > "$SERVICE_DIR/git-$NAME.desktop" <<EOF
+[Desktop Entry]
+Type=Service
+ServiceTypes=KonqPopupMenu/Plugin
+MimeType=inode/directory;
+Actions=git-$NAME
+X-KDE-Priority=TopLevel
+
+[Desktop Action git-$NAME]
+Name=Git $NAME
+Icon=git
+Exec=bash "$INSTALL_DIR/$script" %f
+EOF
+    done
+    echo "✔ Ações adicionadas ao Dolphin"
+    echo "👉 Reinicie o Dolphin"
+}
+
+# =============================================================================
+# Execução principal
+# =============================================================================
+
+echo "🚀 Instalando integração dos scripts git-tools no gerenciador de arquivos"
+
+FM=$(detect_file_manager)
+
+if [ -z "$FM" ]; then
+    echo "⚠ Nenhum gerenciador de arquivos conhecido em execução."
+    echo "👉 Tente um dos seguintes métodos manuais:"
+    echo "   - Nautilus: copie os scripts para ~/.local/share/nautilus/scripts/Git-Tools/"
+    echo "   - Thunar: use 'Configure custom actions' no menu Editar"
+    echo "   - PCManFM: use 'Add custom action' nas preferências"
+    echo "   - Dolphin: use 'Add Service Menu' nas configurações"
+    exit 0
+fi
+
+echo "✔ Gerenciador de arquivos detectado: $FM"
+
+case "$FM" in
+    nautilus) install_nautilus ;;
+    thunar)   install_thunar ;;
+    pcmanfm)  install_pcmanfm ;;
+    nemo)     install_nemo ;;
+    dolphin)  install_dolphin ;;
+    *)        echo "❌ Gerenciador $FM não suportado." ;;
+esac
+
+echo ""
+echo "✔ Integração concluída!"
