@@ -1,0 +1,168 @@
+#!/bin/bash
+# =============================================================================
+# git-add-navigator.sh — Integração git-tools no Nemo
+# Versão: 3.0.0
+# =============================================================================
+
+set -e
+
+INSTALL_DIR="/usr/local/bin"
+NEMO_SCRIPTS_DIR="$HOME/.local/share/nemo/scripts/Git Tools"
+
+# =============================================================================
+# Pré-verificações
+# =============================================================================
+
+check_deps() {
+    local missing=()
+    for cmd in zenity git; do
+        command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
+    done
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "⚠ Dependências ausentes: ${missing[*]}"
+        echo "  Instale com: sudo apt install ${missing[*]}"
+        echo ""
+    fi
+}
+
+check_scripts() {
+    local missing=()
+    for script in git-feat.sh git-fix.sh git-breaking.sh git-docs.sh git-changelog.sh git-ini.sh git-release.sh git-version-inc.sh git-version.sh; do
+        [ -f "$INSTALL_DIR/$script" ] || missing+=("$script")
+    done
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "⚠ Scripts não encontrados em $INSTALL_DIR:"
+        for s in "${missing[@]}"; do echo "    - $s"; done
+        echo "  Instale os scripts git-tools antes de continuar."
+        echo ""
+    fi
+}
+
+# =============================================================================
+# Criação dos wrappers para o Nemo
+# Wrappers reais (não symlinks) com zenity embutido para os que precisam
+# de input. O Nemo passa os itens selecionados via $NEMO_SCRIPT_SELECTED_FILE_PATHS.
+# =============================================================================
+
+make_wrapper() {
+    local name="$1"   # nome do arquivo (ex: "01 - Nova funcionalidade (feat).sh")
+    local body="$2"   # corpo do script
+
+    local file="$NEMO_SCRIPTS_DIR/$name"
+    cat > "$file" <<EOF
+#!/bin/bash
+# Wrapper gerado por git-add-navigator.sh
+set -e
+
+# Diretório de trabalho = primeiro item selecionado (ou pasta atual)
+TARGET="\${NEMO_SCRIPT_SELECTED_FILE_PATHS%%$'\n'*}"
+if [ -d "\$TARGET" ]; then
+    cd "\$TARGET"
+else
+    cd "\$(dirname "\$TARGET")"
+fi
+
+$body
+EOF
+    chmod +x "$file"
+    echo "  ✔ $name"
+}
+
+install_nemo() {
+    echo "🔧 Configurando Nemo..."
+
+    # Limpa instalação anterior
+    if [ -d "$NEMO_SCRIPTS_DIR" ]; then
+        echo "  ↻ Removendo scripts anteriores..."
+        rm -rf "$NEMO_SCRIPTS_DIR"
+    fi
+    mkdir -p "$NEMO_SCRIPTS_DIR"
+
+    # ── Ações sem input ──────────────────────────────────────────────────────
+
+    make_wrapper "01 - Inicializar repositório (ini).sh" \
+        "bash \"$INSTALL_DIR/git-ini.sh\""
+
+    make_wrapper "06 - Fazer release.sh" \
+        "bash \"$INSTALL_DIR/git-release.sh\""
+
+    make_wrapper "07 - Incrementar versão.sh" \
+        "bash \"$INSTALL_DIR/git-version-inc.sh\""
+
+    make_wrapper "08 - Calcular próxima versão.sh" \
+        "bash \"$INSTALL_DIR/git-version.sh\""
+
+    make_wrapper "09 - Gerar CHANGELOG.sh" \
+        "bash \"$INSTALL_DIR/git-changelog.sh\" --write"
+
+    # ── Ações com input via zenity ───────────────────────────────────────────
+
+    make_wrapper "02 - Nova funcionalidade (feat).sh" \
+'DESC=$(zenity --entry \
+    --title="Git feat" \
+    --text="Descrição da nova funcionalidade:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-feat.sh" "$DESC"'
+
+    make_wrapper "03 - Correção (fix).sh" \
+'DESC=$(zenity --entry \
+    --title="Git fix" \
+    --text="Descrição da correção:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-fix.sh" "$DESC"'
+
+    make_wrapper "04 - Breaking change.sh" \
+'DESC=$(zenity --entry \
+    --title="Git breaking" \
+    --text="Descrição da breaking change:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-breaking.sh" "$DESC"'
+
+    make_wrapper "05 - Commit de documentação (docs).sh" \
+'DESC=$(zenity --entry \
+    --title="Git docs" \
+    --text="Descrição da documentação:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
+
+    echo ""
+    echo "✔ Scripts instalados em: $NEMO_SCRIPTS_DIR"
+    echo ""
+
+    # Garante que o menu Scripts está habilitado no Nemo
+    if command -v gsettings >/dev/null 2>&1; then
+        local current
+        current=$(gsettings get org.nemo.preferences show-scripts-in-context-menus 2>/dev/null || echo "not-set")
+        if [ "$current" != "true" ]; then
+            gsettings set org.nemo.preferences show-scripts-in-context-menus true
+            echo "✔ Menu 'Scripts' habilitado no Nemo via gsettings"
+        else
+            echo "✔ Menu 'Scripts' já estava habilitado"
+        fi
+    else
+        echo "⚠ gsettings não disponível — habilite manualmente em:"
+        echo "   Nemo → Editar → Preferências → Comportamento → Mostrar scripts no menu de contexto"
+    fi
+
+    echo ""
+    echo "👉 Reinicie o Nemo:"
+    echo "   nemo -q && nemo &"
+}
+
+# =============================================================================
+# Principal
+# =============================================================================
+
+echo "🚀 Instalando integração git-tools no Nemo"
+echo ""
+
+check_deps
+check_scripts
+install_nemo
+
+echo ""
+echo "✔ Concluído! Clique com botão direito em uma pasta → Scripts → Git Tools"
