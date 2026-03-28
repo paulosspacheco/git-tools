@@ -3,15 +3,16 @@
 # git-changelog.sh — Gera CHANGELOG baseado nos commits Git
 # =============================================================================
 # Lista commits agrupados por tipo desde a última tag ou versão informada.
-# Opcionalmente salva em CHANGELOG.md.
+# Opcionalmente salva em CHANGELOG.md e/ou CHANGELOG.html.
 #
-# Uso: git-changelog.sh [--write] [versão]
-#   git-changelog.sh            — histórico completo
-#   git-changelog.sh v1.2.0     — mudanças desde a versão informada
+# Uso: git-changelog.sh [--write] [--html] [versão]
+#   git-changelog.sh            — exibe no terminal
 #   git-changelog.sh --write    — salva em CHANGELOG.md
+#   git-changelog.sh --html     — salva em CHANGELOG.md e CHANGELOG.html
+#   git-changelog.sh v1.2.0     — mudanças desde a versão informada
 #
-# Versão: 1.2.0
-# Dependências: git-lib.sh
+# Versão: 1.3.0
+# Dependências: git-lib.sh, pandoc (opcional, para --html)
 # =============================================================================
 
 source "/usr/local/bin/git-lib.sh"
@@ -25,6 +26,7 @@ Conventional Commits. Por padrão exibe no terminal.
 
 Opções:
   --write     Salva o resultado em CHANGELOG.md no diretório atual
+  --html      Salva em CHANGELOG.md e gera CHANGELOG.html (requer pandoc)
   --help      Exibe esta ajuda
 
 Argumentos:
@@ -41,16 +43,19 @@ Tipos de commit reconhecidos:
 
 Exemplos:
   git-changelog.sh
-      Lista todo o histórico
+      Exibe todo o histórico no terminal
 
   git-changelog.sh v0.2.0
-      Lista mudanças desde a tag v0.2.0
+      Exibe mudanças desde a tag v0.2.0
 
   git-changelog.sh --write
       Gera e salva em CHANGELOG.md
 
-  git-changelog.sh --write v0.2.0
-      Gera desde v0.2.0 e salva em CHANGELOG.md
+  git-changelog.sh --html
+      Gera CHANGELOG.md e CHANGELOG.html
+
+  git-changelog.sh --html v0.2.0
+      Gera desde v0.2.0 em .md e .html
 EOF
 }
 
@@ -60,11 +65,13 @@ if [ ! -d ".git" ]; then
 fi
 
 WRITE=false
+HTML=false
 VERSION=""
 
 for arg in "$@"; do
   case "$arg" in
     --write) WRITE=true ;;
+    --html)  HTML=true; WRITE=true ;;
     --help)  show_help; exit 0 ;;
     *)       VERSION="${arg#v}" ;;
   esac
@@ -124,6 +131,17 @@ OUTPUT+="_Gerado automaticamente em $(date "+%Y-%m-%d %H:%M:%S")_\n"
 if [ "$WRITE" = true ]; then
   printf "%b" "$OUTPUT" > CHANGELOG.md
   echo "✔ CHANGELOG.md atualizado"
+
+  if [ "$HTML" = true ]; then
+    if command -v pandoc >/dev/null; then
+      pandoc CHANGELOG.md -o CHANGELOG.html \
+        --metadata title="CHANGELOG" \
+        --standalone
+      echo "✔ CHANGELOG.html gerado"
+    else
+      echo "⚠ pandoc não encontrado — CHANGELOG.html não gerado" >&2
+    fi
+  fi
 else
   printf "%b" "$OUTPUT"
 fi

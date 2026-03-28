@@ -4,6 +4,7 @@
 
 ### ➕ Funcionalidades
 
+- 2026-03-27 20:51 adiciona git-changelog.sh com suporte a datas e filtro de commits automáticos
 - 2026-03-27 20:35 adicionado o script git-changelog.sh para gerar relatório
 - 2026-03-26 21:59 Adicionado o script git-release.sh
 - 2026-03-26 21:46 adiciona o script git-version-inc.sh para calcular o numero da versão de projetos lazarus
@@ -21,4 +22,4 @@
 
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-03-27 20:51:21_
+_Gerado automaticamente em 2026-03-27 21:27:03_

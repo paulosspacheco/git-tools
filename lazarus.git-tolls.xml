@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CONFIG Version="3" Count="5">
+<CONFIG Version="3" Count="8">
   <Tool1>
     <Title Value="Git Feat"/>
     <Filename Value="/usr/local/bin/git-feat.sh"/>
-    <CmdLineParams Value="$Prompt('Descreva a funcionalidade adicionada:')"/>
+    <CmdLineParams Value="$Prompt('Descreva a funcionalidade adicionadas ao projeto:')"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
@@ -44,5 +44,32 @@
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
-  </Tool5>
+  </Tool5>  
+  <Tool6>
+    <Title Value="Git docs"/>
+    <Filename Value="/usr/local/bin/git-docs.sh"/>    
+    <CmdLineParams Value="$Prompt('Descreva o tipo de documento adicionado ao projeto):')"/>    
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool6>
+ <Tool7>
+    <Title Value="Git Changelog"/>
+    <Filename Value="/usr/local/bin/git-changelog.sh"/>
+    <CmdLineParams Value="--write"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool7>    
+  <Tool8>
+    <Title Value="Git Changelog HTML"/>
+    <Filename Value="/usr/local/bin/git-changelog.sh"/>
+    <CmdLineParams Value="--html"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool8>    
 </CONFIG>

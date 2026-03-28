@@ -22,6 +22,7 @@ SCRIPTS=(
   git-feat.sh
   git-fix.sh
   git-breaking.sh
+  git-docs.sh    
   git-version.sh
   git-version-inc.sh
   git-generator-lcl.sh

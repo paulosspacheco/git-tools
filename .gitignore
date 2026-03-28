@@ -1,4 +1,4 @@
-# Binários e compilados
+# Binários e compilados do free pascal
 *.o
 *.a
 *.so
@@ -22,5 +22,4 @@ lib/
 .env
 *.key
 *.pem
-"#*.md"
 tree.txt
