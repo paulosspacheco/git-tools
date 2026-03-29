@@ -5,29 +5,27 @@
 # Realiza um commit do tipo fix seguindo o padrão Conventional Commits.
 # Adiciona todos os arquivos modificados e cria o commit com prefixo fix:
 #
-# Uso: ./git-fix.sh ["mensagem"]
+# Uso: git-fix.sh ["mensagem"]
 #
-# Versão: 1.0.0
+# Versão: 1.1.0
 # Dependências: git-lib.sh
 # =============================================================================
 
-source "$(dirname "$0")/git-lib.sh"
+source "/usr/local/bin/git-lib.sh"
 
-# ask_required MSG "Mensagem do fix" "$1"
+if [ ! -d ".git" ]; then
+  echo "❌ Nenhum repositório Git encontrado. Execute git-ini.sh primeiro." >&2
+  exit 1
+fi
 
-# git add .
-# git commit -m "fix: $MSG"
-# ask_confirm ch "✔ Adicionando o fix: $MSG"
-
-# 1. Tipo sempre precisa
+# 1. Tipo de correção
 ask_select ACAO "Tipo de correção:" corrige ajusta resolve melhora || exit 1
 
-# 2. Se veio da LCL, usa direto
+# 2. Mensagem
 if [ -n "$1" ]; then
   MSG="$1"
 else
-#   ask_required MSG "Descreva o problema" ""
-  ask_required MSG "Tipo: $ACAO\n\nDescreva o problema" ""
+  ask_required MSG "Tipo: $ACAO\n\nDescreva o problema" "" || exit 1
 fi
 
 # 3. Monta mensagem
@@ -35,10 +33,9 @@ COMMIT_MSG="fix: $ACAO : $MSG"
 
 # 4. Confirma
 ask_confirm CONFIRM "Confirma o commit?\n\n$COMMIT_MSG"
-
 if [ "$CONFIRM" != "s" ]; then
   notify_info "❌ Commit cancelado"
-  exit 1
+  exit 0
 fi
 
 # 5. Commit
@@ -46,4 +43,3 @@ git add .
 git commit -m "$COMMIT_MSG"
 
 notify_info "✔ Commit realizado:\n$COMMIT_MSG"
-

@@ -4,6 +4,7 @@
 
 ### ➕ Funcionalidades
 
+- 2026-03-29 17:41 Adiciona função ask_select em git-lib.sh
 - 2026-03-29 12:20 Ajuste do script git-lib para que detecte quando o script foi executado do gerenciador de arquivos.
 - 2026-03-29 12:11 Foi apagao o arquivo. t.txt pois o mesmo não faz nada.
 - 2026-03-29 11:21 Adicionados os scripts git-reset.sh e git-undo-reset.sh ao projeto git-tools.
@@ -39,4 +40,4 @@
 
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-03-29 17:34:57_
+_Gerado automaticamente em 2026-03-29 17:41:36_

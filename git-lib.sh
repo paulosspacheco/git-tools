@@ -5,11 +5,13 @@
 # Fornece funções auxiliares para:
 #   - Leitura de parâmetros obrigatórios com fallback interativo
 #   - Confirmação interativa padronizada (terminal ou zenity)
+#   - Exibição de notificações e arquivos
+#   - Seleção interativa de opções
 #   - Carregamento seguro de configurações por projeto (.gitproject)
 #
 # Uso: source git-lib.sh
 #
-# Versão: 1.2.0
+# Versão: 1.3.0
 # =============================================================================
 
 _has_display() {
@@ -57,13 +59,6 @@ ask_confirm() {
     read -rp "$prompt [S/n]: " _out
     _out="${_out:-$default}"
   fi
-}
-
-load_config() {
-  [ -f ".gitproject" ] || return 0
-  while IFS='=' read -r key value; do
-    [[ "$key" =~ ^[A-Z_]+$ ]] && export "$key=$value"
-  done < .gitproject
 }
 
 notify_info() {
@@ -115,4 +110,11 @@ ask_select() {
       fi
     done
   fi
+}
+
+load_config() {
+  [ -f ".gitproject" ] || return 0
+  while IFS='=' read -r key value; do
+    [[ "$key" =~ ^[A-Z_]+$ ]] && export "$key=$value"
+  done < .gitproject
 }
