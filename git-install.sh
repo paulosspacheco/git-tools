@@ -31,6 +31,8 @@ SCRIPTS=(
   git-release.sh
   git-changelog.sh  
   git-docs.sh
+  git-reset.sh  
+  git-undo-reset.sh
 )
 
 echo "🚀 Instalando git-tools em $INSTALL_DIR"
