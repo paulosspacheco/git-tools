@@ -4,6 +4,7 @@
 
 ### ➕ Funcionalidades
 
+- 2026-03-29 20:39 adiciona : git-feat.sh - Adicionado opção de leitura de documento gráfico usando o zenity
 - 2026-03-29 17:41 Adiciona função ask_select em git-lib.sh
 - 2026-03-29 12:20 Ajuste do script git-lib para que detecte quando o script foi executado do gerenciador de arquivos.
 - 2026-03-29 12:11 Foi apagao o arquivo. t.txt pois o mesmo não faz nada.
@@ -25,6 +26,7 @@
 - 2026-03-26 21:17 inicialização do projeto
 ### 🐛 Correções
 
+- 2026-03-29 20:33 melhora :  verificam se há repositório antes de executar o script git-fix.sh
 - 2026-03-29 17:34 ajusta :  Adicionados dois pontos entre a ação e a mensagem no script git-fix.sh.
 - 2026-03-29 17:03 melhora padronizar as mensagens do script git-fix.sh
 - 2026-03-29 12:10 Os scripts git-lib.sh, git-reset.sh e git-undo-reset.sh foram ajustados para que restaurassem o número da versão desfeita .
@@ -40,4 +42,4 @@
 
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-03-29 17:41:36_
+_Gerado automaticamente em 2026-03-29 20:39:25_
