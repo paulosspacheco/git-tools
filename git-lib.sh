@@ -65,3 +65,54 @@ load_config() {
     [[ "$key" =~ ^[A-Z_]+$ ]] && export "$key=$value"
   done < .gitproject
 }
+
+notify_info() {
+  local msg="$1"
+
+  if _has_display && command -v zenity >/dev/null; then
+    zenity --info \
+           --title="Git Tools" \
+           --text="$msg" \
+           --width=400 2>/dev/null
+  else
+    echo -e "$msg"
+  fi
+}
+
+view_file() {
+  local file="$1"
+
+  if _has_display && command -v zenity >/dev/null; then
+    zenity --text-info \
+           --title="$file" \
+           --filename="$file" \
+           --width=700 \
+           --height=500 2>/dev/null
+  else
+    less "$file"
+  fi
+}
+
+ask_select() {
+  local -n _out=$1
+  local title="$2"
+  shift 2
+  local options=("$@")
+
+  if _has_display && command -v zenity >/dev/null; then
+    _out=$(zenity --list \
+      --title="Git Tools" \
+      --text="$title" \
+      --column="Opção" \
+      "${options[@]}" \
+      --height=300 --width=400 2>/dev/null) || return 1
+  else
+    echo "$title"
+    select opt in "${options[@]}"; do
+      if [ -n "$opt" ]; then
+        _out="$opt"
+        break
+      fi
+    done
+  fi
+}

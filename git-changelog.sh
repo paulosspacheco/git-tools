@@ -128,9 +128,27 @@ fi
 OUTPUT+="\n---\n"
 OUTPUT+="_Gerado automaticamente em $(date "+%Y-%m-%d %H:%M:%S")_\n"
 
+
 if [ "$WRITE" = true ]; then
   printf "%b" "$OUTPUT" > CHANGELOG.md
   echo "✔ CHANGELOG.md atualizado"
+
+  # Notificação para quem executa via gerenciador de arquivos
+  ask_confirm ver_relatorio "✔ Relatório CHANGELOG.md gerado na pasta atual.\n\nDeseja visualizar agora?"
+
+  if [ "$ver_relatorio" = "s" ]; then
+    if command -v x-terminal-emulator >/dev/null; then
+      x-terminal-emulator -e "less CHANGELOG.md"
+    elif command -v gnome-terminal >/dev/null; then
+      gnome-terminal -- bash -c "less CHANGELOG.md; exec bash"
+    elif command -v konsole >/dev/null; then
+      konsole -e less CHANGELOG.md
+    elif command -v xfce4-terminal >/dev/null; then
+      xfce4-terminal -e "less CHANGELOG.md"
+    else
+      echo "⚠ Nenhum terminal gráfico encontrado para exibir o relatório." >&2
+    fi
+  fi
 
   if [ "$HTML" = true ]; then
     if command -v pandoc >/dev/null; then

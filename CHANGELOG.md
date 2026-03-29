@@ -4,6 +4,7 @@
 
 ### ➕ Funcionalidades
 
+- 2026-03-29 12:20 Ajuste do script git-lib para que detecte quando o script foi executado do gerenciador de arquivos.
 - 2026-03-29 12:11 Foi apagao o arquivo. t.txt pois o mesmo não faz nada.
 - 2026-03-29 11:21 Adicionados os scripts git-reset.sh e git-undo-reset.sh ao projeto git-tools.
 - 2026-03-28 17:10 Adicionado o script git-add-navigator-doelphin.sh para adicionar o submenu no gerenciador de arquivos do KDE Dolphin.
@@ -36,4 +37,4 @@
 
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-03-29 12:11:41_
+_Gerado automaticamente em 2026-03-29 16:45:06_
