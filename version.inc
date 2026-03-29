@@ -1,3 +1,3 @@
 const
-  VERSION_STR = '0.7.1';
-  BUILD_DATE  = '2026-03-28 18:06:14';
+  VERSION_STR = '0.8.0';
+  BUILD_DATE  = '2026-03-29 12:18:26';
