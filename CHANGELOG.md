@@ -24,6 +24,7 @@
 - 2026-03-26 21:17 inicialização do projeto
 ### 🐛 Correções
 
+- 2026-03-29 17:03 melhora padronizar as mensagens do script git-fix.sh
 - 2026-03-29 12:10 Os scripts git-lib.sh, git-reset.sh e git-undo-reset.sh foram ajustados para que restaurassem o número da versão desfeita .
 - 2026-03-28 16:01 O nome do script git-add-navigator.sh foi trocado para git-add-navigator-nemo.sh.
 - 2026-03-28 14:30 Adicionada a opção de perguntar se inicia o repositório na pasta em que o script git-add-nevigator.sh for executado e a mesma não é repositório.
@@ -37,4 +38,4 @@
 
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-03-29 16:45:06_
+_Gerado automaticamente em 2026-03-29 17:30:40_

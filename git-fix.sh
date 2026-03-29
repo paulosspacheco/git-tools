@@ -31,7 +31,7 @@ else
 fi
 
 # 3. Monta mensagem
-COMMIT_MSG="fix: $ACAO $MSG"
+COMMIT_MSG="fix: $ACAO : $MSG"
 
 # 4. Confirma
 ask_confirm CONFIRM "Confirma o commit?\n\n$COMMIT_MSG"
