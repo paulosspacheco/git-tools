@@ -4,11 +4,12 @@
 # =============================================================================
 # Fornece funções auxiliares para:
 #   - Leitura de parâmetros obrigatórios com fallback interativo
+#   - Confirmação interativa padronizada
 #   - Carregamento seguro de configurações por projeto (.gitproject)
 #
 # Uso: source git-lib.sh
 #
-# Versão: 1.0.0
+# Versão: 1.1.0
 # =============================================================================
 
 ask_required() {
@@ -26,6 +27,15 @@ ask_required() {
   fi
 
   _out="$value"
+}
+
+ask_confirm() {
+  local -n _out=$1
+  local prompt="$2"
+  local default="${3:-s}"
+
+  read -rp "$prompt [S/n]: " _out
+  _out="${_out:-$default}"
 }
 
 load_config() {

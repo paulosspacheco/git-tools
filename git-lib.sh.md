@@ -1,8 +1,8 @@
 # git-lib.sh
 
-Biblioteca utilitária para scripts Git em Bash. Fornece funções auxiliares para leitura de parâmetros obrigatórios e carregamento seguro de configurações por projeto.
+Biblioteca utilitária para scripts Git em Bash. Fornece funções auxiliares para leitura de parâmetros obrigatórios, confirmação interativa e carregamento seguro de configurações por projeto.
 
-**Versão:** 1.0.0  
+**Versão:** 1.1.0  
 **Uso:** `source git-lib.sh`  
 **Requisito:** Bash 4.3+ (nameref)
 
@@ -41,6 +41,41 @@ echo "Branch: $BRANCH"
 
 ---
 
+### `ask_confirm <var> <prompt> [default]`
+
+Solicita uma confirmação interativa ao usuário. Exibe `[S/n]` e atribui a resposta à variável indicada por `var`. Se o usuário pressionar Enter sem digitar nada, usa o valor padrão.
+
+**Parâmetros**
+
+| Parâmetro | Descrição |
+|-----------|-----------|
+| `var` | Nome da variável de saída (nameref) |
+| `prompt` | Texto exibido ao solicitar confirmação |
+| `default` | Valor padrão se Enter for pressionado (`s` por padrão) |
+
+**Retorno**
+
+- `0` — sempre; a decisão de continuar ou abortar é do script chamador
+
+**Exemplo**
+
+```bash
+source git-lib.sh
+
+ask_confirm CONFIRM "Deseja continuar?" "n"
+if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then
+  echo "Cancelado."
+  exit 0
+fi
+
+ask_confirm REMOVE "Remover arquivo?" "s"
+if [[ ! "$REMOVE" =~ ^[Nn]$ ]]; then
+  rm arquivo.txt
+fi
+```
+
+---
+
 ### `load_config`
 
 Carrega variáveis do arquivo `.gitproject` no diretório atual, se existir. Apenas chaves compostas por letras maiúsculas e `_` (`A-Z_`) são aceitas, prevenindo execução de código arbitrário.
@@ -48,9 +83,8 @@ Carrega variáveis do arquivo `.gitproject` no diretório atual, se existir. Ape
 **Formato esperado do `.gitproject`**
 
 ```
-REPO=meu-repositorio
-BRANCH=main
-REMOTE=origin
+PROJECT_NAME=meu-projeto
+VERSION=0.3.0
 ```
 
 **Retorno**
@@ -63,7 +97,7 @@ REMOTE=origin
 source git-lib.sh
 load_config
 
-echo "Branch padrão: $BRANCH"
+echo "Versão atual: $VERSION"
 ```
 
 ---
@@ -72,16 +106,20 @@ echo "Branch padrão: $BRANCH"
 
 ```bash
 #!/bin/bash
-# git-lib.sh
-
 source git-lib.sh
 
 load_config
 
-ask_required REPO   "Repositório" "$REPO"
-ask_required BRANCH "Branch"      "$BRANCH"
+ask_required PROJECT_NAME "Nome do projeto" "$PROJECT_NAME"
+ask_required BRANCH       "Branch"          "main"
 
-echo "→ $REPO @ $BRANCH"
+ask_confirm CONFIRM "Confirmar inicialização?" "s"
+if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then
+  echo "Cancelado."
+  exit 0
+fi
+
+echo "→ $PROJECT_NAME @ $BRANCH"
 ```
 
 ---
@@ -89,7 +127,7 @@ echo "→ $REPO @ $BRANCH"
 ## Segurança
 
 - `load_config` usa parser manual em vez de `source`, aceitando apenas chaves `A-Z_`; valores não são validados — evite expor o `.gitproject` a entradas não confiáveis
-- `ask_required` usa `read -r`, preservando barras invertidas em caminhos Windows (`C:\Users\...`)
+- `ask_required` e `ask_confirm` usam `read -r`, preservando barras invertidas em caminhos Windows (`C:\Users\...`)
 - Mensagens de erro vão para stderr, mantendo stdout limpo para captura
 
 ---

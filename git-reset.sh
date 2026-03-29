@@ -4,16 +4,15 @@
 # =============================================================================
 # Reverte o repositório para o estado do penúltimo commit, descartando
 # permanentemente todas as mudanças não commitadas.
+# Detecta automaticamente se o commit removido era um bump de versão e
+# oferece remover a tag correspondente.
 #
-# ⚠️  ATENÇÃO: Este comando vai fazer o seguinte:
-#    • Apagar o último commit
-#    • Descartar TODAS as alterações nos arquivos
-#    • Arquivos nunca commitados serão perdidos permanentemente
-#    • Commits podem ser recuperados via git-undo-reset.sh
+# ℹ️  Commits podem ser recuperados com git-undo-reset.sh
+# ⚠️  Arquivos NUNCA commitados serão perdidos permanentemente
 #
 # Uso: git-reset.sh
 #
-# Versão: 1.0.0
+# Versão: 1.3.0
 # Dependências: git-lib.sh
 # =============================================================================
 
@@ -32,16 +31,33 @@ echo "ℹ️  O commit pode ser recuperado com git-undo-reset.sh"
 echo "   Arquivos NUNCA commitados serão perdidos permanentemente"
 echo ""
 
-read -rp "Tem certeza que deseja continuar? (digite 'sim' para confirmar): " CONFIRM
-
-if [[ "$CONFIRM" != "sim" && "$CONFIRM" != "SIM" ]]; then
+ask_confirm CONFIRM "Tem certeza que deseja continuar?" "n"
+if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then
   echo "⚠ Operação cancelada pelo usuário."
   exit 0
 fi
 
-echo "Executando git reset --hard HEAD~1 ..."
+# Captura informações do commit antes do reset
+REMOVED_MSG=$(git log --format="%s" HEAD -1)
+LAST_TAG=$(git tag --sort=-version:refname | head -1)
 
+echo ""
+echo "Executando git reset --hard HEAD~1 ..."
 git reset --hard HEAD~1
 
 echo ""
 echo "✔ Reset concluído — você está 1 commit atrás."
+
+# Detecta se o commit removido era um bump de versão
+if [[ "$REMOVED_MSG" == "chore: bump version"* ]]; then
+  echo ""
+  echo "ℹ️  O commit removido era um bump de versão ($LAST_TAG)"
+  echo "   Manter a tag pode causar inconsistência com a versão atual."
+  ask_confirm TAG_CONFIRM "Remover a tag $LAST_TAG?" "s"
+  if [[ ! "$TAG_CONFIRM" =~ ^[Nn]$ ]]; then
+    git tag -d "$LAST_TAG"
+    echo "✔ Tag $LAST_TAG removida"
+  else
+    echo "⚠ Tag $LAST_TAG mantida — execute git-version.sh com cuidado"
+  fi
+fi
