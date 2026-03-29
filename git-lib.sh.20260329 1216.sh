@@ -4,17 +4,13 @@
 # =============================================================================
 # Fornece funções auxiliares para:
 #   - Leitura de parâmetros obrigatórios com fallback interativo
-#   - Confirmação interativa padronizada (terminal ou zenity)
+#   - Confirmação interativa padronizada
 #   - Carregamento seguro de configurações por projeto (.gitproject)
 #
 # Uso: source git-lib.sh
 #
-# Versão: 1.2.0
+# Versão: 1.1.0
 # =============================================================================
-
-_has_display() {
-  [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]
-}
 
 ask_required() {
   local -n _out=$1
@@ -22,11 +18,7 @@ ask_required() {
   local value="$3"
 
   if [ -z "$value" ]; then
-    if _has_display && command -v zenity >/dev/null; then
-      value=$(zenity --entry --title="Git Tools" --text="$prompt:" --width=400) || return 1
-    else
-      read -rp "$prompt: " value
-    fi
+    read -rp "$prompt: " value
   fi
 
   if [ -z "$value" ]; then
@@ -42,21 +34,8 @@ ask_confirm() {
   local prompt="$2"
   local default="${3:-s}"
 
-  if _has_display && command -v zenity >/dev/null; then
-    if zenity --question \
-              --title="Git Tools" \
-              --text="$prompt" \
-              --ok-label="Sim" \
-              --cancel-label="Não" \
-              --width=380 2>/dev/null; then
-      _out="s"
-    else
-      _out="n"
-    fi
-  else
-    read -rp "$prompt [S/n]: " _out
-    _out="${_out:-$default}"
-  fi
+  read -rp "$prompt [S/n]: " _out
+  _out="${_out:-$default}"
 }
 
 load_config() {

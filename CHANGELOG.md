@@ -4,6 +4,8 @@
 
 ### ➕ Funcionalidades
 
+- 2026-03-29 12:11 Foi apagao o arquivo. t.txt pois o mesmo não faz nada.
+- 2026-03-29 11:21 Adicionados os scripts git-reset.sh e git-undo-reset.sh ao projeto git-tools.
 - 2026-03-28 17:10 Adicionado o script git-add-navigator-doelphin.sh para adicionar o submenu no gerenciador de arquivos do KDE Dolphin.
 - 2026-03-28 15:54 Adicionado o script git-add-navigator-nautilus.sh para adicionar o submenu no gerenciador de arquivos Nautilus.
 - 2026-03-28 14:47 Adiciona ao script git-changelog.sh uma coluna com o número da versão do projeto.
@@ -21,6 +23,7 @@
 - 2026-03-26 21:17 inicialização do projeto
 ### 🐛 Correções
 
+- 2026-03-29 12:10 Os scripts git-lib.sh, git-reset.sh e git-undo-reset.sh foram ajustados para que restaurassem o número da versão desfeita .
 - 2026-03-28 16:01 O nome do script git-add-navigator.sh foi trocado para git-add-navigator-nemo.sh.
 - 2026-03-28 14:30 Adicionada a opção de perguntar se inicia o repositório na pasta em que o script git-add-nevigator.sh for executado e a mesma não é repositório.
 - 2026-03-27 11:33 Alterado o formato do arquivo version.inc para formato pascal
@@ -33,4 +36,4 @@
 
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-03-28 18:15:37_
+_Gerado automaticamente em 2026-03-29 12:11:41_
