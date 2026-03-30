@@ -1,7 +1,14 @@
 #!/bin/bash
 # =============================================================================
 # git-add-navigator-nemo.sh — Integração git-tools no Nemo
-# Versão: 0.4.0
+# =============================================================================
+# Instala wrappers dos scripts git-tools no menu de contexto do Nemo,
+# permitindo uso direto pelo botão direito em qualquer pasta.
+#
+# Uso: ./git-add-navigator-nemo.sh
+#
+# Versão: 1.1.0
+# Dependências: git-lib.sh, zenity, git, pandoc
 # =============================================================================
 
 set -e
@@ -15,21 +22,26 @@ NEMO_SCRIPTS_DIR="$HOME/.local/share/nemo/scripts/Git Tools"
 
 check_deps() {
     local missing=()
-    for cmd in zenity git; do
+    for cmd in zenity git pandoc; do
         command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
     done
     if [ ${#missing[@]} -gt 0 ]; then
         echo "⚠ Dependências ausentes: ${missing[*]}"
-        echo "  Instale com: sudo apt install ${missing[*]}"
-        echo ""
+        echo "  Instalando..."
+        sudo apt update -qq
+        sudo apt install -y "${missing[@]}"
+        echo "✔ Dependências instaladas"
+    else
+        echo "✔ Dependências OK"
     fi
 }
 
 check_scripts() {
     local missing=()
-    for script in git-feat.sh git-fix.sh git-breaking.sh git-docs.sh \
-                  git-changelog.sh git-ini.sh git-release.sh \
-                  git-version-inc.sh git-version.sh; do
+    for script in git-feat.sh git-fix.sh git-breaking.sh git-refactor.sh \
+                  git-docs.sh git-changelog.sh git-ini.sh git-release.sh \
+                  git-version-inc.sh git-version.sh \
+                  git-reset.sh git-undo-reset.sh; do
         [ -f "$INSTALL_DIR/$script" ] || missing+=("$script")
     done
     if [ ${#missing[@]} -gt 0 ]; then
@@ -63,7 +75,6 @@ _write_git_guard() {
         '        --ok-label="Inicializar" \' \
         '        --cancel-label="Cancelar" \' \
         '        --width=380 || exit 0'
-    # $INSTALL_DIR expande aqui (tempo de instalação) — correto
     printf '    bash "%s/git-ini.sh"\n' "$INSTALL_DIR"
     printf '%s\n' \
         '    git -C "$TARGET" rev-parse --git-dir > /dev/null 2>&1 || exit 1' \
@@ -145,7 +156,15 @@ bash "'"$INSTALL_DIR"'/git-fix.sh" "$DESC"'
 [ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
 bash "'"$INSTALL_DIR"'/git-breaking.sh" "$DESC"'
 
-    make_wrapper_git "05 - Commit de documentação (docs).sh" \
+    make_wrapper_git "05 - Refatoração (refactor).sh" \
+'DESC=$(zenity --entry \
+    --title="Git refactor" \
+    --text="Descrição da refatoração:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-refactor.sh" "$DESC"'
+
+    make_wrapper_git "06 - Commit de documentação (docs).sh" \
 'DESC=$(zenity --entry \
     --title="Git docs" \
     --text="Descrição da documentação:" \
@@ -155,17 +174,28 @@ bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
 
     # ── Com guarda git, sem input ─────────────────────────────────────────────
 
-    make_wrapper_git "06 - Fazer release.sh" \
+    make_wrapper_git "07 - Fazer release.sh" \
         "bash \"$INSTALL_DIR/git-release.sh\""
 
-    make_wrapper_git "07 - Incrementar versão.sh" \
+    make_wrapper_git "08 - Incrementar versão.sh" \
         "bash \"$INSTALL_DIR/git-version-inc.sh\""
 
-    make_wrapper_git "08 - Calcular próxima versão.sh" \
+    make_wrapper_git "09 - Calcular próxima versão.sh" \
         "bash \"$INSTALL_DIR/git-version.sh\""
 
-    make_wrapper_git "09 - Gerar CHANGELOG.sh" \
+    make_wrapper_git "10 - Gerar CHANGELOG.sh" \
         "bash \"$INSTALL_DIR/git-changelog.sh\" --write"
+
+    make_wrapper_git "11 - Gerar CHANGELOG HTML.sh" \
+        "bash \"$INSTALL_DIR/git-changelog.sh\" --html"
+
+    # ── Recuperação ──────────────────────────────────────────────────────────
+
+    make_wrapper_git "12 - Desfazer último commit (reset).sh" \
+        "bash \"$INSTALL_DIR/git-reset.sh\""
+
+    make_wrapper_git "13 - Recuperar commit desfeito (undo reset).sh" \
+        "bash \"$INSTALL_DIR/git-undo-reset.sh\""
 
     echo ""
     echo "✔ Scripts instalados em: $NEMO_SCRIPTS_DIR"
