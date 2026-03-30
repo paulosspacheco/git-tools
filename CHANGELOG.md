@@ -4,6 +4,7 @@
 
 ### ➕ Funcionalidades
 
+- 2026-03-29 20:43 adiciona : gigit-breaking.sh - Adicionada a opção de leitura das mensagens usando zenity.
 - 2026-03-29 20:39 adiciona : git-feat.sh - Adicionado opção de leitura de documento gráfico usando o zenity
 - 2026-03-29 17:41 Adiciona função ask_select em git-lib.sh
 - 2026-03-29 12:20 Ajuste do script git-lib para que detecte quando o script foi executado do gerenciador de arquivos.
@@ -42,4 +43,4 @@
 
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-03-29 20:39:25_
+_Gerado automaticamente em 2026-03-29 20:44:26_

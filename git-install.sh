@@ -9,10 +9,36 @@
 #
 # Uso: ./git-install.sh
 #
-# Versão: 3.2.0 (sem executar o Lazarus)
+# Versão: 3.3.0
 # =============================================================================
 
 set -e
+
+# =============================================================================
+# Dependências
+# =============================================================================
+
+install_deps() {
+  local missing=()
+
+  for cmd in zenity git pandoc; do
+    command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
+  done
+
+  if [ ${#missing[@]} -gt 0 ]; then
+    echo "⚠ Dependências ausentes: ${missing[*]}"
+    echo "  Instalando..."
+    sudo apt update -qq
+    sudo apt install -y "${missing[@]}"
+    echo "✔ Dependências instaladas"
+  else
+    echo "✔ Dependências OK"
+  fi
+}
+
+echo "🔍 Verificando dependências..."
+install_deps
+
 
 INSTALL_DIR="/usr/local/bin"
 SCRIPT_DIR="$(dirname "$0")"
@@ -25,13 +51,14 @@ SCRIPTS=(
   git-feat.sh
   git-fix.sh
   git-breaking.sh
+  git-refactor.sh
   git-version.sh
   git-version-inc.sh
   git-generator-lcl.sh
   git-release.sh
-  git-changelog.sh  
+  git-changelog.sh
   git-docs.sh
-  git-reset.sh  
+  git-reset.sh
   git-undo-reset.sh
 )
 
@@ -60,19 +87,20 @@ echo ""
 echo "🔧 Gerando arquivo de importação para o Lazarus (lazarus.git-tools.xml)..."
 XML_FILE="lazarus.git-tools.xml"
 
-# Lista das ferramentas a serem incluídas
 TOOLS=(
-  "Git Feat|git-feat.sh|\$Prompt('Descreva a funcionalidade adicionadas ao projeto:')"
+  "Git Feat|git-feat.sh|\$Prompt('Descreva a funcionalidade adicionada ao projeto:')"
   "Git Fix|git-fix.sh|\$Prompt('Descreva a correção realizada:')"
   "Git Breaking|git-breaking.sh|\$Prompt('Breaking change (impacto):')"
+  "Git Refactor|git-refactor.sh|\$Prompt('Descreva a refatoração:')"
+  "Git Docs|git-docs.sh|\$Prompt('Descreva o documento adicionado ao projeto:')"
   "Git Release|git-release.sh|"
   "Git Version Inc|git-version-inc.sh|"
-  "Git docs|git-docs.sh|\$Prompt('Descreva o tipo de documento adicionado ao projeto):')"
   "Git Changelog|git-changelog.sh|--write"
   "Git Changelog HTML|git-changelog.sh|--html"
+  "Git Reset|git-reset.sh|"
+  "Git Undo Reset|git-undo-reset.sh|"
 )
 
-# Gerar XML
 echo '<?xml version="1.0" encoding="UTF-8"?>' > "$XML_FILE"
 echo "<CONFIG Version=\"3\" Count=\"${#TOOLS[@]}\">" >> "$XML_FILE"
 
@@ -99,36 +127,26 @@ echo ""
 # Localizar e editar automaticamente o environmentoptions.xml
 # =============================================================================
 
-# Lista de possíveis locais (ordem de preferência)
 CANDIDATES=(
   "$HOME/.lazarus/environmentoptions.xml"
   "/etc/lazarus/environmentoptions.xml"
   "$HOME/Lazarus/lazarus-fixe/config_lazarus/environmentoptions.xml"
   "$HOME/Lazarus/config_lazarus/environmentoptions.xml"
-  "$HOME/Lazarus*/config_lazarus/environmentoptions.xml"  # wildcard não funciona diretamente
 )
 
-# Expande wildcards
 EXPANDED_CANDIDATES=()
 for cand in "${CANDIDATES[@]}"; do
-  if [[ "$cand" == *"*"* ]]; then
-    # Usa globbing
-    for file in $cand; do
-      [ -f "$file" ] && EXPANDED_CANDIDATES+=("$file")
-    done
-  else
-    [ -f "$cand" ] && EXPANDED_CANDIDATES+=("$cand")
-  fi
+  [ -f "$cand" ] && EXPANDED_CANDIDATES+=("$cand")
 done
 
-# Também busca em ~/Lazarus* de forma recursiva (limitado a 3 níveis)
 if [ ${#EXPANDED_CANDIDATES[@]} -eq 0 ]; then
   while IFS= read -r file; do
     EXPANDED_CANDIDATES+=("$file")
-  done < <(find "$HOME" -maxdepth 3 -path "*/Lazarus*/config_lazarus/environmentoptions.xml" 2>/dev/null)
+  done < <(find "$HOME" /mnt -maxdepth 5 -name "environmentoptions.xml" 2>/dev/null \
+    | grep "config_lazarus")
 fi
 
-LAZ_CONFIG="${EXPANDED_CANDIDATES[0]}"  # pega o primeiro encontrado
+LAZ_CONFIG="${EXPANDED_CANDIDATES[0]}"
 
 if [ -n "$LAZ_CONFIG" ] && [ -f "$LAZ_CONFIG" ]; then
   echo "✔ Arquivo de configuração do Lazarus encontrado: $LAZ_CONFIG"
@@ -136,22 +154,20 @@ else
   echo "⚠ Não foi possível localizar automaticamente o environmentoptions.xml."
   echo ""
 
-  # Tentar seleção gráfica
   if command -v zenity &>/dev/null || command -v kdialog &>/dev/null; then
     echo "🔍 Deseja localizar o arquivo manualmente usando uma janela gráfica? [S/n]"
     read -r answer
     if [[ ! "$answer" =~ ^[Nn]$ ]]; then
       if command -v zenity &>/dev/null; then
-        LAZ_CONFIG=$(zenity --file-selection --title="Selecione o arquivo environmentoptions.xml" --file-filter="*.xml" 2>/dev/null)
+        LAZ_CONFIG=$(zenity --file-selection \
+          --title="Selecione o arquivo environmentoptions.xml" \
+          --file-filter="*.xml" 2>/dev/null)
       elif command -v kdialog &>/dev/null; then
         LAZ_CONFIG=$(kdialog --getopenfilename "$HOME" "*.xml" 2>/dev/null)
       fi
-      if [ -z "$LAZ_CONFIG" ]; then
-        echo "❌ Nenhum arquivo selecionado."
-      fi
+      [ -z "$LAZ_CONFIG" ] && echo "❌ Nenhum arquivo selecionado."
     fi
   else
-    # Sem GUI, pergunta se quer digitar
     echo "🔍 Deseja fornecer o caminho manualmente? [s/N]"
     read -r answer
     if [[ "$answer" =~ ^[Ss]$ ]]; then
@@ -171,9 +187,7 @@ else
   fi
 fi
 
-# Se temos um arquivo válido, prosseguir com a edição
 if [ -n "$LAZ_CONFIG" ] && [ -f "$LAZ_CONFIG" ]; then
-  # Backup (apenas se não existir)
   BACKUP="${LAZ_CONFIG}.bak"
   if [ ! -f "$BACKUP" ]; then
     cp "$LAZ_CONFIG" "$BACKUP"
@@ -182,16 +196,13 @@ if [ -n "$LAZ_CONFIG" ] && [ -f "$LAZ_CONFIG" ]; then
     echo "⚠ Backup já existe: $BACKUP (não sobrescrito)"
   fi
 
-  # Remover a seção <ExternalTools> existente
   sed -i '/<ExternalTools/,/<\/ExternalTools>/d' "$LAZ_CONFIG"
 
-  # Localizar a linha de fechamento </EnvironmentOptions>
   END_ENV_LINE=$(grep -n "</EnvironmentOptions>" "$LAZ_CONFIG" | head -1 | cut -d: -f1)
   if [ -z "$END_ENV_LINE" ]; then
     echo "❌ Não foi possível localizar </EnvironmentOptions>. Integração automática cancelada."
     echo "👉 Importe o arquivo $XML_FILE manualmente no Lazarus (Tools → Configure External Tools → Import)."
   else
-    # Montar bloco de ferramentas com Count
     BLOCK="  <ExternalTools Version=\"3\" Count=\"${#TOOLS[@]}\">\n"
     idx=1
     for tool in "${TOOLS[@]}"; do
@@ -212,7 +223,6 @@ if [ -n "$LAZ_CONFIG" ] && [ -f "$LAZ_CONFIG" ]; then
     done
     BLOCK+="  </ExternalTools>\n"
 
-    # Inserir o bloco antes da linha de fechamento
     sed -i "${END_ENV_LINE}i\\${BLOCK}" "$LAZ_CONFIG"
 
     echo "🎯 Ferramentas adicionadas ao menu Tools do Lazarus!"
@@ -221,49 +231,44 @@ if [ -n "$LAZ_CONFIG" ] && [ -f "$LAZ_CONFIG" ]; then
 fi
 
 # =============================================================================
-# Configuração de aliases no .bashrc (automática, se não existir)
+# Configuração de aliases no .bashrc
 # =============================================================================
 
 echo ""
 echo "🔧 Configuração de aliases no bash"
 
 BASHRC="$HOME/.bashrc"
-ALIAS_BLOCK_START="# ============================================"
-ALIAS_BLOCK_END="# ============================================"
 ALIAS_HEADER="# GIT-TOOLS ALIASES - Gerado por git-install.sh"
 
 if grep -q "GIT-TOOLS ALIASES" "$BASHRC" 2>/dev/null; then
   echo "✔ Aliases já configurados em ~/.bashrc."
 else
-  # Criar o bloco de aliases
-  ALIAS_LINES=()
   declare -A ALIAS_MAP=(
     ["git-feat"]="git-feat.sh"
     ["git-fix"]="git-fix.sh"
     ["git-breaking"]="git-breaking.sh"
+    ["git-refactor"]="git-refactor.sh"
+    ["git-docs"]="git-docs.sh"
     ["git-release"]="git-release.sh"
     ["git-version-inc"]="git-version-inc.sh"
     ["git-version"]="git-version.sh"
-    ["git-docs"]="git-docs.sh"
     ["git-changelog"]="git-changelog.sh"
     ["git-ini"]="git-ini.sh"
     ["git-config"]="git-config.sh"
     ["git-hook"]="git-hook.sh"
+    ["git-reset"]="git-reset.sh"
+    ["git-undo-reset"]="git-undo-reset.sh"
   )
-
-  for alias_name in "${!ALIAS_MAP[@]}"; do
-    ALIAS_LINES+=("alias $alias_name='bash \"$INSTALL_DIR/${ALIAS_MAP[$alias_name]}\"'")
-  done
 
   {
     echo ""
-    echo "$ALIAS_BLOCK_START"
+    echo "# ============================================"
     echo "$ALIAS_HEADER"
-    echo "$ALIAS_BLOCK_END"
-    for line in "${ALIAS_LINES[@]}"; do
-      echo "$line"
+    echo "# ============================================"
+    for alias_name in "${!ALIAS_MAP[@]}"; do
+      echo "alias $alias_name='bash \"$INSTALL_DIR/${ALIAS_MAP[$alias_name]}\"'"
     done
-    echo "$ALIAS_BLOCK_START"
+    echo "# ============================================"
   } >> "$BASHRC"
 
   echo "✔ Aliases adicionados com sucesso em ~/.bashrc"
@@ -271,6 +276,7 @@ else
 fi
 
 # =============================================================================
+
 echo ""
 echo "✔ Ambiente pronto!"
 echo ""
