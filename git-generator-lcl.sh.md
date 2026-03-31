@@ -1,6 +1,6 @@
 # git-generator-lcl.sh
 
-Gera arquivos de integração Git para projetos Lazarus/FPC. Para cada arquivo `.lpi` encontrado na pasta atual, cria um `version.inc` com metadados do Git e um script de atualização específico por projeto.
+Gera arquivos de integração Git para projetos Lazarus/FPC. Para cada arquivo `.lpi` encontrado na pasta atual, cria um `version.pas.inc` com metadados do Git e um script de atualização específico por projeto.
 
 **Versão:** 1.0.0  
 **Uso:** `git-generator-lcl.sh`  
@@ -10,7 +10,7 @@ Gera arquivos de integração Git para projetos Lazarus/FPC. Para cada arquivo `
 
 ## O que gera
 
-### `version.inc`
+### `version.pas.inc`
 
 Arquivo de include Pascal com defines de pré-processador prontos para uso no código:
 
@@ -23,16 +23,16 @@ Arquivo de include Pascal com defines de pré-processador prontos para uso no c�
 
 ### `update-<projeto>.sh`
 
-Script específico por projeto que, quando executado, atualiza simultaneamente o `.lpi` e o `version.inc` com os dados atuais do Git.
+Script específico por projeto que, quando executado, atualiza simultaneamente o `.lpi` e o `version.pas.inc` com os dados atuais do Git.
 
 ---
 
 ## Como usar no projeto Lazarus
 
-Inclua o `version.inc` na unit principal e use os defines:
+Inclua o `version.pas.inc` na unit principal e use os defines:
 
 ```pascal
-{$I version.inc}
+{$I version.pas.inc}
 
 procedure TFormMain.FormCreate(Sender: TObject);
 begin
@@ -60,15 +60,15 @@ end;
 ```
 $ cd /meu/projeto-lazarus
 $ git-generator-lcl.sh
-✔ MeuProjeto: version.inc e update-MeuProjeto.sh criados/atualizados
+✔ MeuProjeto: version.pas.inc e update-MeuProjeto.sh criados/atualizados
 🎯 Todos os projetos processados com sucesso!
 ```
 
 Para projetos com múltiplos `.lpi` na mesma pasta:
 
 ```
-✔ Modulo1: version.inc e update-Modulo1.sh criados/atualizados
-✔ Modulo2: version.inc e update-Modulo2.sh criados/atualizados
+✔ Modulo1: version.pas.inc e update-Modulo1.sh criados/atualizados
+✔ Modulo2: version.pas.inc e update-Modulo2.sh criados/atualizados
 🎯 Todos os projetos processados com sucesso!
 ```
 
@@ -76,7 +76,7 @@ Para projetos com múltiplos `.lpi` na mesma pasta:
 
 ## Script gerado: `update-<projeto>.sh`
 
-Cada projeto recebe seu próprio script de atualização. Ele deve ser executado antes de compilar para garantir que o `.lpi` e o `version.inc` reflitam a versão atual:
+Cada projeto recebe seu próprio script de atualização. Ele deve ser executado antes de compilar para garantir que o `.lpi` e o `version.pas.inc` reflitam a versão atual:
 
 ```bash
 update-MeuProjeto.sh
@@ -98,7 +98,7 @@ Atualiza os campos de versão dentro do `.lpi`:
 <BuildNr Value="0"/>
 ```
 
-E regenera o `version.inc` com data e hash atuais do Git.
+E regenera o `version.pas.inc` com data e hash atuais do Git.
 
 ---
 
@@ -117,7 +117,7 @@ update-<projeto>.sh          ← roda em CADA RELEASE
 ```bash
 # Na raiz do projeto Lazarus
 git-generator-lcl.sh
-# → gera version.inc e update-MeuProjeto.sh
+# → gera version.pas.inc e update-MeuProjeto.sh
 ```
 
 **Dia a dia de desenvolvimento:**
@@ -130,7 +130,7 @@ git-fix.sh "corrige crash ao abrir arquivo vazio"
 # 2. Gera o release (bump de versão + tag)
 git-release.sh
 
-# 3. Atualiza o .lpi e o version.inc com a nova versão
+# 3. Atualiza o .lpi e o version.pas.inc com a nova versão
 update-MeuProjeto.sh
 
 # 4. Compila no Lazarus
@@ -140,7 +140,7 @@ update-MeuProjeto.sh
 
 - Um novo `.lpi` for adicionado ao projeto
 - O `update-<projeto>.sh` for deletado acidentalmente
-- Você quiser regenerar o `version.inc` inicial com hash e branch
+- Você quiser regenerar o `version.pas.inc` inicial com hash e branch
 
 ---
 
@@ -148,7 +148,7 @@ update-MeuProjeto.sh
 
 | Funcionalidade | `git-version-inc.sh` | `git-generator-lcl.sh` |
 |----------------|----------------------|------------------------|
-| Gera `version.inc` | ✅ | ✅ |
+| Gera `version.pas.inc` | ✅ | ✅ |
 | Hash Git (`GIT_HASH`) | ❌ | ✅ |
 | Branch Git (`GIT_BRANCH`) | ❌ | ✅ |
 | Atualiza o `.lpi` | ❌ | ✅ |
@@ -163,7 +163,7 @@ Use `git-version-inc.sh` para projetos simples sem `.lpi`, e `git-generator-lcl.
 
 ```
 meu-projeto/
-├── version.inc                  ← defines para uso no código Pascal
+├── version.pas.inc                  ← defines para uso no código Pascal
 └── update-MeuProjeto.sh         ← script de atualização do .lpi
 ```
 

@@ -4,7 +4,7 @@
 # =============================================================================
 # Executa o fluxo completo de release:
 #   - Calcula e aplica a nova versão semântica via git-version.sh
-#   - Gera o arquivo version.inc via git-version-inc.sh
+#   - Gera o arquivo version.pas.inc via git-version-inc.sh
 #
 # Uso: ./git-release.sh
 #

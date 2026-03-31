@@ -13,7 +13,7 @@ Conjunto de scripts Bash para gerenciamento de projetos Git com foco em simplici
 - Impede erros humanos com validações e confirmações
 - Calcula a versão semântica automaticamente (SemVer)
 - Cria tags Git automaticamente a cada release
-- Gera `version.inc` pronto para uso em projetos Lazarus/FPC
+- Gera `version.pas.inc` pronto para uso em projetos Lazarus/FPC
 - Funciona em qualquer pasta após instalação
 
 ---
@@ -131,7 +131,7 @@ git-breaking.sh "remove suporte ao formato de config antigo"
 
 ### `git-release.sh` — Geração de release
 
-Executa o fluxo completo de release: calcula a nova versão, cria a tag Git e gera o `version.inc`.
+Executa o fluxo completo de release: calcula a nova versão, cria a tag Git e gera o `version.pas.inc`.
 
 **Uso:**
 ```bash
@@ -143,8 +143,8 @@ git-release.sh
 🚀 Gerando release
 [main f7a8b9c] chore: bump version para v0.3.0
 ✔ Versão atualizada: v0.2.1 → v0.3.0
-[main a8b9c0d] chore: atualiza version.inc para v0.3.0
-✔ version.inc gerado: v0.3.0 — 2026-03-26 22:00:00
+[main a8b9c0d] chore: atualiza version.pas.inc para v0.3.0
+✔ version.pas.inc gerado: v0.3.0 — 2026-03-26 22:00:00
 ✔ Release criado: v0.3.0
 ```
 
@@ -164,9 +164,9 @@ Atualiza `.gitproject` e cria a tag Git automaticamente. Chamado internamente pe
 
 ---
 
-### `git-version-inc.sh` — Geração do version.inc para Lazarus/FPC
+### `git-version-inc.sh` — Geração do version.pas.inc para Lazarus/FPC
 
-Gera o arquivo `version.inc` com defines de pré-processador prontos para uso em projetos Lazarus.
+Gera o arquivo `version.pas.inc` com defines de pré-processador prontos para uso em projetos Lazarus.
 
 **Arquivo gerado:**
 ```pascal
@@ -176,7 +176,7 @@ Gera o arquivo `version.inc` com defines de pré-processador prontos para uso em
 
 **Como usar no projeto Lazarus:**
 ```pascal
-{$I version.inc}
+{$I version.pas.inc}
 
 procedure TFormMain.FormCreate(Sender: TObject);
 begin
@@ -286,7 +286,7 @@ meu-projeto/
 │   └── commit-msg
 ├── .gitignore          # Arquivos ignorados pelo Git
 ├── .gitproject         # Metadados do projeto (nome, versão)
-├── version.inc         # Defines para Lazarus/FPC
+├── version.pas.inc         # Defines para Lazarus/FPC
 └── README.md           # Documentação inicial
 ```
 

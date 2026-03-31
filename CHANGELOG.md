@@ -33,7 +33,7 @@
 - 2026-03-29 12:10 Os scripts git-lib.sh, git-reset.sh e git-undo-reset.sh foram ajustados para que restaurassem o número da versão desfeita .
 - 2026-03-28 16:01 O nome do script git-add-navigator.sh foi trocado para git-add-navigator-nemo.sh.
 - 2026-03-28 14:30 Adicionada a opção de perguntar se inicia o repositório na pasta em que o script git-add-nevigator.sh for executado e a mesma não é repositório.
-- 2026-03-27 11:33 Alterado o formato do arquivo version.inc para formato pascal
+- 2026-03-27 11:33 Alterado o formato do arquivo version.pas.inc para formato pascal
 - 2026-03-26 21:53 Ajuste dos scripts git-version.sh e git-version.sh gerem automaticamente o número da versão
 - 2026-03-26 21:30 ignora tree.txt
 ### 📚 Documentação

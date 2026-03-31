@@ -164,7 +164,7 @@ install_nemo() {
     make_wrapper_git "11 - Gerar CHANGELOG HTML.sh" \
         "bash \"$INSTALL_DIR/git-changelog.sh\" --html"
 
-    make_wrapper_git "12 - Gerar version.inc Lazarus.sh" \
+    make_wrapper_git "12 - Gerar version.pas.inc Lazarus.sh" \
         "bash \"$INSTALL_DIR/git-generator-lcl.sh\""
 
     # ── Recuperação ──────────────────────────────────────────────────────────

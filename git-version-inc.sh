@@ -2,7 +2,7 @@
 # =============================================================================
 # git-version-inc.sh — Geração do arquivo de versão para Pascal/Lazarus
 # =============================================================================
-# Gera o arquivo version.inc com defines de pré-processador contendo
+# Gera o arquivo version.pas.inc com defines de pré-processador contendo
 # a versão atual do projeto e a data/hora do build.
 # Commita o arquivo gerado automaticamente.
 #
@@ -22,13 +22,13 @@ fi
 
 DATE=$(date "+%Y-%m-%d %H:%M:%S")
 
-cat > version.inc <<EOF
+cat > version.pas.inc <<EOF
 const
   VERSION_STR = '$VERSION';
   BUILD_DATE  = '$DATE';
 EOF
 
-git add version.inc
-git commit -m "chore: atualiza version.inc para v$VERSION" || true
+git add version.pas.inc
+git commit -m "chore: atualiza version.pas.inc para v$VERSION" || true
 
-echo "✔ version.inc gerado: v$VERSION — $DATE"
+echo "✔ version.pas.inc gerado: v$VERSION — $DATE"
