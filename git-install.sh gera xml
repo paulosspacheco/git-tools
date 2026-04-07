@@ -24,7 +24,7 @@ SCRIPTS=(
   git-fix.sh
   git-breaking.sh
   git-version.sh
-  git-version-inc.sh
+  version-pas-inc.sh
   git-generator-lcl.sh
   git-release.sh
   git-changelog.sh
@@ -63,7 +63,7 @@ TOOLS=(
   "Git Fix|git-fix.sh|\$Prompt('Descreva a correção realizada:')"
   "Git Breaking|git-breaking.sh|\$Prompt('Breaking change (impacto):')"
   "Git Release|git-release.sh|"
-  "Git Version Inc|git-version-inc.sh|"
+  "Git Version Inc|version-pas-inc.sh|"
   "Git docs|git-docs.sh|\$Prompt('Descreva o tipo de documento adicionado ao projeto):')"
   "Git Changelog|git-changelog.sh|--write"
   "Git Changelog HTML|git-changelog.sh|--html"
@@ -118,7 +118,7 @@ else
     ["git-fix"]="git-fix.sh"
     ["git-breaking"]="git-breaking.sh"
     ["git-release"]="git-release.sh"
-    ["git-version-inc"]="git-version-inc.sh"
+    ["version-pas-inc"]="version-pas-inc.sh"
     ["git-version"]="git-version.sh"
     ["git-docs"]="git-docs.sh"
     ["git-changelog"]="git-changelog.sh"

@@ -4,12 +4,12 @@
 # =============================================================================
 # Executa o fluxo completo de release:
 #   - Calcula e aplica a nova versão semântica via git-version.sh
-#   - Gera o arquivo version.pas.inc via git-version-inc.sh
+#   - Gera o arquivo version-pas-inc via version-pas-inc.sh
 #
 # Uso: ./git-release.sh
 #
 # Versão: 1.0.0
-# Dependências: git-lib.sh, git-version.sh, git-version-inc.sh, .gitproject
+# Dependências: git-lib.sh, git-version.sh, version-pas-inc.sh, .gitproject
 # =============================================================================
 
 source "$(dirname "$0")/git-lib.sh"
@@ -25,6 +25,6 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
-"$(dirname "$0")/git-version-inc.sh" || exit 1
+"$(dirname "$0")/git-version-pas-inc.sh" || exit 1
 
 echo "✔ Release criado: v$VERSION"

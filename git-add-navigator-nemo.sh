@@ -40,7 +40,7 @@ check_scripts() {
     local missing=()
     for script in git-feat.sh git-fix.sh git-breaking.sh git-refactor.sh \
                   git-docs.sh git-changelog.sh git-ini.sh git-release.sh \
-                  git-version-inc.sh git-version.sh \
+                  version-pas-inc.sh git-version.sh \
                   git-reset.sh git-undo-reset.sh; do
         [ -f "$INSTALL_DIR/$script" ] || missing+=("$script")
     done
@@ -178,7 +178,7 @@ bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
         "bash \"$INSTALL_DIR/git-release.sh\""
 
     make_wrapper_git "08 - Incrementar versão.sh" \
-        "bash \"$INSTALL_DIR/git-version-inc.sh\""
+        "bash \"$INSTALL_DIR/version-pas-inc.sh\""
 
     make_wrapper_git "09 - Calcular próxima versão.sh" \
         "bash \"$INSTALL_DIR/git-version.sh\""

@@ -40,7 +40,7 @@ check_scripts() {
     local missing=()
     for script in git-feat.sh git-fix.sh git-breaking.sh git-refactor.sh \
                   git-docs.sh git-changelog.sh git-ini.sh git-release.sh \
-                  git-version-inc.sh git-version.sh git-generator-lcl.sh \
+                  version-pas-inc.sh git-version.sh git-generator-lcl.sh \
                   git-reset.sh git-undo-reset.sh; do
         [ -f "$INSTALL_DIR/$script" ] || missing+=("$script")
     done
@@ -153,7 +153,7 @@ install_nemo() {
         "bash \"$INSTALL_DIR/git-release.sh\""
 
     make_wrapper_git "08 - Incrementar versão.sh" \
-        "bash \"$INSTALL_DIR/git-version-inc.sh\""
+        "bash \"$INSTALL_DIR/version-pas-inc.sh\""
 
     make_wrapper_git "09 - Calcular próxima versão.sh" \
         "bash \"$INSTALL_DIR/git-version.sh\""
@@ -164,7 +164,7 @@ install_nemo() {
     make_wrapper_git "11 - Gerar CHANGELOG HTML.sh" \
         "bash \"$INSTALL_DIR/git-changelog.sh\" --html"
 
-    make_wrapper_git "12 - Gerar version.pas.inc Lazarus.sh" \
+    make_wrapper_git "12 - Gerar version-pas-inc Lazarus.sh" \
         "bash \"$INSTALL_DIR/git-generator-lcl.sh\""
 
     # ── Recuperação ──────────────────────────────────────────────────────────

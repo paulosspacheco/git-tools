@@ -38,7 +38,7 @@
   </Tool4>
   <Tool5>
     <Title Value="Git Version Inc"/>
-    <Filename Value="/usr/local/bin/git-version-inc.sh"/>
+    <Filename Value="/usr/local/bin/version-pas-inc.sh"/>
     <CmdLineParams Value=""/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">

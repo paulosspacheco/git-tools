@@ -25,7 +25,7 @@ GIT_TOOLS_DIR="/usr/local/bin"
 #   "Git Fix|git-fix.sh|\$Prompt('Descreva a correção realizada:')"
 #   "Git Breaking|git-breaking.sh|\$Prompt('Breaking change (impacto):')"
 #   "Git Release|git-release.sh|"
-#   "Git Version Inc|git-version-inc.sh|"
+#   "Git Version Inc|version-pas-inc.sh|"
 # )
 
 TOOLS=(
@@ -33,7 +33,7 @@ TOOLS=(
   "Corrigir problema|git-fix.sh|\$Prompt('Descreva o problema que foi corrigido:')"
   "Alteração importante|git-breaking.sh|\$Prompt('Descreva a mudança que pode afetar versões anteriores:')"
   "Gerar versão do sistema|git-release.sh|"
-  "Atualizar informações da versão|git-version-inc.sh|"
+  "Atualizar informações da versão|version-pas-inc.sh|"
 )
 
 

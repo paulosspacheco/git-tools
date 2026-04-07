@@ -31,7 +31,7 @@ check_scripts() {
     local missing=()
     for script in git-feat.sh git-fix.sh git-breaking.sh git-docs.sh \
                   git-changelog.sh git-ini.sh git-release.sh \
-                  git-version-inc.sh git-version.sh; do
+                  version-pas-inc.sh git-version.sh; do
         [ -f "$INSTALL_DIR/$script" ] || missing+=("$script")
     done
     if [ ${#missing[@]} -gt 0 ]; then
@@ -193,7 +193,7 @@ Exec=bash "$WRAPPER_DIR/git-release-wrapper.sh" %d
 [Desktop Action VersionInc]
 Name=07 - Incrementar versão
 Icon=git
-Exec=bash "$WRAPPER_DIR/git-version-inc-wrapper.sh" %d
+Exec=bash "$WRAPPER_DIR/version-pas-inc-wrapper.sh" %d
 
 [Desktop Action Version]
 Name=08 - Calcular próxima versão
@@ -237,7 +237,7 @@ install_dolphin() {
         "Git docs"     "Descrição da documentação:"
 
     make_wrapper_no_desc   "git-release-wrapper.sh"     "git-release.sh"
-    make_wrapper_no_desc   "git-version-inc-wrapper.sh" "git-version-inc.sh"
+    make_wrapper_no_desc   "version-pas-inc-wrapper.sh" "version-pas-inc.sh"
     make_wrapper_no_desc   "git-version-wrapper.sh"     "git-version.sh"
     make_wrapper_no_desc   "git-changelog-wrapper.sh"   "git-changelog.sh"
 
