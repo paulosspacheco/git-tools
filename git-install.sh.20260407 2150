@@ -260,43 +260,23 @@ Configure_Aliases() {
 
 # =============================================================================
 
-
 Git_Add_Navigator() {
     echo ""
     echo "🔧 Configuração de integração com gerenciador de arquivos"
 
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        local ran=0
-
-        local managers=("nemo"    "nautilus"    "dolphin")
-        local scripts=( "git-add-navigator-nemo.sh" \
-                        "git-add-navigator-nautilus.sh" \
-                        "git-add-navigator-dolphin.sh")
-
-        for i in "${!managers[@]}"; do
-            local manager="${managers[$i]}"
-            local script="${scripts[$i]}"
-            if command -v "$manager" >/dev/null 2>&1; then
-                if [ -f "$INSTALL_DIR/$script" ]; then
-                    echo "  → $manager detectado, executando $script..."
-                    bash "$INSTALL_DIR/$script" || echo "⚠ $script terminou com erro (ignorado)"
-                    ((ran++)) || true
-                else
-                    echo "⚠ $manager detectado mas script não encontrado: $script"
-                fi
+        for script in git-add-navigator-nemo.sh git-add-navigator-nautilus.sh git-add-navigator-dolphin.sh; do
+            if [ -f "$INSTALL_DIR/$script" ]; then
+                bash "$INSTALL_DIR/$script"
+            else
+                echo "⚠ Script não encontrado, ignorando: $script"
             fi
         done
-
-        if [ "$ran" -eq 0 ]; then
-            echo "⚠ Nenhum gerenciador de arquivos suportado encontrado (nemo, nautilus, dolphin)."
-        fi
-
     elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
-        local script="git-add-navigator-explorer.sh"
-        if [ -f "$INSTALL_DIR/$script" ]; then
-            bash "$INSTALL_DIR/$script" || echo "⚠ $script terminou com erro (ignorado)"
+        if [ -f "$INSTALL_DIR/git-add-navigator-explorer.sh" ]; then
+            bash "$INSTALL_DIR/git-add-navigator-explorer.sh"
         else
-            echo "⚠ Script não encontrado, ignorando: $script"
+            echo "⚠ Script não encontrado, ignorando: git-add-navigator-explorer.sh"
         fi
     else
         echo "⚠ Sistema operacional não suportado para integração com gerenciador de arquivos."

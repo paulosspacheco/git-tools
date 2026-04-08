@@ -206,8 +206,8 @@ bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
         local current
         current=$(gsettings get org.nemo.preferences show-scripts-in-context-menus 2>/dev/null || echo "not-set")
         if [ "$current" != "true" ]; then
-            gsettings set org.nemo.preferences show-scripts-in-context-menus true 2>/dev/null || true
-            echo "✔ Menu 'Scripts' habilitado no Nemo via gsettings (ou chave inexistente, ignorado)"
+            gsettings set org.nemo.preferences show-scripts-in-context-menus true
+            echo "✔ Menu 'Scripts' habilitado no Nemo via gsettings"
         else
             echo "✔ Menu 'Scripts' já estava habilitado"
         fi

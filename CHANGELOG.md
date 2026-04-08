@@ -22,7 +22,7 @@
 - 2026-03-27 20:51 adiciona git-changelog.sh com suporte a datas e filtro de commits automáticos
 - 2026-03-27 20:35 adicionado o script git-changelog.sh para gerar relatório
 - 2026-03-26 21:59 Adicionado o script git-release.sh
-- 2026-03-26 21:46 adiciona o script version-pas-inc.sh para calcular o numero da versão de projetos lazarus
+- 2026-03-26 21:46 adiciona o script git-version-inc.sh para calcular o numero da versão de projetos lazarus
 - 2026-03-26 21:41 adiciona o script git-version.sh para calcular o numero da versão
 - 2026-03-26 21:38 adiciona o scipt git-breaking.sh usado para adicionar atualização que quebra a compatibilidade
 - 2026-03-26 21:34 adiciona filtro tree.txt no .gitignore
@@ -30,6 +30,7 @@
 - 2026-03-26 21:17 inicialização do projeto
 ### 🐛 Correções
 
+- 2026-04-07 21:12 corrige : Corrigido o script git-install.sh pois o mesmo não instalava vários script.
 - 2026-03-29 20:33 melhora :  verificam se há repositório antes de executar o script git-fix.sh
 - 2026-03-29 17:34 ajusta :  Adicionados dois pontos entre a ação e a mensagem no script git-fix.sh.
 - 2026-03-29 17:03 melhora padronizar as mensagens do script git-fix.sh
@@ -44,11 +45,16 @@
 - 2026-03-28 18:06 O script git-add-navigator-dolphin está com problemas preciso checar depois.
 ### ♻️  Refatoração
 
-- 2026-03-30 21:07 renomeia : O nome versin.inc foi nomeado para version-pas-inc
+- 2026-04-07 17:25 renomeia : O nome do arquivo git-version-inc.sh foi trocado para git-version0oas-inc.sh
+- 2026-03-30 21:07 renomeia : O nome versin.inc foi nomeado para version.pas.inc
 ### 🔧 Manutenção
 
-- 2026-04-02 17:22 atualiza version-pas-inc para v0.14.0
-- 2026-03-30 21:08 atualiza version-pas-inc para v0.14.0
+- 2026-04-07 21:12 atualiza version-pas-inc para v0.14.1
+- 2026-04-07 21:12 atualiza version-pas-inc para v0.14.1
+- 2026-04-07 17:31 atualiza version-pas-inc para v0.14.0
+- 2026-04-07 17:23 atualiza version-pas-inc para v0.14.0
+- 2026-04-02 17:22 atualiza version.pas.inc para v0.14.0
+- 2026-03-30 21:08 atualiza version.pas.inc para v0.14.0
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-04-07 15:03:19_
+_Gerado automaticamente em 2026-04-07 21:13:13_

@@ -280,7 +280,7 @@ Git_Add_Navigator() {
                 if [ -f "$INSTALL_DIR/$script" ]; then
                     echo "  → $manager detectado, executando $script..."
                     bash "$INSTALL_DIR/$script" || echo "⚠ $script terminou com erro (ignorado)"
-                    ((ran++)) || true
+                    ((ran++))
                 else
                     echo "⚠ $manager detectado mas script não encontrado: $script"
                 fi
