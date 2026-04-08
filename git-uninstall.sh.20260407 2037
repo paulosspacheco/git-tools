@@ -157,7 +157,7 @@ else
 fi
 
 # =============================================================================
-# Remover aliases do ~/.bashrc (compatível com formatos novo e antigo)
+# Remover aliases do ~/.bashrc (versão direta e funcional)
 # =============================================================================
 
 echo ""
@@ -168,42 +168,23 @@ BASHRC="$HOME/.bashrc"
 if [ ! -f "$BASHRC" ]; then
     echo "ℹ ~/.bashrc não encontrado"
 else
-    # Backup
+    # Backup por segurança
     cp "$BASHRC" "${BASHRC}.bak-uninstall"
     
-    # 1. Remove o novo formato (com marcadores únicos)
-    sed -i '/^# >>> git-tools start >>>$/,/^# <<< git-tools end <<<$/d' "$BASHRC"
-    
-    # 2. Remove o formato antigo (com cabeçalho e separadores)
-    sed -i '/^# GIT-TOOLS ALIASES - Gerado por git-install.sh$/,/^# ============================================$/d' "$BASHRC"
-    
-    # 3. Remove linhas soltas de alias que porventura tenham sobrado
+    # Remove todos os aliases que começam com 'alias git-'
     sed -i '/^alias git-/d' "$BASHRC"
+    
+    # Remove aliases específicos como version-pas-inc
     sed -i '/^alias version-pas-/d' "$BASHRC"
     
-    # 4. Remove separadores órfãos (linhas que são exatamente # =========...)
-    #    Mas cuidado: se houver outros blocos que usam o mesmo separador (ex: COPYTO),
-    #    isso pode removê-los. Por isso, só removemos os separadores que estão sozinhos
-    #    ou em sequência, sem outros blocos. Na prática, após remover os blocos git-tools,
-    #    podem sobrar separadores isolados. Vamos remover apenas linhas consecutivas
-    #    que não tenham conteúdo entre elas.
-    sed -i '/^# ============================================$/ {
-        :a
-        N
-        /^\n# ============================================$/! { s/\n.*//; b }
-        s/.*//g
-        /^$/d
-        b a
-    }' "$BASHRC"
+    # Remove a linha de cabeçalho (se existir)
+    sed -i '/^# GIT-TOOLS ALIASES - Gerado por git-install.sh/d' "$BASHRC"
     
-    # Simplificando: remove linhas de separador que estejam em branco (linha vazia após remoção)
-    # Isso é mais seguro: remove apenas se a linha ficou vazia ou se é apenas o separador.
-    # Mas vamos apenas remover as linhas de separador que não pertencem a nenhum bloco conhecido.
-    # Para não arriscar, o melhor é deixar o usuário saber que pode haver resíduos inofensivos.
+    # Remove linhas em branco duplicadas (opcional, mantém o arquivo limpo)
+    sed -i '/^$/N;/^\n$/D' "$BASHRC"
     
-    echo "✔ Aliases removidos (ou marcados para remoção)."
-    echo "👉 Verifique se restaram linhas indesejadas com: grep '================================' ~/.bashrc"
-    echo "   Se houver apenas separadores vazios, execute: sed -i '/^# ============================================$/d' ~/.bashrc"
+    echo "✔ Aliases removidos de ~/.bashrc"
+    echo "👉 Para aplicar imediatamente, execute: source ~/.bashrc"
 fi
 
 # =============================================================================
