@@ -175,7 +175,7 @@ bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
         "bash \"$INSTALL_DIR/git-version.sh\""
 
     make_wrapper_git "09 - Gerar CHANGELOG.sh" \
-        "bash \"$INSTALL_DIR/git-changelog.sh\" --write"
+        "bash \"$INSTALL_DIR/git-changelog.sh\" "
 
     echo ""
     echo "✔ Scripts instalados em: $NAUTILUS_SCRIPTS_DIR"
