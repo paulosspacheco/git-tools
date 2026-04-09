@@ -261,4 +261,4 @@ export PATH="/usr/local/bin:$PATH"
 3. Compartilhe com a equipe para padronização
 4. O Continue carregará automaticamente este contexto ao trabalhar no projeto
 
-Para documentações específicas de componentes, crie arquivos `rules.md` em subdiretórios relevantes.# git-tools
+Para documentações específicas de componentes, crie arquivos `rules.md` em subdiretórios relevantes.

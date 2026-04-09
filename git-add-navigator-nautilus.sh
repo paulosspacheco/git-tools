@@ -1,7 +1,8 @@
 #!/bin/bash
 # =============================================================================
 # git-add-navigator-nautilus.sh — Integração git-tools no Nautilus
-# Versão: 0.4.0
+
+# Versão: 0.5.0
 # =============================================================================
 
 set -e
@@ -27,9 +28,13 @@ check_deps() {
 
 check_scripts() {
     local missing=()
-    for script in git-feat.sh git-fix.sh git-breaking.sh git-docs.sh \
-                  git-changelog.sh git-ini.sh git-release.sh \
-                  version-pas-inc.sh git-version.sh; do
+
+
+
+    for script in git-feat.sh git-fix.sh git-breaking.sh git-refactor.sh \
+                  git-docs.sh git-changelog.sh git-ini.sh git-release.sh \
+                  git-version-pas-inc.sh git-version.sh \
+                  git-reset.sh git-undo-reset.sh; do
         [ -f "$INSTALL_DIR/$script" ] || missing+=("$script")
     done
     if [ ${#missing[@]} -gt 0 ]; then
@@ -143,7 +148,16 @@ bash "'"$INSTALL_DIR"'/git-fix.sh" "$DESC"'
 [ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
 bash "'"$INSTALL_DIR"'/git-breaking.sh" "$DESC"'
 
-    make_wrapper_git "05 - Commit de documentação (docs).sh" \
+
+    make_wrapper_git "05 - Refatoração (refactor).sh" \
+'DESC=$(zenity --entry \
+    --title="Git refactor" \
+    --text="Descrição da refatoração:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-refactor.sh" "$DESC"'
+
+    make_wrapper_git "06 - Commit de documentação (docs).sh" \
 'DESC=$(zenity --entry \
     --title="Git docs" \
     --text="Descrição da documentação:" \
@@ -153,17 +167,33 @@ bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
 
     # ── Com guarda git, sem input ─────────────────────────────────────────────
 
-    make_wrapper_git "06 - Fazer release.sh" \
+
+    make_wrapper_git "07 - Fazer release.sh" \
         "bash \"$INSTALL_DIR/git-release.sh\""
 
-    make_wrapper_git "07 - Incrementar versão.sh" \
-        "bash \"$INSTALL_DIR/version-pas-inc.sh\""
 
-    make_wrapper_git "08 - Calcular próxima versão.sh" \
+
+    make_wrapper_git "08 - Incrementar versão.sh" \
+        "bash \"$INSTALL_DIR/git-version-pas-inc.sh\""
+
+
+    make_wrapper_git "09 - Calcular próxima versão.sh" \
         "bash \"$INSTALL_DIR/git-version.sh\""
 
-    make_wrapper_git "09 - Gerar CHANGELOG.sh" \
+
+    make_wrapper_git "10 - Gerar CHANGELOG.sh" \
         "bash \"$INSTALL_DIR/git-changelog.sh\" --write"
+
+    make_wrapper_git "11 - Gerar CHANGELOG HTML.sh" \
+        "bash \"$INSTALL_DIR/git-changelog.sh\" --html"
+
+    # ── Recuperação ──────────────────────────────────────────────────────────
+
+    make_wrapper_git "12 - Desfazer último commit (reset).sh" \
+        "bash \"$INSTALL_DIR/git-reset.sh\""
+
+    make_wrapper_git "13 - Recuperar commit desfeito (undo reset).sh" \
+        "bash \"$INSTALL_DIR/git-undo-reset.sh\""
 
     echo ""
     echo "✔ Scripts instalados em: $NAUTILUS_SCRIPTS_DIR"
