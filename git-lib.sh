@@ -1,3 +1,4 @@
+# =============================================================================
 #!/bin/bash
 # =============================================================================
 # git-lib.sh — Biblioteca utilitária para scripts Git
@@ -11,10 +12,23 @@
 #
 # Uso: source git-lib.sh
 #
-# Versão: 1.3.0
+# Versão: 1.4.0
 # =============================================================================
 
 _has_display() {
+  # Tenta recuperar DISPLAY/WAYLAND_DISPLAY se não estiver definido.
+  # Necessário quando executado via gerenciador de arquivos gráfico
+  # (Nemo, Nautilus, Dolphin), que frequentemente não propagam essas variáveis.
+  if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+    local xauth_display
+    xauth_display=$(who | awk '{print $5}' | tr -d '()' | grep -E ':[0-9]' | head -1)
+    [ -n "$xauth_display" ] && export DISPLAY="$xauth_display"
+
+    local wayland_sock
+    wayland_sock=$(ls /run/user/$(id -u)/wayland-* 2>/dev/null | head -1)
+    [ -n "$wayland_sock" ] && export WAYLAND_DISPLAY="$(basename "$wayland_sock")"
+  fi
+
   [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]
 }
 
@@ -37,6 +51,24 @@ ask_required() {
   fi
 
   _out="$value"
+}
+
+ask_optional() {
+  local -n _out=$1
+  local prompt="$2"
+  local value="$3"
+
+  if [ -z "$value" ]; then
+    if _has_display && command -v zenity >/dev/null; then
+      value=$(zenity --entry --title="Git Tools" --text="$prompt:" --width=400) || return 1
+    else
+      read -rp "$prompt: " value
+    fi
+  fi
+
+  # Ao contrário da ask_required, NÃO exige valor não vazio
+  _out="$value"
+  return 0
 }
 
 ask_confirm() {

@@ -59,8 +59,20 @@ check_scripts() {
 # =============================================================================
 
 # Cabeçalho comum: resolve TARGET e faz cd
+# _write_header() {
+#     printf '#!/bin/bash\nset -e\n\n'
+#     printf '%s\n' 'TARGET="${NEMO_SCRIPT_SELECTED_FILE_PATHS%%$'"'"'\n'"'"'*}"'
+#     printf 'if [ -d "$TARGET" ]; then\n    cd "$TARGET"\nelse\n    cd "$(dirname "$TARGET")"\nfi\n\n'
+# }
+
 _write_header() {
     printf '#!/bin/bash\nset -e\n\n'
+    printf '%s\n' \
+        '# Garante variáveis de display para zenity (Nemo não as propaga)' \
+        "export DISPLAY=\"${DISPLAY:-:0}\"" \
+        "export DBUS_SESSION_BUS_ADDRESS=\"${DBUS_SESSION_BUS_ADDRESS}\"" \
+        "export XDG_RUNTIME_DIR=\"${XDG_RUNTIME_DIR}\"" \
+        ''
     printf '%s\n' 'TARGET="${NEMO_SCRIPT_SELECTED_FILE_PATHS%%$'"'"'\n'"'"'*}"'
     printf 'if [ -d "$TARGET" ]; then\n    cd "$TARGET"\nelse\n    cd "$(dirname "$TARGET")"\nfi\n\n'
 }
