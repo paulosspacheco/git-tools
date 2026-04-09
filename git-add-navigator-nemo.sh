@@ -196,7 +196,7 @@ bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
         "bash \"$INSTALL_DIR/git-version.sh\""
 
     make_wrapper_git "10 - Gerar CHANGELOG.sh" \
-        "bash \"$INSTALL_DIR/git-changelog.sh\" --write"
+        "bash \"$INSTALL_DIR/git-changelog.sh\" "
 
     make_wrapper_git "11 - Gerar CHANGELOG HTML.sh" \
         "bash \"$INSTALL_DIR/git-changelog.sh\" --html"

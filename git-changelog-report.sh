@@ -13,6 +13,8 @@ Uso: $0 [OPÇÕES]
 
 Opções:
   -s, --since DATA  Inclui apenas commits a partir de DATA (formato YYYY-MM-DD)
+  --write           Salva em CHANGELOG.md (delega para git-changelog.sh)
+  --html            Salva em CHANGELOG.md e CHANGELOG.html (delega para git-changelog.sh)
   -h, --help        Exibe esta ajuda
 
 Quando executado sem argumentos (especialmente via gerenciador de arquivos),
@@ -21,6 +23,8 @@ mostrará todo o histórico.
 
 Exemplo:
   $0 --since 2026-04-01
+  $0 --write
+  $0 --html
 EOF
     exit 0
 }
@@ -30,6 +34,15 @@ EOF
 # ------------------------------
 parse_args() {
     SINCE=""
+
+    # --write e --html delegam direto para git-changelog.sh
+    for arg in "$@"; do
+        case "$arg" in
+            --write|--html)
+                exec bash "/usr/local/bin/git-changelog.sh" "$@"
+                ;;
+        esac
+    done
 
     if [[ $# -eq 0 ]]; then
         local user_input=""
@@ -201,7 +214,6 @@ print_changelog() {
         output+="\n"
     done
 
-    # Salva em arquivo temporário e exibe via view_file da lib
     local tmp
     tmp=$(mktemp /tmp/changelog-XXXX.md)
     printf '%b' "$output" > "$tmp"
