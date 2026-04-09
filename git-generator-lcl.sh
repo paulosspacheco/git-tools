@@ -1,11 +1,10 @@
 #!/bin/bash
 # =============================================================================
-# git-add-navigator-nemo.sh — Integração git-tools no Nemo
+# git-add-generator-lcl.sh — Integração git-tools no lazarus
 # =============================================================================
-# Instala wrappers dos scripts git-tools no menu de contexto do Nemo,
-# permitindo uso direto pelo botão direito em qualquer pasta.
+# Instala wrappers dos scripts git-tools no menu Tools do Lazarus.
 #
-# Uso: ./git-add-navigator-nemo.sh
+# Uso: ./git-add-generator-lcl.sh
 #
 # Versão: 1.2.0
 # Dependências: git-lib.sh, zenity, git, pandoc
@@ -159,7 +158,7 @@ install_nemo() {
         "bash \"$INSTALL_DIR/git-version.sh\""
 
     make_wrapper_git "10 - Gerar CHANGELOG.sh" \
-        "bash \"$INSTALL_DIR/git-changelog.sh\" --write"
+        "bash \"$INSTALL_DIR/git-changelog.sh\" "
 
     make_wrapper_git "11 - Gerar CHANGELOG HTML.sh" \
         "bash \"$INSTALL_DIR/git-changelog.sh\" --html"

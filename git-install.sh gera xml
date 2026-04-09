@@ -65,7 +65,7 @@ TOOLS=(
   "Git Release|git-release.sh|"
   "Git Version Inc|version-pas-inc.sh|"
   "Git docs|git-docs.sh|\$Prompt('Descreva o tipo de documento adicionado ao projeto):')"
-  "Git Changelog|git-changelog.sh|--write"
+  "Git Changelog|git-changelog.sh"
   "Git Changelog HTML|git-changelog.sh|--html"
 )
 

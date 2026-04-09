@@ -41,7 +41,7 @@ TOOLS=(
     "Git Release|git-release.sh|"
     "Git Version Inc|git-version-pas-inc.sh|"
     "Git Docs|git-docs.sh|\$Prompt('Descreva o documento adicionado ao projeto:')"
-    "Git Changelog|git-changelog.sh|--write"
+    "Git Changelog|git-changelog.sh"
     "Git Changelog HTML|git-changelog.sh|--html"
     "Git Reset|git-reset.sh|"
     "Git Undo Reset|git-undo-reset.sh|"
