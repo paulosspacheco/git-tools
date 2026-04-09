@@ -42,6 +42,7 @@
 - 2026-03-26 21:30 ignora tree.txt
 ### 📚 Documentação
 
+- 2026-04-07 22:16 Existe um problema nos script git-add-navigator-nautilus.sh e  git-add-navigator-dolphin.sh ele não fazem o que devem fazer.
 - 2026-03-28 18:06 O script git-add-navigator-dolphin está com problemas preciso checar depois.
 ### ♻️  Refatoração
 
@@ -49,6 +50,8 @@
 - 2026-03-30 21:07 renomeia : O nome versin.inc foi nomeado para version.pas.inc
 ### 🔧 Manutenção
 
+- 2026-04-09 08:48 atualiza version-pas-inc para v0.14.1
+- 2026-04-07 22:16 atualiza version-pas-inc para v0.14.1
 - 2026-04-07 21:12 atualiza version-pas-inc para v0.14.1
 - 2026-04-07 21:12 atualiza version-pas-inc para v0.14.1
 - 2026-04-07 17:31 atualiza version-pas-inc para v0.14.0
@@ -57,4 +60,4 @@
 - 2026-03-30 21:08 atualiza version.pas.inc para v0.14.0
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-04-07 21:13:13_
+_Gerado automaticamente em 2026-04-09 08:48:14_
