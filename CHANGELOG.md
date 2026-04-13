@@ -30,6 +30,7 @@
 - 2026-03-26 21:17 inicialização do projeto
 ### 🐛 Correções
 
+- 2026-04-13 15:16 corrige : Corrigido problema na função Configure_Aliases() do script gitIntsall.sh.
 - 2026-04-09 10:06 melhora : Quando executado pelo gerenciador de arquivos, o script não informava qual versão foi gerada nem aguardava o usuário prosseguir. Agora mostra a mensagem e pausa com "Pressione algo para continuar".
 - 2026-04-09 09:54 corrige : O script git-add-navigator-nautilus.sh não aparecia as 13 opções que apareciam no  git-add-navigator-nemo.sh
 - 2026-04-07 21:12 corrige : Corrigido o script git-install.sh pois o mesmo não instalava vários script.
@@ -59,6 +60,8 @@
 - 2026-03-30 21:07 renomeia : O nome versin.inc foi nomeado para version.pas.inc
 ### 🔧 Manutenção
 
+- 2026-04-13 15:16 atualiza version-pas-inc para v0.14.4
+- 2026-04-13 15:11 atualiza version-pas-inc para v0.14.3
 - 2026-04-09 17:31 atualiza version-pas-inc para v0.14.3
 - 2026-04-09 17:31 atualiza version-pas-inc para v0.14.3
 - 2026-04-09 17:30 atualiza version-pas-inc para v0.14.3
@@ -81,4 +84,4 @@
 - 2026-03-30 21:08 atualiza version.pas.inc para v0.14.0
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-04-10 09:35:03_
+_Gerado automaticamente em 2026-04-13 15:25:15_

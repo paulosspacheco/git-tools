@@ -88,22 +88,6 @@ generate_aliases() {
     echo -e "$aliases"
 }
 
-# Configure_Aliases() {
-#     echo ""
-#     echo "🔧 Configurando aliases no bash"
-#     local BASHRC="$HOME/.bashrc"
-#     local ALIAS_START="# >>> git-tools start >>>"
-#     local ALIAS_END="# <<< git-tools end <<<"
-#     sed -i "/$ALIAS_START/,/$ALIAS_END/d" "$BASHRC"
-#     local ALIAS_BLOCK="$ALIAS_START"$'\n'
-#     ALIAS_BLOCK+="$(generate_aliases)"
-#     ALIAS_BLOCK+="$ALIAS_END"$'\n'
-#     echo "" >> "$BASHRC"
-#     echo "$ALIAS_BLOCK" >> "$BASHRC"
-#     echo "✔ Aliases adicionados em ~/.bashrc"
-#     echo "👉 Execute 'source ~/.bashrc' para usar imediatamente."
-# }
-
 Configure_Aliases() {
     echo ""
     echo "🔧 Configurando aliases no bash"
