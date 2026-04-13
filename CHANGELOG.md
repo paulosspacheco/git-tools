@@ -48,6 +48,9 @@
 - 2026-03-28 18:06 O script git-add-navigator-dolphin está com problemas preciso checar depois.
 ### ♻️  Refatoração
 
+- 2026-04-09 17:30 simplifica : Remove o parâmetro --write do script  git-install.sh e do script  git-add-generator-lcl.sh
+- 2026-04-09 16:39 simplifica : Removido o parâmetro --write da execução do scripot git-changelog.sh dentro do script git-navigator-nautilus.sh
+- 2026-04-09 16:37 simplifica : Removido parametro --write da chamda a git-changelog.sh do script git-navigator-nemo.sh
 - 2026-04-09 16:06 reorganiza : Adicionado novas variaves na função _write_header()  dos script  git-add-navigator-nautilus.sh e git-add-navigator-nemo.sh
 - 2026-04-09 11:52 reorganiza : O script git-release.sh não mostrava o numero da versão gerada quando executado com o  gerenciador de arquivos.
 - 2026-04-09 11:14 renomeia : renomear git-changelog.sh para git-changelog-summary.sh
@@ -56,6 +59,9 @@
 - 2026-03-30 21:07 renomeia : O nome versin.inc foi nomeado para version.pas.inc
 ### 🔧 Manutenção
 
+- 2026-04-09 17:31 atualiza version-pas-inc para v0.14.3
+- 2026-04-09 17:31 atualiza version-pas-inc para v0.14.3
+- 2026-04-09 17:30 atualiza version-pas-inc para v0.14.3
 - 2026-04-09 15:37 atualiza version-pas-inc para v0.14.3
 - 2026-04-09 11:54 atualiza version-pas-inc para v0.14.3
 - 2026-04-09 11:50 atualiza version-pas-inc para v0.14.3
@@ -75,4 +81,4 @@
 - 2026-03-30 21:08 atualiza version.pas.inc para v0.14.0
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-04-09 16:25:35_
+_Gerado automaticamente em 2026-04-10 09:35:03_

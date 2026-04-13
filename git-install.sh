@@ -1,310 +1,233 @@
 #!/bin/bash
 # =============================================================================
-# git-install.sh — Instalação global das ferramentas Git + integração Lazarus
+# git-install.sh — Instalação global das ferramentas Git + integrações
+# Versão: 4.4.0 (sem modificação automática do environmentoptions.xml)
 # =============================================================================
-# Uso: ./git-install.sh
-# Versão: 3.3.0
-# =============================================================================
-
-set -e
 
 INSTALL_DIR="/usr/local/bin"
 SCRIPT_DIR="$(dirname "$0")"
+CONFIG_FILE="$SCRIPT_DIR/git-tools.conf"
+INSTALLED_CONFIG="$INSTALL_DIR/git-tools.conf"
 
-SCRIPTS=(
+# -----------------------------------------------------------------------------
+# Arquivos extras que não estão no .conf
+# -----------------------------------------------------------------------------
+EXTRA_FILES=(
     git-lib.sh
-    git-ini.sh
     git-config.sh
     git-hook.sh
-    git-feat.sh
-    git-fix.sh
-    git-breaking.sh
-    git-refactor.sh
-    git-version.sh
-    git-version-pas-inc.sh
-    git-generator-lcl.sh
-    git-release.sh
-    git-changelog.sh
-    git-docs.sh
-    git-reset.sh
-    git-undo-reset.sh
     git-add-navigator-nemo.sh
     git-add-navigator-nautilus.sh
     git-add-navigator-dolphin.sh
+    git-tools.conf
 )
 
-TOOLS=(
-    "Git Feat|git-feat.sh|\$Prompt('Descreva a funcionalidade adicionada ao projeto:')"
-    "Git Fix|git-fix.sh|\$Prompt('Descreva a correção realizada:')"
-    "Git Breaking|git-breaking.sh|\$Prompt('Breaking change (impacto):')"
-    "Git Refactor|git-refactor.sh|\$Prompt('Descreva a refatoração:')"
-    "Git Release|git-release.sh|"
-    "Git Version Inc|git-version-pas-inc.sh|"
-    "Git Docs|git-docs.sh|\$Prompt('Descreva o documento adicionado ao projeto:')"
-    "Git Changelog|git-changelog.sh"
-    "Git Changelog HTML|git-changelog.sh|--html"
-    "Git Reset|git-reset.sh|"
-    "Git Undo Reset|git-undo-reset.sh|"
-)
-
-declare -A ALIAS_MAP=(
-    ["git-feat"]="git-feat.sh"
-    ["git-fix"]="git-fix.sh"
-    ["git-breaking"]="git-breaking.sh"
-    ["git-refactor"]="git-refactor.sh"
-    ["git-release"]="git-release.sh"
-    ["git-version-pas-inc"]="git-version-pas-inc.sh"
-    ["git-version"]="git-version.sh"
-    ["git-docs"]="git-docs.sh"
-    ["git-changelog"]="git-changelog.sh"
-    ["git-ini"]="git-ini.sh"
-    ["git-config"]="git-config.sh"
-    ["git-hook"]="git-hook.sh"
-    ["git-reset"]="git-reset.sh"
-    ["git-undo-reset"]="git-undo-reset.sh"
-)
-
-# =============================================================================
-
-Install_Scripts() {
-    echo "🚀 Instalando git-tools em $INSTALL_DIR"
-
-    for SCRIPT in "${SCRIPTS[@]}"; do
-        SRC="$SCRIPT_DIR/$SCRIPT"
-        if [ ! -f "$SRC" ]; then
-            echo "❌ Arquivo não encontrado: $SRC" >&2
-            exit 1
-        fi
-        sudo cp "$SRC" "$INSTALL_DIR/$SCRIPT"
-        sudo chmod +x "$INSTALL_DIR/$SCRIPT"
-        echo "  ✔ $SCRIPT"
-    done
-
-    echo "✔ Scripts instalados com sucesso"
+# -----------------------------------------------------------------------------
+# Funções auxiliares
+# -----------------------------------------------------------------------------
+install_one_file() {
+    local file="$1"
+    local src="$SCRIPT_DIR/$file"
+    if [ ! -f "$src" ]; then
+        echo "❌ Arquivo não encontrado: $src" >&2
+        return 1
+    fi
+    sudo cp "$src" "$INSTALL_DIR/$file" || return 1
+    if [[ "$file" == *.sh ]]; then
+        sudo chmod +x "$INSTALL_DIR/$file"
+        echo "  ✔ $file (executável)"
+    else
+        echo "  ✔ $file (configuração)"
+    fi
+    return 0
 }
 
-# =============================================================================
+parse_config() {
+    local filter="$1"
+    local callback="$2"
+    local config_file="${3:-$CONFIG_FILE}"
+    [[ ! -f "$config_file" ]] && { echo "❌ Configuração não encontrada: $config_file" >&2; return 1; }
+    while IFS='|' read -r script title_menu title_laz params; do
+        script=$(echo "$script" | xargs)
+        title_menu=$(echo "$title_menu" | xargs)
+        title_laz=$(echo "$title_laz" | xargs)
+        params=$(echo "$params" | xargs)
+        [[ -z "$script" || "$script" == \#* ]] && continue
+        case "$filter" in
+            menu)     [[ -n "$title_menu" ]] && $callback "$script" "$title_menu" "$title_laz" "$params" ;;
+            lazarus)  [[ -n "$title_laz" ]] && $callback "$script" "$title_menu" "$title_laz" "$params" ;;
+            all)      $callback "$script" "$title_menu" "$title_laz" "$params" ;;
+        esac
+    done < "$config_file"
+}
 
+Install_Scripts() {
+    echo "🚀 Instalando arquivos em $INSTALL_DIR"
+    for file in "${EXTRA_FILES[@]}"; do
+        install_one_file "$file" || exit 1
+    done
+    parse_config "all" install_one_file || exit 1
+    echo "✔ Todos os arquivos instalados com sucesso"
+}
+
+# -----------------------------------------------------------------------------
+# Aliases
+# -----------------------------------------------------------------------------
+generate_aliases() {
+    local aliases=""
+    while IFS='|' read -r script title_menu title_laz params; do
+        script=$(echo "$script" | xargs)
+        title_menu=$(echo "$title_menu" | xargs)
+        title_laz=$(echo "$title_laz" | xargs)
+        [[ -z "$script" || "$script" == \#* ]] && continue
+        if [[ -n "$title_menu" || -n "$title_laz" ]]; then
+            local alias_name="${script%.sh}"
+            aliases+="alias $alias_name='bash \"$INSTALL_DIR/$script\"'\n"
+        fi
+    done < "$CONFIG_FILE"
+    echo -e "$aliases"
+}
+
+# Configure_Aliases() {
+#     echo ""
+#     echo "🔧 Configurando aliases no bash"
+#     local BASHRC="$HOME/.bashrc"
+#     local ALIAS_START="# >>> git-tools start >>>"
+#     local ALIAS_END="# <<< git-tools end <<<"
+#     sed -i "/$ALIAS_START/,/$ALIAS_END/d" "$BASHRC"
+#     local ALIAS_BLOCK="$ALIAS_START"$'\n'
+#     ALIAS_BLOCK+="$(generate_aliases)"
+#     ALIAS_BLOCK+="$ALIAS_END"$'\n'
+#     echo "" >> "$BASHRC"
+#     echo "$ALIAS_BLOCK" >> "$BASHRC"
+#     echo "✔ Aliases adicionados em ~/.bashrc"
+#     echo "👉 Execute 'source ~/.bashrc' para usar imediatamente."
+# }
+
+Configure_Aliases() {
+    echo ""
+    echo "🔧 Configurando aliases no bash"
+    local BASHRC="$HOME/.bashrc"
+    local ALIAS_START="# >>> git-tools start >>>"
+    local ALIAS_END="# <<< git-tools end <<<"
+
+    # Remove bloco anterior
+    sed -i "/$ALIAS_START/,/$ALIAS_END/d" "$BASHRC"
+
+    # Abre o bloco
+    echo "" >> "$BASHRC"
+    echo "$ALIAS_START" >> "$BASHRC"
+
+    # Grava cada alias diretamente, um por linha
+    while IFS='|' read -r script title_menu title_laz params; do
+        script=$(echo "$script" | xargs)
+        title_menu=$(echo "$title_menu" | xargs)
+        title_laz=$(echo "$title_laz" | xargs)
+        [[ -z "$script" || "$script" == \#* ]] && continue
+        if [[ -n "$title_menu" || -n "$title_laz" ]]; then
+            local alias_name="${script%.sh}"
+            echo "alias $alias_name='bash \"$INSTALL_DIR/$script\"'" >> "$BASHRC"
+        fi
+    done < "$CONFIG_FILE"
+
+    # Fecha o bloco
+    echo "$ALIAS_END" >> "$BASHRC"
+
+    echo "✔ Aliases adicionados em ~/.bashrc"
+    echo "👉 Execute 'source ~/.bashrc' para usar imediatamente."
+}
+
+# -----------------------------------------------------------------------------
+# Integração Lazarus (somente geração do XML, sem modificação automática)
+# -----------------------------------------------------------------------------
 Generate_Lazarus_XML() {
     echo ""
-    echo "🔧 Gerando arquivo de importação para o Lazarus (lazarus.git-tools.xml)..."
+    echo "🔧 Gerando arquivo de importação para o Lazarus: lazarus.git-tools.xml"
 
-    XML_FILE="lazarus.git-tools.xml"
+    local XML_FILE="lazarus.git-tools.xml"
+    local tool_count=0
+    local tools_list=()
 
-    echo '<?xml version="1.0" encoding="UTF-8"?>' > "$XML_FILE"
-    echo "<CONFIG Version=\"3\" Count=\"${#TOOLS[@]}\">" >> "$XML_FILE"
+    while IFS='|' read -r script title_menu title_laz params; do
+        script=$(echo "$script" | xargs)
+        title_laz=$(echo "$title_laz" | xargs)
+        [[ -z "$script" || "$script" == \#* || -z "$title_laz" ]] && continue
+        tools_list+=("$title_laz|$script|$params")
+        tool_count=$((tool_count + 1))
+    done < "$CONFIG_FILE"
 
-    idx=1
-    for tool in "${TOOLS[@]}"; do
-        IFS='|' read -r name script params <<< "$tool"
-        echo "  <Tool$idx>" >> "$XML_FILE"
-        echo "    <Title Value=\"$name\"/>" >> "$XML_FILE"
-        echo "    <Filename Value=\"$INSTALL_DIR/$script\"/>" >> "$XML_FILE"
-        echo "    <CmdLineParams Value=\"$params\"/>" >> "$XML_FILE"
-        echo "    <WorkingDirectory Value=\"\$ProjPath()\"/>" >> "$XML_FILE"
-        echo "    <Scanners Count=\"1\">" >> "$XML_FILE"
-        echo "      <Item1 Value=\"FPC\"/>" >> "$XML_FILE"
-        echo "    </Scanners>" >> "$XML_FILE"
-        echo "  </Tool$idx>" >> "$XML_FILE"
-        ((idx++))
-    done
-    echo "</CONFIG>" >> "$XML_FILE"
+    # Gera XML com quebras de linha reais (usando $'\n')
+    {
+        echo '<?xml version="1.0" encoding="UTF-8"?>'
+        echo "<CONFIG Version=\"3\" Count=\"$tool_count\">"
+        local idx=1
+        for tool in "${tools_list[@]}"; do
+            IFS='|' read -r name script params <<< "$tool"
+            echo "  <Tool$idx>"
+            echo "    <Title Value=\"$name\"/>"
+            echo "    <Filename Value=\"$INSTALL_DIR/$script\"/>"
+            [[ -n "$params" ]] && echo "    <CmdLineParams Value=\"$params\"/>"
+            echo "    <WorkingDirectory Value=\"\$ProjPath()\"/>"
+            echo "    <Scanners Count=\"1\">"
+            echo "      <Item1 Value=\"FPC\"/>"
+            echo "    </Scanners>"
+            echo "  </Tool$idx>"
+            idx=$((idx + 1))
+        done
+        echo "</CONFIG>"
+    } > "$XML_FILE"
 
     echo "✔ Arquivo gerado: $XML_FILE"
 }
 
-# =============================================================================
-
-Locate_Lazarus_Config() {
-    CANDIDATES=(
-        "$HOME/.lazarus/environmentoptions.xml"
-        "/etc/lazarus/environmentoptions.xml"
-        "$HOME/Lazarus/lazarus-fixe/config_lazarus/environmentoptions.xml"
-        "$HOME/Lazarus/config_lazarus/environmentoptions.xml"
-    )
-
-    EXPANDED_CANDIDATES=()
-    for cand in "${CANDIDATES[@]}"; do
-        [ -f "$cand" ] && EXPANDED_CANDIDATES+=("$cand")
-    done
-
-    # Busca mais abrangente: inclui /mnt, profundidade 5, e filtra por "config_lazarus" (como no original)
-    if [ ${#EXPANDED_CANDIDATES[@]} -eq 0 ]; then
-        while IFS= read -r file; do
-            EXPANDED_CANDIDATES+=("$file")
-        done < <(find "$HOME" /mnt -maxdepth 5 -name "environmentoptions.xml" 2>/dev/null | grep "config_lazarus")
-    fi
-
-    LAZ_CONFIG="${EXPANDED_CANDIDATES[0]}"
-
-    if [ -z "$LAZ_CONFIG" ] || [ ! -f "$LAZ_CONFIG" ]; then
-        echo "⚠ Não foi possível localizar automaticamente o environmentoptions.xml."
-        echo ""
-
-        if command -v zenity &>/dev/null; then
-            echo "🔍 Deseja localizar o arquivo manualmente usando uma janela gráfica? [S/n]"
-            read -r answer
-            if [[ ! "$answer" =~ ^[Nn]$ ]]; then
-                LAZ_CONFIG=$(zenity --file-selection --title="Selecione o arquivo environmentoptions.xml" --file-filter="*.xml" 2>/dev/null)
-            fi
-        elif command -v kdialog &>/dev/null; then
-            echo "🔍 Deseja localizar o arquivo manualmente usando uma janela gráfica? [S/n]"
-            read -r answer
-            if [[ ! "$answer" =~ ^[Nn]$ ]]; then
-                LAZ_CONFIG=$(kdialog --getopenfilename "$HOME" "*.xml" 2>/dev/null)
-            fi
-        else
-            echo "🔍 Deseja fornecer o caminho manualmente? [s/N]"
-            read -r answer
-            if [[ "$answer" =~ ^[Ss]$ ]]; then
-                echo "Digite o caminho completo do environmentoptions.xml:"
-                read -r LAZ_CONFIG
-                if [ ! -f "$LAZ_CONFIG" ]; then
-                    echo "❌ Arquivo não encontrado: $LAZ_CONFIG"
-                    LAZ_CONFIG=""
-                fi
-            fi
-        fi
-    fi
-
-    echo "$LAZ_CONFIG"
-}
-
-# =============================================================================
-
 Integrate_Lazarus() {
     echo ""
-    echo "🔧 Integrando ferramentas no Lazarus..."
-
-    LAZ_CONFIG="$(Locate_Lazarus_Config)"
-
-    if [ -z "$LAZ_CONFIG" ] || [ ! -f "$LAZ_CONFIG" ]; then
-        echo "ℹ Para integrar com o Lazarus, importe o arquivo $XML_FILE manualmente:"
-        echo "   Tools → Configure External Tools → Import"
-        echo ""
-        return
-    fi
-
-    echo "✔ Arquivo de configuração do Lazarus encontrado: $LAZ_CONFIG"
-
-    BACKUP="${LAZ_CONFIG}.bak"
-    if [ ! -f "$BACKUP" ]; then
-        cp "$LAZ_CONFIG" "$BACKUP"
-        echo "✔ Backup criado: $BACKUP"
-    else
-        echo "⚠ Backup já existe: $BACKUP (não sobrescrito)"
-    fi
-
-    sed -i '/<ExternalTools/,/<\/ExternalTools>/d' "$LAZ_CONFIG"
-
-    END_ENV_LINE=$(grep -n "</EnvironmentOptions>" "$LAZ_CONFIG" | head -1 | cut -d: -f1)
-    if [ -z "$END_ENV_LINE" ]; then
-        echo "❌ Não foi possível localizar </EnvironmentOptions>. Integração automática cancelada."
-        echo "👉 Importe o arquivo $XML_FILE manualmente no Lazarus (Tools → Configure External Tools → Import)."
-        return
-    fi
-
-    BLOCK="  <ExternalTools Version=\"3\" Count=\"${#TOOLS[@]}\">\n"
-    idx=1
-    for tool in "${TOOLS[@]}"; do
-        IFS='|' read -r name script params <<< "$tool"
-        params_escaped=$(echo "$params" | sed "s/'/\&apos;/g")
-        BLOCK+="    <Tool$idx>\n"
-        BLOCK+="      <Title Value=\"$name\"/>\n"
-        BLOCK+="      <Filename Value=\"$INSTALL_DIR/$script\"/>\n"
-        [ -n "$params" ] && BLOCK+="      <CmdLineParams Value=\"$params_escaped\"/>\n"
-        BLOCK+="      <WorkingDirectory Value=\"\$ProjPath()\"/>\n"
-        BLOCK+="      <Scanners Count=\"1\">\n"
-        BLOCK+="        <Item1 Value=\"FPC\"/>\n"
-        BLOCK+="      </Scanners>\n"
-        BLOCK+="    </Tool$idx>\n"
-        ((idx++))
-    done
-    BLOCK+="  </ExternalTools>\n"
-
-    sed -i "${END_ENV_LINE}i\\${BLOCK}" "$LAZ_CONFIG"
-
-    echo "🎯 Ferramentas adicionadas ao menu Tools do Lazarus!"
-    echo "👉 Reinicie o Lazarus para ver as novas opções."
-}
-
-# =============================================================================
-
-Configure_Aliases() {
+    echo "🔧 Integração com Lazarus (modo manual seguro)"
+    echo "⚠ Para evitar corrupção do arquivo de configuração, o instalador não modifica o environmentoptions.xml automaticamente."
     echo ""
-    echo "🔧 Configuração de aliases no bash"
-
-    BASHRC="$HOME/.bashrc"
-    ALIAS_START="# >>> git-tools start >>>"
-    ALIAS_END="# <<< git-tools end <<<"
-
-    sed -i "/$ALIAS_START/,/$ALIAS_END/d" "$BASHRC"
-    sed -i '/^# GIT-TOOLS ALIASES - Gerado por git-install.sh/,/^# ============================================$/d' "$BASHRC"
-    sed -i '/^# ============================================$/d' "$BASHRC"
-    sed -i "/^alias git-.*='bash \"${INSTALL_DIR//\//\\/}/d" "$BASHRC"
-
-    echo "✔ Removendo configuração anterior de aliases..."
-
-    ALIAS_BLOCK="$ALIAS_START"$'\n'
-    for alias_name in "${!ALIAS_MAP[@]}"; do
-        ALIAS_BLOCK+="alias $alias_name='bash \"$INSTALL_DIR/${ALIAS_MAP[$alias_name]}\"'"$'\n'
-    done
-    ALIAS_BLOCK+="$ALIAS_END"$'\n'
-
-    echo "" >> "$BASHRC"
-    echo "$ALIAS_BLOCK" >> "$BASHRC"
-
-    echo "✔ Aliases adicionados com sucesso em ~/.bashrc"
-    echo "👉 Execute 'source ~/.bashrc' para usar imediatamente."
+    echo "👉 Para adicionar as ferramentas no menu Tools do Lazarus:"
+    echo "   1. Abra o Lazarus"
+    echo "   2. Acesse Tools → Configure External Tools..."
+    echo "   3. Clique em 'Import' e selecione o arquivo: $(pwd)/lazarus.git-tools.xml"
+    echo "   4. Clique em 'OK' e reinicie o Lazarus"
+    echo ""
+    echo "✔ O arquivo de importação está pronto e pode ser usado a qualquer momento."
 }
 
-# =============================================================================
-
-
+# -----------------------------------------------------------------------------
+# Gerenciadores de arquivos
+# -----------------------------------------------------------------------------
 Git_Add_Navigator() {
     echo ""
-    echo "🔧 Configuração de integração com gerenciador de arquivos"
-
+    echo "🔧 Configurando integração com gerenciador de arquivos"
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         local ran=0
-
-        local managers=("nemo"    "nautilus"    "dolphin")
-        local scripts=( "git-add-navigator-nemo.sh" \
-                        "git-add-navigator-nautilus.sh" \
-                        "git-add-navigator-dolphin.sh")
-
+        local managers=("nemo" "nautilus" "dolphin")
+        local scripts=("git-add-navigator-nemo.sh" "git-add-navigator-nautilus.sh" "git-add-navigator-dolphin.sh")
         for i in "${!managers[@]}"; do
             local manager="${managers[$i]}"
-            local script="${scripts[$i]}"
+            local scr="${scripts[$i]}"
             if command -v "$manager" >/dev/null 2>&1; then
-                if [ -f "$INSTALL_DIR/$script" ]; then
-                    echo "  → $manager detectado, executando $script..."
-                    bash "$INSTALL_DIR/$script" || echo "⚠ $script terminou com erro (ignorado)"
-                    ((ran++)) || true
+                if [ -f "$INSTALL_DIR/$scr" ]; then
+                    echo "  → $manager detectado, executando $scr..."
+                    bash "$INSTALL_DIR/$scr" || echo "⚠ $scr terminou com erro (ignorado)"
+                    ran=$((ran + 1))
                 else
-                    echo "⚠ $manager detectado mas script não encontrado: $script"
+                    echo "⚠ $manager detectado mas $scr não encontrado"
                 fi
             fi
         done
-
         if [ "$ran" -eq 0 ]; then
-            echo "⚠ Nenhum gerenciador de arquivos suportado encontrado (nemo, nautilus, dolphin)."
-        fi
-
-    elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
-        local script="git-add-navigator-explorer.sh"
-        if [ -f "$INSTALL_DIR/$script" ]; then
-            bash "$INSTALL_DIR/$script" || echo "⚠ $script terminou com erro (ignorado)"
-        else
-            echo "⚠ Script não encontrado, ignorando: $script"
+            echo "⚠ Nenhum gerenciador suportado encontrado (nemo, nautilus, dolphin)."
         fi
     else
-        echo "⚠ Sistema operacional não suportado para integração com gerenciador de arquivos."
+        echo "⚠ SO não suportado para integração com gerenciador de arquivos."
     fi
 }
 
-# =============================================================================
-
+# -----------------------------------------------------------------------------
+# Mensagem final
+# -----------------------------------------------------------------------------
 Print_Usage() {
     echo ""
     echo "✔ Ambiente pronto!"
@@ -317,10 +240,16 @@ Print_Usage() {
     echo "  git-reset.sh"
     echo "  git-undo-reset.sh"
     echo "  git-release.sh"
+    echo ""
+    echo "Aliases disponíveis: git-feat, git-fix, git-breaking, git-refactor,"
+    echo "  git-docs, git-version, git-version-pas-inc, git-generator-lcl,"
+    echo "  git-release, git-changelog, git-changelog-summary, git-reset,"
+    echo "  git-undo-reset, git-ini"
 }
 
-# =============================================================================
-
+# -----------------------------------------------------------------------------
+# Execução principal
+# -----------------------------------------------------------------------------
 main_install() {
     Install_Scripts
     Generate_Lazarus_XML

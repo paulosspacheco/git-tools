@@ -1,213 +1,279 @@
 #!/bin/bash
 # =============================================================================
-# git-uninstall.sh — Remoção global das ferramentas Git + integração Lazarus
-# =============================================================================
-# Reverte todas as operações do git-install.sh:
-#   - Remove os scripts de /usr/local/bin
-#   - Remove o arquivo lazarus.git-tools.xml (se presente no diretório atual)
-#   - Reverte o environmentoptions.xml (via backup ou remoção do bloco)
-#   - Remove os aliases adicionados ao ~/.bashrc
-#
-# Uso: ./git-uninstall.sh
-#
-# Versão: 1.0.2 (puramente bash)
+# git-uninstall.sh — Remoção global das ferramentas Git + integrações
+# Versão: 2.1.0 (corrige ordem de remoção)
 # =============================================================================
 
 set -e
 
 INSTALL_DIR="/usr/local/bin"
+CONFIG_FILE="$INSTALL_DIR/git-tools.conf"
 SCRIPT_DIR="$(dirname "$0")"
 
-SCRIPTS=(
-  git-lib.sh
-  git-ini.sh
-  git-config.sh
-  git-hook.sh
-  git-feat.sh
-  git-fix.sh
-  git-breaking.sh
-  git-refactor.sh
-  git-version.sh
-  git-version-pas-inc.sh
-  git-generator-lcl.sh
-  git-release.sh
-  git-changelog.sh
-  git-docs.sh
-  git-reset.sh
-  git-undo-reset.sh
+# -----------------------------------------------------------------------------
+# Arquivos extras que NÃO estão no git-tools.conf (mesma lista do instalador)
+# -----------------------------------------------------------------------------
+EXTRA_FILES=(
+    git-lib.sh
+    git-config.sh
+    git-hook.sh
+    git-add-navigator-nemo.sh
+    git-add-navigator-nautilus.sh
+    git-add-navigator-dolphin.sh
+    git-tools.conf
 )
 
-# =============================================================================
-# Remover scripts de /usr/local/bin
-# =============================================================================
+# -----------------------------------------------------------------------------
+# Função para ler o arquivo de configuração (cópia local)
+# -----------------------------------------------------------------------------
+parse_config() {
+    local filter="$1"
+    local callback="$2"
+    local config_file="${3:-$CONFIG_FILE}"
 
-echo "🗑 Removendo scripts de $INSTALL_DIR..."
+    [[ ! -f "$config_file" ]] && return 1
 
-removed=0
-set +e  # Evita saída prematura se algum arquivo não puder ser removido
-for SCRIPT in "${SCRIPTS[@]}"; do
-  TARGET="$INSTALL_DIR/$SCRIPT"
-  if [ -f "$TARGET" ]; then
-    sudo rm -f "$TARGET"
-    if [ $? -eq 0 ]; then
-      echo "  ✔ Removido: $SCRIPT"
-      ((removed++))
+    while IFS='|' read -r script title_menu title_laz params; do
+        script=$(echo "$script" | xargs)
+        title_menu=$(echo "$title_menu" | xargs)
+        title_laz=$(echo "$title_laz" | xargs)
+        params=$(echo "$params" | xargs)
+
+        [[ -z "$script" || "$script" == \#* ]] && continue
+
+        case "$filter" in
+            menu)     [[ -n "$title_menu" ]] && $callback "$script" "$title_menu" "$title_laz" "$params" ;;
+            lazarus)  [[ -n "$title_laz" ]] && $callback "$script" "$title_menu" "$title_laz" "$params" ;;
+            all)      $callback "$script" "$title_menu" "$title_laz" "$params" ;;
+        esac
+    done < "$config_file"
+}
+
+# -----------------------------------------------------------------------------
+# Remove um único arquivo de $INSTALL_DIR
+# -----------------------------------------------------------------------------
+remove_one_file() {
+    local file="$1"
+    local target="$INSTALL_DIR/$file"
+    if [ -f "$target" ]; then
+        sudo rm -f "$target"
+        echo "  ✔ Removido: $file"
     else
-      echo "  ❌ Falha ao remover: $SCRIPT (continuando...)"
+        echo "  ⚠ Não encontrado (ignorado): $file"
     fi
-  else
-    echo "  ⚠ Não encontrado (ignorado): $SCRIPT"
-  fi
-done
-set -e
-echo "✔ $removed script(s) removido(s)"
+}
 
-# =============================================================================
-# Remover lazarus.git-tools.xml do diretório atual
-# =============================================================================
+# -----------------------------------------------------------------------------
+# 1. Coletar todos os scripts a remover (sem remover ainda)
+# -----------------------------------------------------------------------------
+collect_scripts() {
+    local scripts_to_remove=("${EXTRA_FILES[@]}")
 
-echo ""
-XML_FILE="$SCRIPT_DIR/lazarus.git-tools.xml"
-if [ -f "$XML_FILE" ]; then
-  rm -f "$XML_FILE"
-  echo "✔ Arquivo removido: $XML_FILE"
-else
-  echo "⚠ Arquivo não encontrado (ignorado): $XML_FILE"
-fi
-
-# =============================================================================
-# Reverter environmentoptions.xml
-# =============================================================================
-
-echo ""
-echo "🔧 Localizando environmentoptions.xml..."
-
-CANDIDATES=(
-  "$HOME/.lazarus/environmentoptions.xml"
-  "/etc/lazarus/environmentoptions.xml"
-  "$HOME/Lazarus/lazarus-fixe/config_lazarus/environmentoptions.xml"
-  "$HOME/Lazarus/config_lazarus/environmentoptions.xml"
-)
-
-EXPANDED_CANDIDATES=()
-for cand in "${CANDIDATES[@]}"; do
-  [ -f "$cand" ] && EXPANDED_CANDIDATES+=("$cand")
-done
-
-if [ ${#EXPANDED_CANDIDATES[@]} -eq 0 ]; then
-  while IFS= read -r file; do
-    EXPANDED_CANDIDATES+=("$file")
-  done < <(find "$HOME" /mnt -maxdepth 5 -name "environmentoptions.xml" 2>/dev/null \
-    | grep "config_lazarus")
-fi
-
-LAZ_CONFIG="${EXPANDED_CANDIDATES[0]}"
-
-if [ -z "$LAZ_CONFIG" ] || [ ! -f "$LAZ_CONFIG" ]; then
-  echo "⚠ Não foi possível localizar automaticamente o environmentoptions.xml."
-
-  if command -v zenity &>/dev/null || command -v kdialog &>/dev/null; then
-    echo "🔍 Deseja localizar o arquivo manualmente usando uma janela gráfica? [S/n]"
-    read -r answer
-    if [[ ! "$answer" =~ ^[Nn]$ ]]; then
-      if command -v zenity &>/dev/null; then
-        LAZ_CONFIG=$(zenity --file-selection \
-          --title="Selecione o arquivo environmentoptions.xml" \
-          --file-filter="*.xml" 2>/dev/null)
-      elif command -v kdialog &>/dev/null; then
-        LAZ_CONFIG=$(kdialog --getopenfilename "$HOME" "*.xml" 2>/dev/null)
-      fi
-      [ -z "$LAZ_CONFIG" ] && echo "❌ Nenhum arquivo selecionado."
-    fi
-  else
-    echo "🔍 Deseja fornecer o caminho manualmente? [s/N]"
-    read -r answer
-    if [[ "$answer" =~ ^[Ss]$ ]]; then
-      echo "Digite o caminho completo do environmentoptions.xml:"
-      read -r LAZ_CONFIG
-      if [ ! -f "$LAZ_CONFIG" ]; then
-        echo "❌ Arquivo não encontrado: $LAZ_CONFIG"
-        LAZ_CONFIG=""
-      fi
-    fi
-  fi
-fi
-
-if [ -n "$LAZ_CONFIG" ] && [ -f "$LAZ_CONFIG" ]; then
-  echo "✔ Arquivo encontrado: $LAZ_CONFIG"
-  BACKUP="${LAZ_CONFIG}.bak"
-
-  if [ -f "$BACKUP" ]; then
-    cp "$BACKUP" "$LAZ_CONFIG"
-    echo "✔ Configuração restaurada a partir do backup: $BACKUP"
-  else
-    echo "⚠ Backup não encontrado. Removendo bloco <ExternalTools> diretamente..."
-    if grep -q "<ExternalTools" "$LAZ_CONFIG"; then
-      sed -i '/<ExternalTools/,/<\/ExternalTools>/d' "$LAZ_CONFIG"
-      echo "✔ Bloco <ExternalTools> removido"
+    # Se o arquivo de configuração existir, adiciona os scripts listados
+    if [ -f "$CONFIG_FILE" ]; then
+        # Usa um callback que adiciona o script ao array
+        add_script_to_list() {
+            local script="$1"
+            scripts_to_remove+=("$script")
+        }
+        parse_config "all" add_script_to_list "$CONFIG_FILE"
     else
-      echo "ℹ Nenhum bloco <ExternalTools> encontrado no arquivo"
+        echo "⚠ $CONFIG_FILE não encontrado. Removendo apenas scripts extras."
     fi
-  fi
 
-  echo "👉 Reinicie o Lazarus para aplicar as alterações."
-else
-  echo "ℹ Nenhum arquivo environmentoptions.xml processado."
-  echo "  Remova o bloco <ExternalTools> manualmente se necessário."
-fi
+    # Remove duplicatas (caso algum script apareça nas duas listas)
+    # Isso não é estritamente necessário, mas evita mensagens duplicadas
+    printf '%s\n' "${scripts_to_remove[@]}" | sort -u
+}
 
-# =============================================================================
-# Remover aliases do ~/.bashrc (compatível com formatos novo e antigo)
-# =============================================================================
+# -----------------------------------------------------------------------------
+# 2. Remover todos os scripts coletados
+# -----------------------------------------------------------------------------
+remove_scripts() {
+    echo "🗑 Coletando scripts a remover de $INSTALL_DIR..."
+    local scripts_list
+    scripts_list=$(collect_scripts)
 
-echo ""
-echo "🔧 Removendo aliases do ~/.bashrc..."
+    echo "🗑 Removendo scripts..."
+    while IFS= read -r script; do
+        [ -z "$script" ] && continue
+        remove_one_file "$script"
+    done <<< "$scripts_list"
 
-BASHRC="$HOME/.bashrc"
+    echo "✔ Scripts removidos"
+}
 
-if [ ! -f "$BASHRC" ]; then
-    echo "ℹ ~/.bashrc não encontrado"
-else
-    # Backup
+# -----------------------------------------------------------------------------
+# 3. Remover lazarus.git-tools.xml do diretório atual
+# -----------------------------------------------------------------------------
+remove_lazarus_xml() {
+    echo ""
+    local XML_FILE="$SCRIPT_DIR/lazarus.git-tools.xml"
+    if [ -f "$XML_FILE" ]; then
+        rm -f "$XML_FILE"
+        echo "✔ Arquivo removido: $XML_FILE"
+    else
+        echo "⚠ Arquivo não encontrado (ignorado): $XML_FILE"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# 4. Reverter environmentoptions.xml (restaurar backup ou remover bloco)
+# -----------------------------------------------------------------------------
+revert_environment() {
+    echo ""
+    echo "🔧 Localizando environmentoptions.xml..."
+
+    local candidates=(
+        "$HOME/.lazarus/environmentoptions.xml"
+        "/etc/lazarus/environmentoptions.xml"
+        "$HOME/Lazarus/lazarus-fixe/config_lazarus/environmentoptions.xml"
+        "$HOME/Lazarus/config_lazarus/environmentoptions.xml"
+    )
+    local expanded=()
+    for cand in "${candidates[@]}"; do
+        [ -f "$cand" ] && expanded+=("$cand")
+    done
+
+    if [ ${#expanded[@]} -eq 0 ]; then
+        while IFS= read -r file; do
+            expanded+=("$file")
+        done < <(find "$HOME" /mnt -maxdepth 5 -name "environmentoptions.xml" 2>/dev/null | grep "config_lazarus")
+    fi
+
+    local laz_config="${expanded[0]}"
+
+    if [ -z "$laz_config" ] || [ ! -f "$laz_config" ]; then
+        echo "⚠ Não foi possível localizar automaticamente o environmentoptions.xml."
+        if command -v zenity &>/dev/null || command -v kdialog &>/dev/null; then
+            echo "🔍 Deseja localizar o arquivo manualmente? [S/n]"
+            read -r answer
+            if [[ ! "$answer" =~ ^[Nn]$ ]]; then
+                if command -v zenity &>/dev/null; then
+                    laz_config=$(zenity --file-selection --title="Selecione environmentoptions.xml" --file-filter="*.xml" 2>/dev/null)
+                elif command -v kdialog &>/dev/null; then
+                    laz_config=$(kdialog --getopenfilename "$HOME" "*.xml" 2>/dev/null)
+                fi
+                [ -z "$laz_config" ] && echo "❌ Nenhum arquivo selecionado."
+            fi
+        else
+            echo "🔍 Deseja fornecer o caminho manualmente? [s/N]"
+            read -r answer
+            if [[ "$answer" =~ ^[Ss]$ ]]; then
+                echo "Digite o caminho completo:"
+                read -r laz_config
+                [ ! -f "$laz_config" ] && echo "❌ Arquivo não encontrado" && laz_config=""
+            fi
+        fi
+    fi
+
+    if [ -n "$laz_config" ] && [ -f "$laz_config" ]; then
+        echo "✔ Arquivo encontrado: $laz_config"
+        local backup="${laz_config}.bak"
+        if [ -f "$backup" ]; then
+            cp "$backup" "$laz_config"
+            echo "✔ Configuração restaurada a partir do backup: $backup"
+        else
+            echo "⚠ Backup não encontrado. Removendo bloco <ExternalTools> diretamente..."
+            if grep -q "<ExternalTools" "$laz_config"; then
+                sed -i '/<ExternalTools/,/<\/ExternalTools>/d' "$laz_config"
+                echo "✔ Bloco <ExternalTools> removido"
+            else
+                echo "ℹ Nenhum bloco <ExternalTools> encontrado"
+            fi
+        fi
+        echo "👉 Reinicie o Lazarus para aplicar as alterações."
+    else
+        echo "ℹ Nenhum arquivo environmentoptions.xml processado."
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# 5. Remover aliases do ~/.bashrc (formato novo e antigo)
+# -----------------------------------------------------------------------------
+remove_aliases() {
+    echo ""
+    echo "🔧 Removendo aliases do ~/.bashrc..."
+
+    local BASHRC="$HOME/.bashrc"
+    if [ ! -f "$BASHRC" ]; then
+        echo "ℹ ~/.bashrc não encontrado"
+        return
+    fi
+
     cp "$BASHRC" "${BASHRC}.bak-uninstall"
-    
-    # 1. Remove o novo formato (com marcadores únicos)
+
+    # Remove bloco com marcadores específicos (novo formato)
     sed -i '/^# >>> git-tools start >>>$/,/^# <<< git-tools end <<<$/d' "$BASHRC"
-    
-    # 2. Remove o formato antigo (com cabeçalho e separadores)
+
+    # Remove bloco antigo
     sed -i '/^# GIT-TOOLS ALIASES - Gerado por git-install.sh$/,/^# ============================================$/d' "$BASHRC"
-    
-    # 3. Remove linhas soltas de alias que porventura tenham sobrado
+
+    # Remove quaisquer aliases git-* ou version-pas-* que porventura tenham sobrado
     sed -i '/^alias git-/d' "$BASHRC"
     sed -i '/^alias version-pas-/d' "$BASHRC"
-    
-    # 4. Remove separadores órfãos (linhas que são exatamente # =========...)
-    #    Mas cuidado: se houver outros blocos que usam o mesmo separador (ex: COPYTO),
-    #    isso pode removê-los. Por isso, só removemos os separadores que estão sozinhos
-    #    ou em sequência, sem outros blocos. Na prática, após remover os blocos git-tools,
-    #    podem sobrar separadores isolados. Vamos remover apenas linhas consecutivas
-    #    que não tenham conteúdo entre elas.
-    sed -i '/^# ============================================$/ {
-        :a
-        N
-        /^\n# ============================================$/! { s/\n.*//; b }
-        s/.*//g
-        /^$/d
-        b a
-    }' "$BASHRC"
-    
-    # Simplificando: remove linhas de separador que estejam em branco (linha vazia após remoção)
-    # Isso é mais seguro: remove apenas se a linha ficou vazia ou se é apenas o separador.
-    # Mas vamos apenas remover as linhas de separador que não pertencem a nenhum bloco conhecido.
-    # Para não arriscar, o melhor é deixar o usuário saber que pode haver resíduos inofensivos.
-    
-    echo "✔ Aliases removidos (ou marcados para remoção)."
-    echo "👉 Verifique se restaram linhas indesejadas com: grep '================================' ~/.bashrc"
-    echo "   Se houver apenas separadores vazios, execute: sed -i '/^# ============================================$/d' ~/.bashrc"
-fi
 
-# =============================================================================
+    echo "✔ Aliases removidos"
+    echo "👉 Execute 'source ~/.bashrc' para limpar a sessão atual."
+}
 
-echo ""
-echo "✔ Desinstalação concluída!"
+# -----------------------------------------------------------------------------
+# 6. Remover wrappers dos gerenciadores de arquivos (Nemo, Nautilus, Dolphin)
+# -----------------------------------------------------------------------------
+remove_navigator_integrations() {
+    echo ""
+    echo "🗑 Removendo integrações com gerenciadores de arquivos..."
 
+    # Nemo
+    local nemo_dir="$HOME/.local/share/nemo/scripts/Git Tools"
+    if [ -d "$nemo_dir" ]; then
+        rm -rf "$nemo_dir"
+        echo "  ✔ Removido: $nemo_dir"
+    else
+        echo "  ⚠ Nemo: pasta não encontrada (ignorado)"
+    fi
+
+    # Nautilus
+    local nautilus_dir="$HOME/.local/share/nautilus/scripts/Git Tools"
+    if [ -d "$nautilus_dir" ]; then
+        rm -rf "$nautilus_dir"
+        echo "  ✔ Removido: $nautilus_dir"
+    else
+        echo "  ⚠ Nautilus: pasta não encontrada (ignorado)"
+    fi
+
+    # Dolphin
+    local dolphin_wrappers="$HOME/.local/share/git-tools"
+    local dolphin_desktop="$HOME/.local/share/kio/servicemenus/git-tools.desktop"
+    if [ -d "$dolphin_wrappers" ]; then
+        rm -rf "$dolphin_wrappers"
+        echo "  ✔ Removido: $dolphin_wrappers"
+    fi
+    if [ -f "$dolphin_desktop" ]; then
+        rm -f "$dolphin_desktop"
+        echo "  ✔ Removido: $dolphin_desktop"
+        # Atualiza cache do KDE
+        if command -v kbuildsycoca5 &>/dev/null; then
+            kbuildsycoca5 &>/dev/null
+            echo "  ✔ Cache do KDE atualizado"
+        fi
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Execução principal
+# -----------------------------------------------------------------------------
+main() {
+    echo "🚀 Iniciando desinstalação do git-tools"
+    echo ""
+    remove_scripts
+    remove_lazarus_xml
+    revert_environment
+    remove_aliases
+    remove_navigator_integrations
+
+    echo ""
+    echo "✔ Desinstalação concluída!"
+}
+
+main

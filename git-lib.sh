@@ -1,4 +1,3 @@
-# =============================================================================
 #!/bin/bash
 # =============================================================================
 # git-lib.sh — Biblioteca utilitária para scripts Git
@@ -149,4 +148,25 @@ load_config() {
   while IFS='=' read -r key value; do
     [[ "$key" =~ ^[A-Z_]+$ ]] && export "$key=$value"
   done < .gitproject
+}
+
+# Lê o arquivo /usr/local/bin/git-tools.conf e executa uma função para cada linha não comentada
+# Uso: parse_config "campo_para_verificar" "função_callback"
+parse_config() {
+    local filter="$1"
+    local callback="$2"
+    local config_file="${3:-/usr/local/bin/git-tools.conf}"
+    [[ ! -f "$config_file" ]] && { echo "❌ Config não encontrado: $config_file" >&2; return 1; }
+    while IFS='|' read -r script title_menu title_laz params; do
+        script=$(echo "$script" | xargs)
+        title_menu=$(echo "$title_menu" | xargs)
+        title_laz=$(echo "$title_laz" | xargs)
+        params=$(echo "$params" | xargs)
+        [[ -z "$script" || "$script" == \#* ]] && continue
+        case "$filter" in
+            menu)     [[ -n "$title_menu" ]] && $callback "$script" "$title_menu" "$title_laz" "$params" ;;
+            lazarus)  [[ -n "$title_laz" ]] && $callback "$script" "$title_menu" "$title_laz" "$params" ;;
+            all)      $callback "$script" "$title_menu" "$title_laz" "$params" ;;
+        esac
+    done < "$config_file"
 }

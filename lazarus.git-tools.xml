@@ -1,102 +1,116 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CONFIG Version="3" Count="11">
+<CONFIG Version="3" Count="14">
   <Tool1>
-    <Title Value="Git Feat"/>
-    <Filename Value="/usr/local/bin/git-feat.sh"/>
-    <CmdLineParams Value="$Prompt('Descreva a funcionalidade adicionada ao projeto:')"/>
+    <Title Value="Inicializar repositório"/>
+    <Filename Value="/usr/local/bin/git-ini.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool1>
   <Tool2>
-    <Title Value="Git Fix"/>
-    <Filename Value="/usr/local/bin/git-fix.sh"/>
-    <CmdLineParams Value="$Prompt('Descreva a correção realizada:')"/>
+    <Title Value="Adicionar funcionalidade"/>
+    <Filename Value="/usr/local/bin/git-feat.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool2>
   <Tool3>
-    <Title Value="Git Breaking"/>
-    <Filename Value="/usr/local/bin/git-breaking.sh"/>
-    <CmdLineParams Value="$Prompt('Breaking change (impacto):')"/>
+    <Title Value="Corrigir problema"/>
+    <Filename Value="/usr/local/bin/git-fix.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool3>
   <Tool4>
-    <Title Value="Git Refactor"/>
-    <Filename Value="/usr/local/bin/git-refactor.sh"/>
-    <CmdLineParams Value="$Prompt('Descreva a refatoração:')"/>
+    <Title Value="Alteração importante"/>
+    <Filename Value="/usr/local/bin/git-breaking.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool4>
   <Tool5>
-    <Title Value="Git Release"/>
-    <Filename Value="/usr/local/bin/git-release.sh"/>
-    <CmdLineParams Value=""/>
+    <Title Value="Refatorar código"/>
+    <Filename Value="/usr/local/bin/git-refactor.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool5>
   <Tool6>
-    <Title Value="Git Version Inc"/>
-    <Filename Value="/usr/local/bin/git-version-pas-inc.sh"/>
-    <CmdLineParams Value=""/>
+    <Title Value="Adicionar documentação"/>
+    <Filename Value="/usr/local/bin/git-docs.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool6>
   <Tool7>
-    <Title Value="Git Docs"/>
-    <Filename Value="/usr/local/bin/git-docs.sh"/>
-    <CmdLineParams Value="$Prompt('Descreva o documento adicionado ao projeto:')"/>
+    <Title Value="Calcular versão"/>
+    <Filename Value="/usr/local/bin/git-version.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool7>
   <Tool8>
-    <Title Value="Git Changelog"/>
-    <Filename Value="/usr/local/bin/git-changelog.sh"/>
-    <CmdLineParams Value=""/>
+    <Title Value="Atualizar informações da versão para ser usada em pascal"/>
+    <Filename Value="/usr/local/bin/git-version-pas-inc.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool8>
   <Tool9>
-    <Title Value="Git Changelog HTML"/>
-    <Filename Value="/usr/local/bin/git-changelog.sh"/>
-    <CmdLineParams Value="--html"/>
+    <Title Value="Gerar versão Lazarus"/>
+    <Filename Value="/usr/local/bin/git-generator-lcl.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool9>
   <Tool10>
-    <Title Value="Git Reset"/>
-    <Filename Value="/usr/local/bin/git-reset.sh"/>
-    <CmdLineParams Value=""/>
+    <Title Value="Gerar versão do sistema"/>
+    <Filename Value="/usr/local/bin/git-release.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool10>
   <Tool11>
-    <Title Value="Git Undo Reset"/>
-    <Filename Value="/usr/local/bin/git-undo-reset.sh"/>
-    <CmdLineParams Value=""/>
+    <Title Value="Git Changelog"/>
+    <Filename Value="/usr/local/bin/git-changelog.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool11>
+  <Tool12>
+    <Title Value="Git Changelog Resumo-html"/>
+    <Filename Value="/usr/local/bin/git-changelog-summary.sh"/>
+    <CmdLineParams Value="--html"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool12>
+  <Tool13>
+    <Title Value="Git Reset"/>
+    <Filename Value="/usr/local/bin/git-reset.sh"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool13>
+  <Tool14>
+    <Title Value="Git Undo Reset"/>
+    <Filename Value="/usr/local/bin/git-undo-reset.sh"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool14>
 </CONFIG>

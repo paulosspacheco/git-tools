@@ -1,110 +1,93 @@
 #!/bin/bash
 # =============================================================================
 # git-add-navigator-nautilus.sh — Integração git-tools no Nautilus
-# Versão: 0.4.0
+# Versão: 1.1.0 (usa parse_config do git-lib.sh)
+# =============================================================================
+# Gera wrappers no diretório ~/.local/share/nautilus/scripts/Git Tools
+# baseados nas entradas do arquivo /usr/local/bin/git-tools.conf
 # =============================================================================
 
 set -e
 
 INSTALL_DIR="/usr/local/bin"
+CONFIG_FILE="$INSTALL_DIR/git-tools.conf"
 NAUTILUS_SCRIPTS_DIR="$HOME/.local/share/nautilus/scripts/Git Tools"
 
-# =============================================================================
-# Pré-verificações
-# =============================================================================
+# -----------------------------------------------------------------------------
+# Carrega funções comuns do git-lib.sh (parse_config, etc.)
+# -----------------------------------------------------------------------------
+if [ -f "$INSTALL_DIR/git-lib.sh" ]; then
+    source "$INSTALL_DIR/git-lib.sh"
+else
+    echo "❌ git-lib.sh não encontrado em $INSTALL_DIR"
+    echo "   Execute o git-install.sh primeiro."
+    exit 1
+fi
 
-check_deps() {
-    local missing=()
-    for cmd in zenity git; do
-        command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
-    done
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo "⚠ Dependências ausentes: ${missing[*]}"
-        echo "  Instale com: sudo apt install ${missing[*]}"
-        echo ""
+# -----------------------------------------------------------------------------
+# Gera um wrapper (script) para o Nautilus
+# -----------------------------------------------------------------------------
+create_nautilus_wrapper() {
+    local script="$1"
+    local title_menu="$2"
+    local title_laz="$3"
+    local params="$4"
+
+    local wrapper_name="${title_menu}.sh"
+    local wrapper_path="$NAUTILUS_SCRIPTS_DIR/$wrapper_name"
+
+    # Cabeçalho com variáveis de ambiente para Zenity (Nautilus não as propaga)
+    cat > "$wrapper_path" <<EOF
+#!/bin/bash
+# Wrapper gerado automaticamente para $script
+# Título: $title_menu
+
+# Garante variáveis de display (Nautilus não as propaga)
+export DISPLAY="\${DISPLAY:-:0}"
+export DBUS_SESSION_BUS_ADDRESS="\${DBUS_SESSION_BUS_ADDRESS}"
+export XDG_RUNTIME_DIR="\${XDG_RUNTIME_DIR}"
+
+# O Nautilus fornece a variável NAUTILUS_SCRIPT_SELECTED_FILE_PATHS
+# com o caminho do arquivo/pasta selecionado (pode conter múltiplas linhas)
+TARGET="\${NAUTILUS_SCRIPT_SELECTED_FILE_PATHS%%\$'\\n'*}"
+if [ -d "\$TARGET" ]; then
+    cd "\$TARGET"
+else
+    cd "\$(dirname "\$TARGET")"
+fi
+
+# Verifica se é um repositório Git (exceto para o script de inicialização)
+if [[ "$script" != "git-ini.sh" ]]; then
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        if zenity --question \\
+            --title="Git Tools" \\
+            --text="Esta pasta não é um repositório Git.\\n\\nDeseja inicializá-la agora?" \\
+            --ok-label="Inicializar" \\
+            --cancel-label="Cancelar" \\
+            --width=380 2>/dev/null; then
+            bash "$INSTALL_DIR/git-ini.sh"
+            # Após inicializar, verifica novamente
+            if ! git rev-parse --git-dir > /dev/null 2>&1; then
+                zenity --error --text="Falha ao inicializar repositório." 2>/dev/null
+                exit 1
+            fi
+        else
+            exit 0
+        fi
     fi
+fi
+
+# Executa o script com os parâmetros definidos no git-tools.conf
+exec bash "$INSTALL_DIR/$script" $params
+EOF
+
+    chmod +x "$wrapper_path"
+    echo "  ✔ $wrapper_name"
 }
 
-check_scripts() {
-    local missing=()
-    for script in git-feat.sh git-fix.sh git-breaking.sh git-docs.sh \
-                  git-changelog.sh git-ini.sh git-release.sh \
-                  version-pas-inc.sh git-version.sh; do
-        [ -f "$INSTALL_DIR/$script" ] || missing+=("$script")
-    done
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo "⚠ Scripts não encontrados em $INSTALL_DIR:"
-        for s in "${missing[@]}"; do echo "    - $s"; done
-        echo "  Instale os scripts git-tools antes de continuar."
-        echo ""
-    fi
-}
-
-# =============================================================================
-# Helpers de geração de wrappers
-# =============================================================================
-
-# Cabeçalho comum: resolve TARGET a partir da variável do Nautilus e faz cd
-# _write_header() {
-#     printf '#!/bin/bash\nset -e\n\n'
-#     printf '%s\n' 'TARGET="${NAUTILUS_SCRIPT_SELECTED_FILE_PATHS%%$'"'"'\n'"'"'*}"'
-#     printf 'if [ -d "$TARGET" ]; then\n    cd "$TARGET"\nelse\n    cd "$(dirname "$TARGET")"\nfi\n\n'
-# }
-
-_write_header() {
-    printf '#!/bin/bash\nset -e\n\n'
-    printf '%s\n' \
-        '# Garante variáveis de display para zenity (Nemo não as propaga)' \
-        "export DISPLAY=\"${DISPLAY:-:0}\"" \
-        "export DBUS_SESSION_BUS_ADDRESS=\"${DBUS_SESSION_BUS_ADDRESS}\"" \
-        "export XDG_RUNTIME_DIR=\"${XDG_RUNTIME_DIR}\"" \
-        ''
-    printf '%s\n' 'TARGET="${NEMO_SCRIPT_SELECTED_FILE_PATHS%%$'"'"'\n'"'"'*}"'
-    printf 'if [ -d "$TARGET" ]; then\n    cd "$TARGET"\nelse\n    cd "$(dirname "$TARGET")"\nfi\n\n'
-}
-
-# Guarda git: se a pasta não for repositório, oferece inicializar
-_write_git_guard() {
-    printf '%s\n' \
-        'if ! git -C "$TARGET" rev-parse --git-dir > /dev/null 2>&1; then' \
-        '    zenity --question \' \
-        '        --title="Git Tools" \' \
-        '        --text="Esta pasta não é um repositório Git.\n\nDeseja inicializá-la agora?" \' \
-        '        --ok-label="Inicializar" \' \
-        '        --cancel-label="Cancelar" \' \
-        '        --width=380 || exit 0'
-    # $INSTALL_DIR expande aqui (tempo de instalação)
-    printf '    bash "%s/git-ini.sh"\n' "$INSTALL_DIR"
-    printf '%s\n' \
-        '    git -C "$TARGET" rev-parse --git-dir > /dev/null 2>&1 || exit 1' \
-        'fi' \
-        ''
-}
-
-# Wrapper simples — sem guarda git (para o próprio git-ini)
-make_wrapper() {
-    local name="$1"
-    local body="$2"
-    local file="$NAUTILUS_SCRIPTS_DIR/$name"
-    { _write_header; printf '%s\n' "$body"; } > "$file"
-    chmod +x "$file"
-    echo "  ✔ $name"
-}
-
-# Wrapper com guarda git — exige ou oferece inicializar repositório
-make_wrapper_git() {
-    local name="$1"
-    local body="$2"
-    local file="$NAUTILUS_SCRIPTS_DIR/$name"
-    { _write_header; _write_git_guard; printf '%s\n' "$body"; } > "$file"
-    chmod +x "$file"
-    echo "  ✔ $name"
-}
-
-# =============================================================================
-# Instalação no Nautilus
-# =============================================================================
-
+# -----------------------------------------------------------------------------
+# Instalação principal
+# -----------------------------------------------------------------------------
 install_nautilus() {
     echo "🔧 Configurando Nautilus..."
 
@@ -120,62 +103,13 @@ install_nautilus() {
     do
         [ -d "$dir" ] && rm -rf "$dir" && echo "    🗑 Removido: $dir"
     done
+
     mkdir -p "$NAUTILUS_SCRIPTS_DIR"
 
-    echo "  Criando wrappers..."
+    echo "  Criando wrappers a partir de $CONFIG_FILE..."
 
-    # ── git-ini: sem guarda (é ele próprio que inicializa) ───────────────────
-
-    make_wrapper "01 - Inicializar repositório (ini).sh" \
-        "bash \"$INSTALL_DIR/git-ini.sh\""
-
-    # ── Com guarda git + input via zenity ────────────────────────────────────
-
-    make_wrapper_git "02 - Nova funcionalidade (feat).sh" \
-'DESC=$(zenity --entry \
-    --title="Git feat" \
-    --text="Descrição da nova funcionalidade:" \
-    --width=400) || exit 0
-[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
-bash "'"$INSTALL_DIR"'/git-feat.sh" "$DESC"'
-
-    make_wrapper_git "03 - Correção (fix).sh" \
-'DESC=$(zenity --entry \
-    --title="Git fix" \
-    --text="Descrição da correção:" \
-    --width=400) || exit 0
-[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
-bash "'"$INSTALL_DIR"'/git-fix.sh" "$DESC"'
-
-    make_wrapper_git "04 - Breaking change.sh" \
-'DESC=$(zenity --entry \
-    --title="Git breaking" \
-    --text="Descrição da breaking change:" \
-    --width=400) || exit 0
-[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
-bash "'"$INSTALL_DIR"'/git-breaking.sh" "$DESC"'
-
-    make_wrapper_git "05 - Commit de documentação (docs).sh" \
-'DESC=$(zenity --entry \
-    --title="Git docs" \
-    --text="Descrição da documentação:" \
-    --width=400) || exit 0
-[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
-bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
-
-    # ── Com guarda git, sem input ─────────────────────────────────────────────
-
-    make_wrapper_git "06 - Fazer release.sh" \
-        "bash \"$INSTALL_DIR/git-release.sh\""
-
-    make_wrapper_git "07 - Incrementar versão.sh" \
-        "bash \"$INSTALL_DIR/version-pas-inc.sh\""
-
-    make_wrapper_git "08 - Calcular próxima versão.sh" \
-        "bash \"$INSTALL_DIR/git-version.sh\""
-
-    make_wrapper_git "09 - Gerar CHANGELOG.sh" \
-        "bash \"$INSTALL_DIR/git-changelog.sh\" "
+    # Gera wrappers para todas as entradas com TITULO_MENU preenchido
+    parse_config "menu" create_nautilus_wrapper "$CONFIG_FILE"
 
     echo ""
     echo "✔ Scripts instalados em: $NAUTILUS_SCRIPTS_DIR"
@@ -184,16 +118,31 @@ bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
     echo "   Para recarregar rapidamente: nautilus -q && nautilus &"
 }
 
-# =============================================================================
-# Principal
-# =============================================================================
+# -----------------------------------------------------------------------------
+# Verificação de dependências (opcional, mas útil)
+# -----------------------------------------------------------------------------
+check_deps() {
+    local missing=()
+    for cmd in zenity git; do
+        command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
+    done
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "⚠ Dependências ausentes: ${missing[*]}"
+        echo "  Instale com: sudo apt install ${missing[*]}"
+        echo ""
+    fi
+}
 
-echo "🚀 Instalando integração git-tools no Nautilus"
-echo ""
+# -----------------------------------------------------------------------------
+# Execução principal
+# -----------------------------------------------------------------------------
+main() {
+    echo "🚀 Instalando integração git-tools no Nautilus"
+    echo ""
+    check_deps
+    install_nautilus
+    echo ""
+    echo "✔ Concluído! Botão direito em qualquer pasta → Scripts → Git Tools"
+}
 
-check_deps
-check_scripts
-install_nautilus
-
-echo ""
-echo "✔ Concluído! Botão direito em qualquer pasta → Scripts → Git Tools"
+main

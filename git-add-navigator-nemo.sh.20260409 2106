@@ -4,18 +4,16 @@
 # =============================================================================
 # Instala wrappers dos scripts git-tools no menu de contexto do Nemo,
 # permitindo uso direto pelo botão direito em qualquer pasta.
-# Lê a lista de scripts e títulos do arquivo git-tools.conf.
 #
 # Uso: ./git-add-navigator-nemo.sh
 #
-# Versão: 2.0.0
-# Dependências: git-lib.sh, git-tools.conf, zenity, git, pandoc
+# Versão: 1.1.0
+# Dependências: git-lib.sh, zenity, git, pandoc
 # =============================================================================
 
 set -e
 
 INSTALL_DIR="/usr/local/bin"
-CONF_FILE="$INSTALL_DIR/git-tools.conf"
 NEMO_SCRIPTS_DIR="$HOME/.local/share/nemo/scripts/Git Tools"
 
 # =============================================================================
@@ -38,33 +36,34 @@ check_deps() {
     fi
 }
 
-check_conf() {
-    if [ ! -f "$CONF_FILE" ]; then
-        echo "❌ Arquivo de configuração não encontrado: $CONF_FILE" >&2
-        echo "   Execute git-install.sh primeiro." >&2
-        exit 1
-    fi
-    echo "✔ Configuração encontrada: $CONF_FILE"
-}
-
 check_scripts() {
     local missing=()
-    while IFS='|' read -r script title_menu title_laz params; do
-        [[ "$script" == "#"* || -z "$script" || -z "$title_menu" ]] && continue
+    for script in git-feat.sh git-fix.sh git-breaking.sh git-refactor.sh \
+                  git-docs.sh git-changelog.sh git-ini.sh git-release.sh \
+                  git-version-pas-inc.sh git-version.sh \
+                  git-reset.sh git-undo-reset.sh; do
         [ -f "$INSTALL_DIR/$script" ] || missing+=("$script")
-    done < "$CONF_FILE"
-
+    done
     if [ ${#missing[@]} -gt 0 ]; then
         echo "⚠ Scripts não encontrados em $INSTALL_DIR:"
         for s in "${missing[@]}"; do echo "    - $s"; done
-        echo "  Execute git-install.sh antes de continuar."
+        echo "  Instale os scripts git-tools antes de continuar."
         echo ""
     fi
 }
 
 # =============================================================================
 # Helpers de geração de wrappers
+# Todas as variáveis do runtime ($DESC, $TARGET, etc.) são gravadas literalmente
+# via printf '%s\n'. Somente $INSTALL_DIR expande em tempo de instalação.
 # =============================================================================
+
+# Cabeçalho comum: resolve TARGET e faz cd
+# _write_header() {
+#     printf '#!/bin/bash\nset -e\n\n'
+#     printf '%s\n' 'TARGET="${NEMO_SCRIPT_SELECTED_FILE_PATHS%%$'"'"'\n'"'"'*}"'
+#     printf 'if [ -d "$TARGET" ]; then\n    cd "$TARGET"\nelse\n    cd "$(dirname "$TARGET")"\nfi\n\n'
+# }
 
 _write_header() {
     printf '#!/bin/bash\nset -e\n\n'
@@ -78,6 +77,7 @@ _write_header() {
     printf 'if [ -d "$TARGET" ]; then\n    cd "$TARGET"\nelse\n    cd "$(dirname "$TARGET")"\nfi\n\n'
 }
 
+# Guarda git: se a pasta não for repositório, oferece inicializar
 _write_git_guard() {
     printf '%s\n' \
         'if ! git -C "$TARGET" rev-parse --git-dir > /dev/null 2>&1; then' \
@@ -137,20 +137,77 @@ install_nemo() {
 
     echo "  Criando wrappers..."
 
-    while IFS='|' read -r script title_menu title_laz params; do
-        # Ignora comentários e linhas sem título de menu
-        [[ "$script" == "#"* || -z "$script" || -z "$title_menu" ]] && continue
+    # ── git-ini: sem guarda (é ele próprio que inicializa) ───────────────────
 
-        local body="bash \"$INSTALL_DIR/$script\""
-        [ -n "$params" ] && body="bash \"$INSTALL_DIR/$script\" $params"
+    make_wrapper "01 - Inicializar repositório (ini).sh" \
+        "bash \"$INSTALL_DIR/git-ini.sh\""
 
-        # git-ini não precisa de guarda git — é ele que inicializa
-        if [[ "$script" == "git-ini.sh" ]]; then
-            make_wrapper "${title_menu}.sh" "$body"
-        else
-            make_wrapper_git "${title_menu}.sh" "$body"
-        fi
-    done < "$CONF_FILE"
+    # ── Com guarda git + input via zenity ────────────────────────────────────
+
+    make_wrapper_git "02 - Nova funcionalidade (feat).sh" \
+'DESC=$(zenity --entry \
+    --title="Git feat" \
+    --text="Descrição da nova funcionalidade:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-feat.sh" "$DESC"'
+
+    make_wrapper_git "03 - Correção (fix).sh" \
+'DESC=$(zenity --entry \
+    --title="Git fix" \
+    --text="Descrição da correção:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-fix.sh" "$DESC"'
+
+    make_wrapper_git "04 - Breaking change.sh" \
+'DESC=$(zenity --entry \
+    --title="Git breaking" \
+    --text="Descrição da breaking change:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-breaking.sh" "$DESC"'
+
+    make_wrapper_git "05 - Refatoração (refactor).sh" \
+'DESC=$(zenity --entry \
+    --title="Git refactor" \
+    --text="Descrição da refatoração:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-refactor.sh" "$DESC"'
+
+    make_wrapper_git "06 - Commit de documentação (docs).sh" \
+'DESC=$(zenity --entry \
+    --title="Git docs" \
+    --text="Descrição da documentação:" \
+    --width=400) || exit 0
+[ -z "$DESC" ] && { zenity --error --text="Descrição não pode ser vazia."; exit 1; }
+bash "'"$INSTALL_DIR"'/git-docs.sh" "$DESC"'
+
+    # ── Com guarda git, sem input ─────────────────────────────────────────────
+
+    make_wrapper_git "07 - Fazer release.sh" \
+        "bash \"$INSTALL_DIR/git-release.sh\""
+
+    make_wrapper_git "08 - Incrementar versão.sh" \
+        "bash \"$INSTALL_DIR/git-version-pas-inc.sh\""
+
+    make_wrapper_git "09 - Calcular próxima versão.sh" \
+        "bash \"$INSTALL_DIR/git-version.sh\""
+
+    make_wrapper_git "10 - Gerar CHANGELOG.sh" \
+        "bash \"$INSTALL_DIR/git-changelog.sh\" "
+
+    make_wrapper_git "11 - Gerar CHANGELOG HTML.sh" \
+        "bash \"$INSTALL_DIR/git-changelog.sh\" --html"
+
+    # ── Recuperação ──────────────────────────────────────────────────────────
+
+    make_wrapper_git "12 - Desfazer último commit (reset).sh" \
+        "bash \"$INSTALL_DIR/git-reset.sh\""
+
+    make_wrapper_git "13 - Recuperar commit desfeito (undo reset).sh" \
+        "bash \"$INSTALL_DIR/git-undo-reset.sh\""
 
     echo ""
     echo "✔ Scripts instalados em: $NEMO_SCRIPTS_DIR"
@@ -162,7 +219,7 @@ install_nemo() {
         current=$(gsettings get org.nemo.preferences show-scripts-in-context-menus 2>/dev/null || echo "not-set")
         if [ "$current" != "true" ]; then
             gsettings set org.nemo.preferences show-scripts-in-context-menus true 2>/dev/null || true
-            echo "✔ Menu 'Scripts' habilitado no Nemo via gsettings"
+            echo "✔ Menu 'Scripts' habilitado no Nemo via gsettings (ou chave inexistente, ignorado)"
         else
             echo "✔ Menu 'Scripts' já estava habilitado"
         fi
@@ -183,7 +240,6 @@ echo "🚀 Instalando integração git-tools no Nemo"
 echo ""
 
 check_deps
-check_conf
 check_scripts
 install_nemo
 

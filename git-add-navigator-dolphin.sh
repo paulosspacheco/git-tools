@@ -1,20 +1,23 @@
 #!/bin/bash
 # =============================================================================
 # git-add-navigator-dolphin.sh — Integração git-tools no Dolphin (KDE)
-# Versão: 0.7.0
+# Versão: 2.3.0 (sem set -e, robusta)
 # =============================================================================
 
-set -e
-
 INSTALL_DIR="/usr/local/bin"
+CONFIG_FILE="/usr/local/bin/git-tools.conf"
 WRAPPER_DIR="$HOME/.local/share/git-tools"
 SERVICE_DIR="$HOME/.local/share/kio/servicemenus"
 DESKTOP_FILE="$SERVICE_DIR/git-tools.desktop"
 
-# =============================================================================
-# Pré-verificações
-# =============================================================================
+# -----------------------------------------------------------------------------
+# Função parse_config (cópia local)
+# -----------------------------------------------------------------------------
+source "/usr/local/bin/git-lib.sh"
 
+# -----------------------------------------------------------------------------
+# Verificação de dependências
+# -----------------------------------------------------------------------------
 check_deps() {
     local missing=()
     for cmd in zenity git konsole; do
@@ -22,33 +25,20 @@ check_deps() {
     done
     if [ ${#missing[@]} -gt 0 ]; then
         echo "⚠ Dependências ausentes: ${missing[*]}"
-        echo "  Instale com: sudo apt install ${missing[*]}"
-        echo ""
+        echo "  Instalando..."
+        sudo apt update -qq
+        sudo apt install -y "${missing[@]}"
+        echo "✔ Dependências instaladas"
+    else
+        echo "✔ Dependências OK"
     fi
 }
 
-check_scripts() {
-    local missing=()
-    for script in git-feat.sh git-fix.sh git-breaking.sh git-docs.sh \
-                  git-changelog.sh git-ini.sh git-release.sh \
-                  git-version-pas-inc.sh git-version.sh; do
-        [ -f "$INSTALL_DIR/$script" ] || missing+=("$script")
-    done
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo "⚠ Scripts não encontrados em $INSTALL_DIR:"
-        for s in "${missing[@]}"; do echo "    - $s"; done
-        echo "  Instale os scripts git-tools antes de continuar."
-        echo ""
-    fi
-}
-
-# =============================================================================
-# Cabeçalho comum de todos os wrappers
-# =============================================================================
-
-write_wrapper_header() {
-    local wrapper="$1"
-    cat > "$wrapper" <<'EOF'
+# -----------------------------------------------------------------------------
+# Cabeçalho dos wrappers
+# -----------------------------------------------------------------------------
+_write_header() {
+    cat << 'EOF'
 #!/bin/bash
 export DISPLAY="${DISPLAY:-:0}"
 export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
@@ -62,184 +52,126 @@ cd "$TARGET"
 EOF
 }
 
-# =============================================================================
-# Geração dos wrappers
-# =============================================================================
-
-make_wrapper_simple() {
-    local name="$1"
-    local git_script="$2"
-    local wrapper="$WRAPPER_DIR/$name"
-
-    write_wrapper_header "$wrapper"
-    printf '\nkonsole --noclose -e bash -c "bash %q; echo; echo '"'"'--- Pressione qualquer tecla para fechar ---'"'"'; read -n1"\n' \
-        "$INSTALL_DIR/$git_script" >> "$wrapper"
-
-    chmod +x "$wrapper"
-    echo "  ✔ $name"
-}
-
-make_wrapper_with_desc() {
-    local name="$1"
-    local git_script="$2"
-    local zenity_title="$3"
-    local zenity_text="$4"
-    local wrapper="$WRAPPER_DIR/$name"
-
-    write_wrapper_header "$wrapper"
-
-    cat >> "$wrapper" <<EOF
-
-if ! git -C "\$TARGET" rev-parse --git-dir > /dev/null 2>&1; then
-    zenity --question \\
-        --title="Git Tools" \\
-        --text="Esta pasta não é um repositório Git.\n\nDeseja inicializá-la agora?" \\
-        --ok-label="Inicializar" \\
-        --cancel-label="Cancelar" \\
+_write_git_guard() {
+    cat << 'EOF'
+if ! git -C "$TARGET" rev-parse --git-dir > /dev/null 2>&1; then
+    zenity --question \
+        --title="Git Tools" \
+        --text="Esta pasta não é um repositório Git.\n\nDeseja inicializá-la agora?" \
+        --ok-label="Inicializar" \
+        --cancel-label="Cancelar" \
         --width=380 || exit 0
-    konsole --noclose -e bash -c "bash '$INSTALL_DIR/git-ini.sh'; echo; echo '--- Pressione qualquer tecla para fechar ---'; read -n1"
-    git -C "\$TARGET" rev-parse --git-dir > /dev/null 2>&1 || exit 1
+    konsole --noclose -e bash -c "bash \"$INSTALL_DIR/git-ini.sh\"; echo; echo '--- Pressione qualquer tecla para fechar ---'; read -n1"
+    git -C "$TARGET" rev-parse --git-dir > /dev/null 2>&1 || exit 1
 fi
-
-DESC=\$(zenity --entry \\
-    --title="$zenity_title" \\
-    --text="$zenity_text" \\
-    --width=450) || exit 0
-
-if [ -z "\$DESC" ]; then
-    zenity --error --title="Git Tools" --text="Descrição não pode ser vazia." --width=300
-    exit 1
-fi
-
-konsole --noclose -e bash -c "bash '$INSTALL_DIR/$git_script' \"\$DESC\"; echo; echo '--- Pressione qualquer tecla para fechar ---'; read -n1"
 EOF
-
-    chmod +x "$wrapper"
-    echo "  ✔ $name"
 }
 
-make_wrapper_no_desc() {
+make_wrapper() {
     local name="$1"
-    local git_script="$2"
-    local wrapper="$WRAPPER_DIR/$name"
-
-    write_wrapper_header "$wrapper"
-
-    cat >> "$wrapper" <<EOF
-
-if ! git -C "\$TARGET" rev-parse --git-dir > /dev/null 2>&1; then
-    zenity --question \\
-        --title="Git Tools" \\
-        --text="Esta pasta não é um repositório Git.\n\nDeseja inicializá-la agora?" \\
-        --ok-label="Inicializar" \\
-        --cancel-label="Cancelar" \\
-        --width=380 || exit 0
-    konsole --noclose -e bash -c "bash '$INSTALL_DIR/git-ini.sh'; echo; echo '--- Pressione qualquer tecla para fechar ---'; read -n1"
-    git -C "\$TARGET" rev-parse --git-dir > /dev/null 2>&1 || exit 1
-fi
-
-konsole --noclose -e bash -c "bash '$INSTALL_DIR/$git_script'; echo; echo '--- Pressione qualquer tecla para fechar ---'; read -n1"
-EOF
-
-    chmod +x "$wrapper"
+    local script="$2"
+    local params="$3"
+    local file="$WRAPPER_DIR/$name"
+    {
+        _write_header
+        echo "konsole --noclose -e bash -c \"bash \\\"$INSTALL_DIR/$script\\\" $params; echo; echo '--- Pressione qualquer tecla para fechar ---'; read -n1\""
+    } > "$file"
+    chmod +x "$file"
     echo "  ✔ $name"
 }
 
-# =============================================================================
+make_wrapper_git() {
+    local name="$1"
+    local script="$2"
+    local params="$3"
+    local file="$WRAPPER_DIR/$name"
+    {
+        _write_header
+        _write_git_guard
+        echo "konsole --noclose -e bash -c \"bash \\\"$INSTALL_DIR/$script\\\" $params; echo; echo '--- Pressione qualquer tecla para fechar ---'; read -n1\""
+    } > "$file"
+    chmod +x "$file"
+    echo "  ✔ $name"
+}
+
+# -----------------------------------------------------------------------------
 # Criação do arquivo .desktop
-# =============================================================================
+# -----------------------------------------------------------------------------
+_desktop_action() {
+    local script="$1"
+    local title_menu="$2"
+    local title_laz="$3"
+    local params="$4"
+    local id wrapper_name
+    id=$(basename "$script" .sh | sed 's/-/_/g')
+    wrapper_name="$(basename "$script" .sh)-wrapper.sh"
+    printf '[Desktop Action %s]\n' "$id"
+    printf 'Name=%s\n' "$title_menu"
+    printf 'Icon=git\n'
+    printf 'Exec=bash "%s/%s" %%d\n\n' "$WRAPPER_DIR" "$wrapper_name"
+}
 
 create_desktop() {
     echo "  Criando arquivo .desktop..."
     mkdir -p "$SERVICE_DIR"
-    cat > "$DESKTOP_FILE" <<EOF
-[Desktop Entry]
-Type=Service
-ServiceTypes=KonqPopupMenu/Plugin
-MimeType=inode/directory;
-X-KDE-Submenu=Git Tools
-Actions=Ini;Feat;Fix;Breaking;Docs;Release;VersionInc;Version;Changelog
 
-[Desktop Action Ini]
-Name=01 - Inicializar repositório (ini)
-Icon=git
-Exec=bash "$WRAPPER_DIR/git-ini-wrapper.sh" %d
+    local actions=()
+    _collect_id() {
+        local script="$1"
+        local id
+        id=$(basename "$script" .sh | sed 's/-/_/g')
+        actions+=("$id")
+    }
+    parse_config "menu" "_collect_id"
 
-[Desktop Action Feat]
-Name=02 - Nova funcionalidade (feat)
-Icon=git
-Exec=bash "$WRAPPER_DIR/git-feat-wrapper.sh" %d
+    {
+        printf '[Desktop Entry]\n'
+        printf 'Type=Service\n'
+        printf 'ServiceTypes=KonqPopupMenu/Plugin\n'
+        printf 'MimeType=inode/directory;\n'
+        printf 'X-KDE-Submenu=Git Tools\n'
+        printf 'Actions=%s\n\n' "$(IFS=';'; echo "${actions[*]}")"
+        parse_config "menu" "_desktop_action"
+    } > "$DESKTOP_FILE"
 
-[Desktop Action Fix]
-Name=03 - Correção (fix)
-Icon=git
-Exec=bash "$WRAPPER_DIR/git-fix-wrapper.sh" %d
-
-[Desktop Action Breaking]
-Name=04 - Breaking change
-Icon=git
-Exec=bash "$WRAPPER_DIR/git-breaking-wrapper.sh" %d
-
-[Desktop Action Docs]
-Name=05 - Commit de documentação (docs)
-Icon=git
-Exec=bash "$WRAPPER_DIR/git-docs-wrapper.sh" %d
-
-[Desktop Action Release]
-Name=06 - Fazer release
-Icon=git
-Exec=bash "$WRAPPER_DIR/git-release-wrapper.sh" %d
-
-[Desktop Action VersionInc]
-Name=07 - Incrementar versão
-Icon=git
-Exec=bash "$WRAPPER_DIR/version-pas-inc-wrapper.sh" %d
-
-[Desktop Action Version]
-Name=08 - Calcular próxima versão
-Icon=git
-Exec=bash "$WRAPPER_DIR/git-version-wrapper.sh" %d
-
-[Desktop Action Changelog]
-Name=09 - Gerar CHANGELOG
-Icon=git
-Exec=bash "$WRAPPER_DIR/git-changelog-wrapper.sh" %d
-EOF
     chmod +x "$DESKTOP_FILE"
     echo "  ✔ $DESKTOP_FILE"
 }
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Instalação principal
-# =============================================================================
+# -----------------------------------------------------------------------------
+_install_wrapper() {
+    local script="$1"
+    local title_menu="$2"
+    local title_laz="$3"
+    local params="$4"
+    local wrapper_name
+    wrapper_name="$(basename "$script" .sh)-wrapper.sh"
+
+    if [[ "$script" == "git-ini.sh" ]]; then
+        make_wrapper "$wrapper_name" "$script" "$params"
+    else
+        make_wrapper_git "$wrapper_name" "$script" "$params"
+    fi
+}
 
 install_dolphin() {
     echo "🔧 Configurando Dolphin..."
+
+    # Conta quantas entradas com título serão processadas
+    local count=0
+    _count() { count=$((count + 1)); }
+    parse_config "menu" "_count"
+    echo "  → Encontradas $count entradas no $CONFIG_FILE"
+
     echo "  ↻ Removendo instalações anteriores..."
     rm -rf "$WRAPPER_DIR"
     rm -f "$DESKTOP_FILE"
-
     mkdir -p "$WRAPPER_DIR"
+
     echo "  Criando wrappers..."
-
-    make_wrapper_simple    "git-ini-wrapper.sh"      "git-ini.sh"
-
-    make_wrapper_with_desc "git-feat-wrapper.sh"     "git-feat.sh"     \
-        "Git feat"     "Descrição da nova funcionalidade:"
-
-    make_wrapper_with_desc "git-fix-wrapper.sh"      "git-fix.sh"      \
-        "Git fix"      "Descrição da correção:"
-
-    make_wrapper_with_desc "git-breaking-wrapper.sh" "git-breaking.sh" \
-        "Git breaking" "Descrição da breaking change:"
-
-    make_wrapper_with_desc "git-docs-wrapper.sh"     "git-docs.sh"     \
-        "Git docs"     "Descrição da documentação:"
-
-    make_wrapper_no_desc   "git-release-wrapper.sh"     "git-release.sh"
-    make_wrapper_no_desc   "version-pas-inc-wrapper.sh" "git-version-pas-inc.sh"
-    make_wrapper_no_desc   "git-version-wrapper.sh"     "git-version.sh"
-    make_wrapper_no_desc   "git-changelog-wrapper.sh"   "git-changelog.sh"
+    parse_config "menu" "_install_wrapper"
 
     create_desktop
 
@@ -260,15 +192,13 @@ install_dolphin() {
     echo "   dolphin --quit && dolphin &"
 }
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Principal
-# =============================================================================
-
+# -----------------------------------------------------------------------------
 echo "🚀 Instalando integração git-tools no Dolphin"
 echo ""
 
 check_deps
-check_scripts
 install_dolphin
 
 echo ""
