@@ -87,7 +87,7 @@ generate_aliases() {
     done < "$CONFIG_FILE"
     echo -e "$aliases"
 }
-
+ 
 Configure_Aliases() {
     echo ""
     echo "🔧 Configurando aliases no bash"

@@ -45,10 +45,12 @@
 - 2026-03-26 21:30 ignora tree.txt
 ### 📚 Documentação
 
+- 2026-04-13 16:16 Agora os script que executam no gerenciador de arquivos e no lazarus ficam no arquivo git-tools.conf
 - 2026-04-07 22:16 Existe um problema nos script git-add-navigator-nautilus.sh e  git-add-navigator-dolphin.sh ele não fazem o que devem fazer.
 - 2026-03-28 18:06 O script git-add-navigator-dolphin está com problemas preciso checar depois.
 ### ♻️  Refatoração
 
+- 2026-04-13 15:40 renomeia : O script  git-version-pas-inc.sh agora gera o arquivo version-pas.inc
 - 2026-04-09 17:30 simplifica : Remove o parâmetro --write do script  git-install.sh e do script  git-add-generator-lcl.sh
 - 2026-04-09 16:39 simplifica : Removido o parâmetro --write da execução do scripot git-changelog.sh dentro do script git-navigator-nautilus.sh
 - 2026-04-09 16:37 simplifica : Removido parametro --write da chamda a git-changelog.sh do script git-navigator-nemo.sh
@@ -84,4 +86,4 @@
 - 2026-03-30 21:08 atualiza version.pas.inc para v0.14.0
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-04-13 15:25:15_
+_Gerado automaticamente em 2026-04-13 16:18:09_
