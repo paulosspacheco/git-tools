@@ -81,7 +81,7 @@ fi
 
 sed -i "s/^VERSION=.*/VERSION=$NEW_VERSION/" .gitproject
 git add .gitproject
-git commit -m "chore: bump version para v$NEW_VERSION"
+git commit -m "chore: bump version to v$NEW_VERSION"
 git tag "v$NEW_VERSION"
 
 notify_info "✔ Versão atualizada: v$VERSION → v$NEW_VERSION"
