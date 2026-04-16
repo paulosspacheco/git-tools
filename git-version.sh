@@ -10,24 +10,29 @@
 #
 # Ao final, cria uma tag Git com a nova versão e atualiza .gitproject.
 #
-# Uso: ./git-version.sh
+# Uso: git-version.sh
 #
-# Versão: 1.1.0
+# Versão: 1.2.0
 # Dependências: git-lib.sh, .gitproject
 # =============================================================================
 
-source "$(dirname "$0")/git-lib.sh"
+source "/usr/local/bin/git-lib.sh"
 load_config
 
+if [ ! -d ".git" ]; then
+  echo "❌ Nenhum repositório Git encontrado. Execute git-ini.sh primeiro." >&2
+  exit 1
+fi
+
 if [ -z "$VERSION" ]; then
-  echo "❌ VERSION não definida em .gitproject" >&2
+  notify_info "❌ VERSION não definida em .gitproject"
   exit 1
 fi
 
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
 
 if [ -z "$LAST_TAG" ]; then
-  echo "ℹ Nenhuma tag encontrada — analisando todos os commits"
+  notify_info "ℹ Nenhuma tag encontrada — analisando todos os commits"
   COMMITS=$(git log --pretty=format:"%s" 2>/dev/null)
   IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 else
@@ -36,7 +41,7 @@ else
 fi
 
 if [ -z "$COMMITS" ]; then
-  echo "⚠ Nenhum commit novo desde v$VERSION — versão mantida" >&2
+  notify_info "⚠ Nenhum commit novo desde v$VERSION — versão mantida"
   exit 0
 fi
 
@@ -61,15 +66,22 @@ elif [ $BUMP_MINOR -eq 1 ]; then
 elif [ $BUMP_PATCH -eq 1 ]; then
   ((PATCH++))
 else
-  echo "⚠ Nenhum commit relevante (feat/fix) — versão mantida: $MAJOR.$MINOR.$PATCH" >&2
+  notify_info "⚠ Nenhum commit relevante (feat/fix) — versão mantida: $MAJOR.$MINOR.$PATCH"
   exit 0
 fi
 
 NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+# Confirma
+ask_confirm CONFIRM "Confirma a atualização de versão?\n\nv$VERSION → v$NEW_VERSION"
+if [ "$CONFIRM" != "s" ]; then
+  notify_info "❌ Atualização cancelada"
+  exit 0
+fi
 
 sed -i "s/^VERSION=.*/VERSION=$NEW_VERSION/" .gitproject
 git add .gitproject
 git commit -m "chore: bump version para v$NEW_VERSION"
 git tag "v$NEW_VERSION"
 
-echo "✔ Versão atualizada: v$VERSION → v$NEW_VERSION"
+notify_info "✔ Versão atualizada: v$VERSION → v$NEW_VERSION"
