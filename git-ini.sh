@@ -1,62 +1,72 @@
 #!/bin/bash
 # =============================================================================
-# git-ini.sh — Inicialização de projeto Git
+# git-ini.sh — Inicialização de repositório Git (idempotente)
 # =============================================================================
-# Prepara um repositório Git local do zero para usuários sem experiência:
-#   - Instala Git se ausente (Debian/Ubuntu)
-#   - Configura identidade do usuário Git se necessário
-#   - Inicializa repositório com branch main
-#   - Gera .gitignore básico
-#   - Aplica configurações via git-config.sh
-#   - Instala hooks via git-hook.sh (com core.hooksPath)
-#   - Cria commit inicial com README.md
-#   - Configura remote e faz push inicial (opcional)
+# Prepara um repositório Git local do zero, mas é seguro executar múltiplas vezes:
+#   - Não sobrescreve .gitignore, README.md ou arquivos de configuração existentes
+#   - Não cria commits vazios
+#   - Não duplica remotos
 #
 # Uso: ./git-ini.sh [nome-do-projeto]
-#
-# Versão: 1.2.0
-# Dependências: git-lib.sh, git-config.sh, git-hook.sh
+# Versão: 1.4.1 (idempotente)
 # =============================================================================
 
 source "$(dirname "$0")/git-lib.sh"
 
-echo "🚀 Inicializando projeto"
-
-# --- Git ---
-if ! command -v git >/dev/null; then
-  echo "Instalando Git..."
-  sudo apt update && sudo apt install -y git
+# -----------------------------------------------------------------------------
+# Verificação inicial do Git
+# -----------------------------------------------------------------------------
+if ! command -v git >/dev/null 2>&1; then
+    notify_info "❌ Git não encontrado.\nInstale o Git e tente novamente."
+    exit 1
 fi
 
-# --- Identidade do usuário ---
+echo "🚀 Inicializando projeto Git..."
+
+# -----------------------------------------------------------------------------
+# Configura identidade do usuário (idempotente: só define se não existir)
+# -----------------------------------------------------------------------------
 if [ -z "$(git config --global user.name)" ]; then
-  ask_required GIT_USER_NAME "Seu nome completo"
-  git config --global user.name "$GIT_USER_NAME"
+    ask_required GIT_USER_NAME "Seu nome completo (para os commits)"
+    git config --global user.name "$GIT_USER_NAME"
 fi
 
 if [ -z "$(git config --global user.email)" ]; then
-  ask_required GIT_USER_EMAIL "Seu e-mail"
-  git config --global user.email "$GIT_USER_EMAIL"
+    ask_required GIT_USER_EMAIL "Seu e-mail (para os commits)"
+    git config --global user.email "$GIT_USER_EMAIL"
 fi
 
-# --- Repositório ---
+# -----------------------------------------------------------------------------
+# Inicializa o repositório (idempotente)
+# -----------------------------------------------------------------------------
 if [ ! -d ".git" ]; then
-  git config --global init.defaultBranch main
-  git init
+    git config --global init.defaultBranch main
+    git init
+    echo "✔ Repositório Git inicializado (branch main)"
+else
+    echo "ℹ Repositório já existe, reutilizando..."
 fi
 
-# --- Nome do projeto ---
+# -----------------------------------------------------------------------------
+# Nome do projeto (usa argumento ou nome da pasta atual)
+# -----------------------------------------------------------------------------
 DEFAULT_NAME=$(basename "$PWD")
-ask_required PROJECT_NAME "Nome do projeto" "${1:-$DEFAULT_NAME}"
-
-if [[ "$PROJECT_NAME" == /* || "$PROJECT_NAME" == */* ]]; then
-  echo "❌ Nome do projeto não deve ser um caminho, apenas um nome simples." >&2
-  exit 1
+if [ -n "$1" ]; then
+    PROJECT_NAME="$1"
+else
+    ask_required PROJECT_NAME "Nome do projeto (apenas letras, números, hífens ou underscores)" "$DEFAULT_NAME"
 fi
 
-# --- .gitignore ---
+if [[ "$PROJECT_NAME" == */* ]] || [[ "$PROJECT_NAME" == *\\* ]]; then
+    notify_info "❌ Nome do projeto não deve conter barras. Use apenas um nome simples."
+    exit 1
+fi
+
+# -----------------------------------------------------------------------------
+# Cria .gitignore APENAS se não existir (idempotente)
+# -----------------------------------------------------------------------------
 if [ ! -f ".gitignore" ]; then
-  cat > .gitignore <<EOF
+    cat > .gitignore <<'EOF'
 # Binários e compilados
 *.o
 *.a
@@ -82,35 +92,94 @@ lib/
 *.key
 *.pem
 EOF
-  echo "✔ .gitignore criado"
+    echo "✔ .gitignore criado"
+else
+    echo "ℹ .gitignore já existe, mantido"
 fi
 
-# --- Configurações do projeto ---
-"$(dirname "$0")/git-config.sh" "$PROJECT_NAME" || exit 1
+# -----------------------------------------------------------------------------
+# Cria README.md APENAS se não existir (idempotente)
+# -----------------------------------------------------------------------------
+if [ ! -f "README.md" ]; then
+    echo "# $PROJECT_NAME" > README.md
+    echo "✔ README.md criado"
+else
+    echo "ℹ README.md já existe, mantido"
+fi
 
-# --- Hooks ---
-"$(dirname "$0")/git-hook.sh" || exit 1
-git config core.hooksPath .githooks
+# -----------------------------------------------------------------------------
+# Executa git-config.sh (idempotente via marker em .git/)
+# -----------------------------------------------------------------------------
+SCRIPT_DIR="$(dirname "$0")"
+if [ -f "$SCRIPT_DIR/git-config.sh" ]; then
+    if [ ! -f ".git/git-tools-configured" ]; then
+        bash "$SCRIPT_DIR/git-config.sh" "$PROJECT_NAME" || exit 1
+        touch ".git/git-tools-configured"
+    else
+        echo "ℹ git-config.sh já executado, ignorado"
+    fi
+else
+    echo "⚠ git-config.sh não encontrado – configurações adicionais ignoradas"
+fi
 
-# --- Commit inicial ---
-echo "# $PROJECT_NAME" > README.md
-git add .
+# -----------------------------------------------------------------------------
+# Executa git-hook.sh (idempotente via core.hooksPath já configurado)
+# -----------------------------------------------------------------------------
+if [ -f "$SCRIPT_DIR/git-hook.sh" ]; then
+    if [ "$(git config core.hooksPath)" != ".githooks" ]; then
+        bash "$SCRIPT_DIR/git-hook.sh" || exit 1
+        git config core.hooksPath .githooks
+    else
+        echo "ℹ Hooks já instalados, ignorados"
+    fi
+else
+    echo "⚠ git-hook.sh não encontrado – hooks não instalados"
+fi
 
-echo ""
-echo "Arquivos que serão incluídos no commit inicial:"
-git status --short
-echo ""
-read -rp "Confirmar? [S/n]: " CONFIRM
-[[ "$CONFIRM" =~ ^[Nn]$ ]] && exit 0
+# -----------------------------------------------------------------------------
+# Adiciona arquivos e cria commit inicial SOMENTE se houver mudanças e não houver commits
+# -----------------------------------------------------------------------------
+if ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+    git add .
+    if git diff --cached --quiet; then
+        echo "ℹ Nenhuma alteração para commitar."
+    else
+        echo ""
+        echo "📁 Arquivos que serão incluídos no commit inicial:"
+        git status --short
+        echo ""
 
-git commit -m "feat: inicialização do projeto"
-git branch -M main
+        ask_confirm CONFIRM "Confirmar criação do commit inicial?"
+        if [ "$CONFIRM" = "s" ]; then
+            git commit -m "feat: inicialização do projeto $PROJECT_NAME"
+            git branch -M main
+            echo "✔ Commit inicial realizado"
+        else
+            notify_info "❌ Commit inicial cancelado pelo usuário"
+            exit 0
+        fi
+    fi
+else
+    echo "ℹ Repositório já possui commits. Nenhum commit inicial criado."
+fi
 
-# --- Remote (opcional) ---
-read -rp "URL do repositório remoto (Enter para pular): " REMOTE_URL
+# -----------------------------------------------------------------------------
+# Configura remote e push (idempotente: só adiciona se não existir)
+# -----------------------------------------------------------------------------
+ask_optional REMOTE_URL "URL do repositório remoto (deixe em branco para pular)"
 if [ -n "$REMOTE_URL" ]; then
-  git remote add origin "$REMOTE_URL"
-  git push -u origin main && echo "✔ Push realizado" || echo "⚠ Push falhou — verifique a URL e suas credenciais"
+    if git remote | grep -q "^origin$"; then
+        echo "ℹ Remote 'origin' já existe. Atualizando URL..."
+        git remote set-url origin "$REMOTE_URL"
+    else
+        git remote add origin "$REMOTE_URL"
+    fi
+    echo "🔄 Executando push para o remoto..."
+    if git push -u origin main 2>/dev/null; then
+        notify_info "✔ Push realizado com sucesso!"
+    else
+        notify_info "⚠ Falha no push. Verifique a URL e suas credenciais."
+    fi
 fi
 
-echo "✔ Projeto pronto"
+notify_info "✔ Projeto $PROJECT_NAME inicializado com sucesso!"
