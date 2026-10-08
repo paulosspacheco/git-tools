@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Comandos do Git</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<pre><code class="language-markdown"><span class="hljs-section"># Comandos do Git</span>
+
+Guia rápido e simples de comandos Git, organizados por categoria.
+
+---
+
+<span class="hljs-section">## 1. Básicos</span>
+
+<span class="hljs-section">### `git init`</span>
+Inicia um novo repositório.
+
+<span class="hljs-section">### `git clone <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">url</span>&gt;</span></span>`</span>
+Clona (copia) um repositório existente.
+
+<span class="hljs-section">### `git status`</span>
+Mostra o status das alterações.
+
+<span class="hljs-section">### `git add <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">arquivo</span>&gt;</span></span>`</span>
+Adiciona alterações para serem commitadas.
+
+<span class="hljs-section">### `git commit -m &quot;mensagem&quot;`</span>
+Salva as alterações com uma mensagem.
+
+---
+
+<span class="hljs-section">## 2. Sincronização</span>
+
+<span class="hljs-section">### `git pull`</span>
+Busca e traz as alterações do repositório remoto e aplica no seu projeto.
+
+<span class="hljs-section">### `git push`</span>
+Envia suas alterações para o repositório remoto.
+
+<span class="hljs-section">### `git fetch`</span>
+Busca as alterações do remoto, mas não as aplica.
+
+<span class="hljs-section">### `git remote -v`</span>
+Mostra os repositórios remotos conectados.
+
+---
+
+<span class="hljs-section">## 3. Desfazer Alterações</span>
+
+<span class="hljs-section">### `git restore <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">arquivo</span>&gt;</span></span>`</span>
+Desfaz alterações em um arquivo.
+
+<span class="hljs-section">### `git reset HEAD <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">arquivo</span>&gt;</span></span>`</span>
+Remove o arquivo da área de stage (<span class="hljs-code">`git add`</span>).
+
+<span class="hljs-section">### `git revert <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">id-commit</span>&gt;</span></span>`</span>
+Cria um novo commit que desfaz as alterações de um commit anterior.
+
+---
+
+<span class="hljs-section">## 4. Branches (Ramificações)</span>
+
+<span class="hljs-section">### `git branch`</span>
+Lista todas as branches.
+
+<span class="hljs-section">### `git switch <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">nome-da-branch</span>&gt;</span></span>`</span>
+Troca para outra branch.
+
+<span class="hljs-section">### `git switch -c <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">nome-da-branch</span>&gt;</span></span>`</span>
+Cria uma nova branch e já muda para ela.
+
+<span class="hljs-section">### `git merge <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">nome-da-branch</span>&gt;</span></span>`</span>
+Mescla as alterações de outra branch na atual.
+
+<span class="hljs-section">### `git branch -d <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">nome-da-branch</span>&gt;</span></span>`</span>
+Remove uma branch já mesclada.
+
+<span class="hljs-section">### `git branch -D <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">nome-da-branch</span>&gt;</span></span>`</span>
+Remove uma branch à força.
+
+---
+
+<span class="hljs-section">## 5. Avançado</span>
+
+<span class="hljs-section">### `git log --oneline --graph --all`</span>
+Mostra o histórico de commits de forma resumida e visual.
+
+<span class="hljs-section">### `git stash`</span>
+Salva temporariamente suas alterações sem fazer commit.
+
+<span class="hljs-section">### `git stash pop`</span>
+Restaura as alterações salvas no stash.
+
+<span class="hljs-section">### `git rebase <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">branch</span>&gt;</span></span>`</span>
+Reaplica seus commits sobre outra branch, produzindo um histórico mais limpo.
+
+<span class="hljs-section">### `git cherry-pick <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">id-commit</span>&gt;</span></span>`</span>
+Aplica um commit específico de outra branch.
+
+---
+
+<span class="hljs-section">## 6. Ajuda</span>
+
+<span class="hljs-section">### `git help <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">comando</span>&gt;</span></span>`</span>
+Mostra a ajuda de um comando específico.
+
+<span class="hljs-section">### `git help --all`</span>
+Mostra todos os comandos disponíveis.
+
+---
+
+<span class="hljs-section">## Dica Rápida</span>
+
+<span class="hljs-quote">&gt; Use `git status` com frequência. Ele mostra exatamente o que está acontecendo no seu projeto.</span>
+</code></pre>
+
+            
+            
+        </body>
+        </html>

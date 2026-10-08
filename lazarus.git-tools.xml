@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CONFIG Version="3" Count="11">
+<CONFIG Version="3" Count="12">
   <Tool1>
     <Title Value="Inicializar repositório"/>
     <Filename Value="/usr/local/bin/git-ini.sh"/>
@@ -89,4 +89,12 @@
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool11>
+  <Tool12>
+    <Title Value="Git Undo Reset"/>
+    <Filename Value="/usr/local/bin/git-undo-reset.sh"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool12>
 </CONFIG>

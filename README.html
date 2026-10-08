@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Git Tools - Guia do Projeto</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<h1 id="git-tools---guia-do-projeto">Git Tools - Guia do Projeto</h1>
+<h2 id="1-visão-geral-do-projeto">1. Visão Geral do Projeto</h2>
+<p><strong>Git Tools</strong> é um conjunto de scripts Bash para gerenciamento simplificado de projetos Git, projetado para facilitar o uso de boas práticas de versionamento mesmo para usuários sem experiência prévia com Git.</p>
+<h3 id="tecnologias-principais">Tecnologias Principais</h3>
+<ul>
+<li><strong>Bash 4.3+</strong> - Linguagem principal dos scripts</li>
+<li><strong>Git</strong> - Sistema de controle de versão</li>
+<li><strong>Zenity</strong> (opcional) - Para interfaces gráficas em ambientes com display</li>
+<li><strong>Lazarus/FPC</strong> - Suporte a projetos Pascal através do arquivo <code>version-pas-inc</code></li>
+</ul>
+<h3 id="arquitetura-em-alto-nível">Arquitetura em Alto Nível</h3>
+<p>O projeto segue uma arquitetura modular onde:</p>
+<ul>
+<li><code>git-lib.sh</code> fornece funções utilitárias compartilhadas</li>
+<li>Scripts específicos (<code>git-feat.sh</code>, <code>git-fix.sh</code>, etc.) implementam funcionalidades específicas</li>
+<li>Hooks Git garantem a conformidade com Conventional Commits</li>
+<li>Configurações são centralizadas no arquivo <code>.gitproject</code></li>
+</ul>
+<h2 id="2-primeiros-passos">2. Primeiros Passos</h2>
+<h3 id="pré-requisitos">Pré-requisitos</h3>
+<ul>
+<li>Bash 4.3 ou superior</li>
+<li>Git instalado</li>
+<li>Ambiente Linux/Unix (Debian/Ubuntu, macOS com Bash 5+, Git Bash no Windows)</li>
+<li>Zenity (opcional, para interfaces gráficas)</li>
+</ul>
+<h3 id="instalação">Instalação</h3>
+<pre><code class="language-bash"><span class="hljs-comment"># Clone o repositório</span>
+git <span class="hljs-built_in">clone</span> https://github.com/seu-usuario/git-tools.git
+<span class="hljs-built_in">cd</span> git-tools
+
+<span class="hljs-comment"># Instale globalmente</span>
+./git-install.sh
+</code></pre>
+<h3 id="exemplos-básicos-de-uso">Exemplos Básicos de Uso</h3>
+<pre><code class="language-bash"><span class="hljs-comment"># Inicializar um novo projeto</span>
+<span class="hljs-built_in">cd</span> /meu/projeto
+git-ini.sh
+
+<span class="hljs-comment"># Adicionar uma nova funcionalidade</span>
+git-feat.sh <span class="hljs-string">&quot;adiciona tela de login&quot;</span>
+
+<span class="hljs-comment"># Corrigir um bug</span>
+git-fix.sh <span class="hljs-string">&quot;corrige validação de senha&quot;</span>
+
+<span class="hljs-comment"># Gerar um release</span>
+git-release.sh
+</code></pre>
+<h3 id="como-executar-testes">Como Executar Testes</h3>
+<p>O projeto inclui <code>git-lib-test.sh</code> para testar a biblioteca utilitária:</p>
+<pre><code class="language-bash">./git-lib-test.sh
+</code></pre>
+<h2 id="3-estrutura-do-projeto">3. Estrutura do Projeto</h2>
+<pre><code>git-tools/
+├── .continue/rules/           # Este guia e regras do Continue
+├── .git/                      # Repositório Git
+├── .githooks/                 # Hooks versionados
+│   └── commit-msg            # Validação de mensagens de commit
+├── .gitignore                # Padrões de arquivos ignorados
+├── .gitproject               # Configurações do projeto (nome, versão)
+├── README.md                 # Documentação principal
+├── git-tools.md              # Documentação detalhada
+├── git-lib.sh                # Biblioteca utilitária (core)
+├── git-ini.sh                # Inicialização de projetos
+├── git-feat.sh               # Commits de funcionalidades
+├── git-fix.sh                # Commits de correções
+├── git-breaking.sh           # Commits com quebra de compatibilidade
+├── git-release.sh            # Geração de releases
+├── git-version.sh            # Cálculo de versão semântica
+├── git-hook.sh               # Instalação de hooks
+├── git-config.sh             # Configuração do projeto
+├── git-install.sh            # Instalação global
+├── git-uninstall.sh          # Desinstalação
+├── version-pas-inc.sh        # Geração de arquivo para Lazarus/FPC
+├── git-*.sh                  # Outros scripts utilitários
+└── version-pas-inc           # Arquivo gerado para projetos Pascal
+</code></pre>
+<h3 id="arquivos-chave-e-seus-papéis">Arquivos-Chave e Seus Papéis</h3>
+<ol>
+<li>
+<p><strong><a href="http://git-lib.sh">git-lib.sh</a></strong> - Biblioteca central com funções utilitárias:</p>
+<ul>
+<li><code>ask_required()</code> - Solicita valores obrigatórios</li>
+<li><code>ask_confirm()</code> - Confirmações interativas</li>
+<li><code>notify_info()</code> - Exibição de mensagens</li>
+<li><code>load_config()</code> - Carregamento de configurações</li>
+</ul>
+</li>
+<li>
+<p><strong>.gitproject</strong> - Configurações do projeto:</p>
+<pre><code class="language-bash">PROJECT_NAME=git-tools
+VERSION=0.14.1
+</code></pre>
+</li>
+<li>
+<p><strong><a href="http://git-hook.sh">git-hook.sh</a></strong> - Implementa validação de Conventional Commits</p>
+</li>
+</ol>
+<h3 id="arquivos-de-configuração-importantes">Arquivos de Configuração Importantes</h3>
+<ul>
+<li><strong>.gitignore</strong> - Padrões específicos para projetos Lazarus/FPC</li>
+<li><strong>.gitproject</strong> - Metadados do projeto</li>
+<li><strong>lazarus.git-tools.xml</strong> - Configuração para integração com Lazarus IDE</li>
+</ul>
+<h2 id="4-fluxo-de-desenvolvimento">4. Fluxo de Desenvolvimento</h2>
+<h3 id="padrões-ou-convenções-de-cabeçalho-de-scripts">Padrões ou Convenções de Cabeçalho de Scripts</h3>
+<p>Cada script segue um formato padrão:</p>
+<pre><code class="language-bash"><span class="hljs-meta">#!/bin/bash</span>
+<span class="hljs-comment"># =============================================================================</span>
+<span class="hljs-comment"># nome-do-script.sh — Descrição breve</span>
+<span class="hljs-comment"># =============================================================================</span>
+<span class="hljs-comment"># Descrição detalhada</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># Uso: ./nome-do-script.sh [parâmetros]</span>
+<span class="hljs-comment">#</span>
+<span class="hljs-comment"># Versão: x.y.z</span>
+<span class="hljs-comment"># Dependências: script1.sh, script2.sh</span>
+<span class="hljs-comment"># =============================================================================</span>
+</code></pre>
+<h3 id="estratégia-de-testes">Estratégia de Testes</h3>
+<ul>
+<li>Testes manuais dos scripts em diferentes cenários</li>
+<li>Verificação de compatibilidade com diferentes ambientes</li>
+<li>Testes de integração entre scripts</li>
+</ul>
+<h3 id="processo-de-build-e-deploy">Processo de Build e Deploy</h3>
+<ol>
+<li><strong>Desenvolvimento</strong>: Modificar scripts conforme necessário</li>
+<li><strong>Testes</strong>: Verificar funcionamento em diferentes ambientes</li>
+<li><strong>Versionamento</strong>: Usar os próprios scripts para commits</li>
+<li><strong>Release</strong>: <code>git-release.sh</code> para gerar nova versão</li>
+<li><strong>Distribuição</strong>: <code>git-install.sh</code> para instalação global</li>
+</ol>
+<h3 id="diretrizes-para-contribuição">Diretrizes para Contribuição</h3>
+<ol>
+<li>
+<p>Use os scripts do projeto para commits:</p>
+<ul>
+<li><code>git-feat.sh</code> para novas funcionalidades</li>
+<li><code>git-fix.sh</code> para correções</li>
+<li><code>git-breaking.sh</code> para mudanças que quebram compatibilidade</li>
+</ul>
+</li>
+<li>
+<p>Mantenha a compatibilidade com Bash 4.3+</p>
+</li>
+<li>
+<p>Documente novas funcionalidades em <code>git-tools.md</code></p>
+</li>
+<li>
+<p>Teste em diferentes ambientes (Linux, macOS, Git Bash)</p>
+</li>
+</ol>
+<h2 id="5-conceitos-chave">5. Conceitos-Chave</h2>
+<h3 id="terminologia-específica">Terminologia Específica</h3>
+<ul>
+<li><strong>Conventional Commits</strong>: Padrão de mensagens de commit (feat:, fix:, etc.)</li>
+<li><strong>SemVer</strong>: Versionamento Semântico (MAJOR.MINOR.PATCH)</li>
+<li><strong>Hook Git</strong>: Script executado automaticamente em eventos Git</li>
+<li><strong>version-pas-inc</strong>: Arquivo com defines para projetos Pascal</li>
+</ul>
+<h3 id="abstrações-principais">Abstrações Principais</h3>
+<ol>
+<li><strong>Configuração por Projeto</strong>: Cada projeto tem seu <code>.gitproject</code></li>
+<li><strong>Hooks Versionados</strong>: Hooks são armazenados em <code>.githooks/</code></li>
+<li><strong>Interface Adaptativa</strong>: Scripts usam Zenity (GUI) ou terminal (CLI)</li>
+</ol>
+<h3 id="padrões-de-design-utilizados">Padrões de Design Utilizados</h3>
+<ol>
+<li><strong>Biblioteca Compartilhada</strong>: <code>git-lib.sh</code> centraliza funcionalidades comuns</li>
+<li><strong>Scripts Específicos</strong>: Cada funcionalidade tem seu script dedicado</li>
+<li><strong>Fallback Graceful</strong>: GUI → CLI quando Zenity não disponível</li>
+<li><strong>Configuração Externa</strong>: Parâmetros via argumentos ou interativamente</li>
+</ol>
+<h2 id="6-tarefas-comuns">6. Tarefas Comuns</h2>
+<h3 id="adicionar-um-novo-script">Adicionar um Novo Script</h3>
+<ol>
+<li>Crie o arquivo com extensão <code>.sh</code></li>
+<li>Adicione o cabeçalho padrão</li>
+<li>Importe <code>git-lib.sh</code> se necessário</li>
+<li>Documente no <code>git-tools.md</code></li>
+<li>Teste o funcionamento</li>
+</ol>
+<h3 id="modificar-a-biblioteca-utilitária">Modificar a Biblioteca Utilitária</h3>
+<ol>
+<li>Edite <code>git-lib.sh</code></li>
+<li>Atualize a versão no cabeçalho</li>
+<li>Teste com <code>git-lib-test.sh</code></li>
+<li>Verifique compatibilidade com scripts existentes</li>
+</ol>
+<h3 id="atualizar-a-documentação">Atualizar a Documentação</h3>
+<ol>
+<li>Modifique <code>git-tools.md</code> para mudanças funcionais</li>
+<li>Atualize <code>README.md</code> para visão geral</li>
+<li>Revise exemplos e casos de uso</li>
+</ol>
+<h3 id="adicionar-suporte-a-nova-plataforma">Adicionar Suporte a Nova Plataforma</h3>
+<ol>
+<li>Teste os scripts na nova plataforma</li>
+<li>Identifique incompatibilidades</li>
+<li>Modifique condicionais (<code>_has_display()</code>, etc.)</li>
+<li>Documente na seção de compatibilidade</li>
+</ol>
+<h2 id="7-solução-de-problemas">7. Solução de Problemas</h2>
+<h3 id="problemas-comuns">Problemas Comuns</h3>
+<h4 id="-nenhum-repositório-git-encontrado">&quot;❌ Nenhum repositório Git encontrado&quot;</h4>
+<p><strong>Causa</strong>: Script executado fora de um repositório Git
+<strong>Solução</strong>: Execute <code>git-ini.sh</code> primeiro ou navegue para um projeto Git</p>
+<h4 id="-mensagem-de-commit-inválida">&quot;❌ Mensagem de commit inválida!&quot;</h4>
+<p><strong>Causa</strong>: Mensagem não segue Conventional Commits
+<strong>Solução</strong>: Use um dos prefixos aceitos: <code>feat:</code>, <code>fix:</code>, <code>feat!:</code>, <code>docs:</code>, <code>chore:</code>, <code>refactor:</code>, <code>test:</code>, <code>style:</code></p>
+<h4 id="scripts-não-encontrados-após-instalação">Scripts não encontrados após instalação</h4>
+<p><strong>Causa</strong>: <code>/usr/local/bin</code> não está no PATH
+<strong>Solução</strong>: Adicione ao PATH ou use caminho completo:</p>
+<pre><code class="language-bash"><span class="hljs-built_in">export</span> PATH=<span class="hljs-string">&quot;/usr/local/bin:<span class="hljs-variable">$PATH</span>&quot;</span>
+</code></pre>
+<h4 id="zenity-não-disponível-em-ambiente-headless">Zenity não disponível em ambiente headless</h4>
+<p><strong>Causa</strong>: Ambiente sem display (servidores, SSH)
+<strong>Solução</strong>: Os scripts automaticamente usam interface de terminal</p>
+<h3 id="dicas-de-depuração">Dicas de Depuração</h3>
+<ol>
+<li><strong>Modo verboso</strong>: Adicione <code>set -x</code> no início do script para debug</li>
+<li><strong>Teste individual</strong>: Execute cada função separadamente</li>
+<li><strong>Verifique dependências</strong>: Use <code>command -v</code> para verificar comandos</li>
+<li><strong>Log de execução</strong>: Redirecione saída para arquivo:<pre><code class="language-bash">./git-feat.sh 2&gt;&amp;1 | <span class="hljs-built_in">tee</span> debug.log
+</code></pre>
+</li>
+</ol>
+<h3 id="compatibilidade-entre-versões-de-bash">Compatibilidade entre Versões de Bash</h3>
+<ul>
+<li><strong>Bash 4.3+</strong>: Suporte completo</li>
+<li><strong>Bash 3.x (macOS padrão)</strong>: Problemas com <code>local -n</code> (nameref)</li>
+<li><strong>Solução</strong>: Instalar Bash 5 via Homebrew no macOS</li>
+</ul>
+<h2 id="8-referências">8. Referências</h2>
+<h3 id="documentação-do-projeto">Documentação do Projeto</h3>
+<ul>
+<li><a href="./git-tools.html">git-tools.md</a> - Documentação completa</li>
+<li><a href="./README.html">README.md</a> - Visão geral</li>
+<li><a href="./CHANGELOG.html">CHANGELOG.md</a> - Histórico de mudanças</li>
+</ul>
+<h3 id="padrões-e-especificações">Padrões e Especificações</h3>
+<ul>
+<li><a href="https://www.conventionalcommits.org/">Conventional Commits</a> - Padrão de mensagens</li>
+<li><a href="https://semver.org/">Semantic Versioning</a> - Versionamento semântico</li>
+<li><a href="https://www.gnu.org/software/bash/manual/">Bash Reference Manual</a> - Documentação Bash</li>
+</ul>
+<h3 id="ferramentas-relacionadas">Ferramentas Relacionadas</h3>
+<ul>
+<li><a href="https://git-scm.com/doc">Git Documentation</a> - Documentação oficial do Git</li>
+<li><a href="https://wiki.gnome.org/Projects/Zenity">Zenity</a> - Ferramenta para diálogos GTK</li>
+<li><a href="https://www.lazarus-ide.org/">Lazarus IDE</a> - Ambiente de desenvolvimento Pascal</li>
+</ul>
+<h3 id="recursos-importantes">Recursos Importantes</h3>
+<ul>
+<li><strong>Scripts de integração</strong>: <code>git-lazarus-integrate.sh</code> para Lazarus</li>
+<li><strong>Navegadores de arquivos</strong>: Scripts para Dolphin, Nautilus, Nemo</li>
+<li><strong>Workspace</strong>: <code>git-tools.code-workspace</code> para VS Code</li>
+</ul>
+<hr>
+<p><em>Este guia foi gerado automaticamente com base na análise do projeto. Revise e edite conforme necessário para refletir mudanças futuras.</em></p>
+<p><strong>Próximos passos:</strong></p>
+<ol>
+<li>Revise este arquivo e ajuste conforme necessário</li>
+<li>Faça commit no repositório: <code>git-feat.sh &quot;adiciona guia CONTINUE.md&quot;</code></li>
+<li>Compartilhe com a equipe para padronização</li>
+<li>O Continue carregará automaticamente este contexto ao trabalhar no projeto</li>
+</ol>
+<p>Para documentações específicas de componentes, crie arquivos <code>rules.md</code> em subdiretórios relevantes.# git-tools</p>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>
