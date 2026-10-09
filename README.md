@@ -1,264 +1,94 @@
-# Git Tools - Guia do Projeto
+# git-tools
 
-## 1. Visão Geral do Projeto
+Comandos curtos para guardar cada versão do seu trabalho — documentos, páginas e programas — usando o Git. Cada operação (nova funcionalidade, correção, release, changelog, desfazer) pergunta o necessário, monta a mensagem no padrão [Conventional Commits](https://www.conventionalcommits.org/) e calcula a versão ([SemVer](https://semver.org/)) a partir do que foi feito.
 
-**Git Tools** é um conjunto de scripts Bash para gerenciamento simplificado de projetos Git, projetado para facilitar o uso de boas práticas de versionamento mesmo para usuários sem experiência prévia com Git.
+**Versão:** 1.0.0  
+**Data:** 2026-10-09
 
-### Tecnologias Principais
-- **Bash 4.3+** - Linguagem principal dos scripts
-- **Git** - Sistema de controle de versão
-- **Zenity** (opcional) - Para interfaces gráficas em ambientes com display
-- **Lazarus/FPC** - Suporte a projetos Pascal através do arquivo `version-pas-inc`
+**Objetivo da versão:** README passa a ser a porta de entrada do projeto e o índice de todos os documentos. Os arquivos HTML gerados automaticamente foram removidos; a documentação existe somente em Markdown.
 
-### Arquitetura em Alto Nível
-O projeto segue uma arquitetura modular onde:
-- `git-lib.sh` fornece funções utilitárias compartilhadas
-- Scripts específicos (`git-feat.sh`, `git-fix.sh`, etc.) implementam funcionalidades específicas
-- Hooks Git garantem a conformidade com Conventional Commits
-- Configurações são centralizadas no arquivo `.gitproject`
-
-## 2. Primeiros Passos
-
-### Pré-requisitos
-- Bash 4.3 ou superior
-- Git instalado
-- Ambiente Linux/Unix (Debian/Ubuntu, macOS com Bash 5+, Git Bash no Windows)
-- Zenity (opcional, para interfaces gráficas)
-
-### Instalação
-```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/git-tools.git
-cd git-tools
-
-# Instale globalmente
-./git-install.sh
-```
-
-### Exemplos Básicos de Uso
-```bash
-# Inicializar um novo projeto
-cd /meu/projeto
-git-ini.sh
-
-# Adicionar uma nova funcionalidade
-git-feat.sh "adiciona tela de login"
-
-# Corrigir um bug
-git-fix.sh "corrige validação de senha"
-
-# Gerar um release
-git-release.sh
-```
-
-### Como Executar Testes
-O projeto inclui `git-lib-test.sh` para testar a biblioteca utilitária:
-```bash
-./git-lib-test.sh
-```
-
-## 3. Estrutura do Projeto
-
-```
-git-tools/
-├── .continue/rules/           # Este guia e regras do Continue
-├── .git/                      # Repositório Git
-├── .githooks/                 # Hooks versionados
-│   └── commit-msg            # Validação de mensagens de commit
-├── .gitignore                # Padrões de arquivos ignorados
-├── .gitproject               # Configurações do projeto (nome, versão)
-├── README.md                 # Documentação principal
-├── git-tools.md              # Documentação detalhada
-├── git-lib.sh                # Biblioteca utilitária (core)
-├── git-ini.sh                # Inicialização de projetos
-├── git-feat.sh               # Commits de funcionalidades
-├── git-fix.sh                # Commits de correções
-├── git-breaking.sh           # Commits com quebra de compatibilidade
-├── git-release.sh            # Geração de releases
-├── git-version.sh            # Cálculo de versão semântica
-├── git-hook.sh               # Instalação de hooks
-├── git-config.sh             # Configuração do projeto
-├── git-install.sh            # Instalação global
-├── git-uninstall.sh          # Desinstalação
-├── version-pas-inc.sh        # Geração de arquivo para Lazarus/FPC
-├── git-*.sh                  # Outros scripts utilitários
-└── version-pas-inc           # Arquivo gerado para projetos Pascal
-```
-
-### Arquivos-Chave e Seus Papéis
-
-1. **git-lib.sh** - Biblioteca central com funções utilitárias:
-   - `ask_required()` - Solicita valores obrigatórios
-   - `ask_confirm()` - Confirmações interativas
-   - `notify_info()` - Exibição de mensagens
-   - `load_config()` - Carregamento de configurações
-
-2. **.gitproject** - Configurações do projeto:
-   ```bash
-   PROJECT_NAME=git-tools
-   VERSION=0.14.1
-   ```
-
-3. **git-hook.sh** - Implementa validação de Conventional Commits
-
-### Arquivos de Configuração Importantes
-- **.gitignore** - Padrões específicos para projetos Lazarus/FPC
-- **.gitproject** - Metadados do projeto
-- **lazarus.git-tools.xml** - Configuração para integração com Lazarus IDE
-
-## 4. Fluxo de Desenvolvimento
-
-### Padrões ou Convenções de Cabeçalho de Scripts
-Cada script segue um formato padrão:
-```bash
-#!/bin/bash
-# =============================================================================
-# nome-do-script.sh — Descrição breve
-# =============================================================================
-# Descrição detalhada
-#
-# Uso: ./nome-do-script.sh [parâmetros]
-#
-# Versão: x.y.z
-# Dependências: script1.sh, script2.sh
-# =============================================================================
-```
-
-### Estratégia de Testes
-- Testes manuais dos scripts em diferentes cenários
-- Verificação de compatibilidade com diferentes ambientes
-- Testes de integração entre scripts
-
-### Processo de Build e Deploy
-1. **Desenvolvimento**: Modificar scripts conforme necessário
-2. **Testes**: Verificar funcionamento em diferentes ambientes
-3. **Versionamento**: Usar os próprios scripts para commits
-4. **Release**: `git-release.sh` para gerar nova versão
-5. **Distribuição**: `git-install.sh` para instalação global
-
-### Diretrizes para Contribuição
-1. Use os scripts do projeto para commits:
-   - `git-feat.sh` para novas funcionalidades
-   - `git-fix.sh` para correções
-   - `git-breaking.sh` para mudanças que quebram compatibilidade
-
-2. Mantenha a compatibilidade com Bash 4.3+
-
-3. Documente novas funcionalidades em `git-tools.md`
-
-4. Teste em diferentes ambientes (Linux, macOS, Git Bash)
-
-## 5. Conceitos-Chave
-
-### Terminologia Específica
-- **Conventional Commits**: Padrão de mensagens de commit (feat:, fix:, etc.)
-- **SemVer**: Versionamento Semântico (MAJOR.MINOR.PATCH)
-- **Hook Git**: Script executado automaticamente em eventos Git
-- **version-pas-inc**: Arquivo com defines para projetos Pascal
-
-### Abstrações Principais
-1. **Configuração por Projeto**: Cada projeto tem seu `.gitproject`
-2. **Hooks Versionados**: Hooks são armazenados em `.githooks/`
-3. **Interface Adaptativa**: Scripts usam Zenity (GUI) ou terminal (CLI)
-
-### Padrões de Design Utilizados
-1. **Biblioteca Compartilhada**: `git-lib.sh` centraliza funcionalidades comuns
-2. **Scripts Específicos**: Cada funcionalidade tem seu script dedicado
-3. **Fallback Graceful**: GUI → CLI quando Zenity não disponível
-4. **Configuração Externa**: Parâmetros via argumentos ou interativamente
-
-## 6. Tarefas Comuns
-
-### Adicionar um Novo Script
-1. Crie o arquivo com extensão `.sh`
-2. Adicione o cabeçalho padrão
-3. Importe `git-lib.sh` se necessário
-4. Documente no `git-tools.md`
-5. Teste o funcionamento
-
-### Modificar a Biblioteca Utilitária
-1. Edite `git-lib.sh`
-2. Atualize a versão no cabeçalho
-3. Teste com `git-lib-test.sh`
-4. Verifique compatibilidade com scripts existentes
-
-### Atualizar a Documentação
-1. Modifique `git-tools.md` para mudanças funcionais
-2. Atualize `README.md` para visão geral
-3. Revise exemplos e casos de uso
-
-### Adicionar Suporte a Nova Plataforma
-1. Teste os scripts na nova plataforma
-2. Identifique incompatibilidades
-3. Modifique condicionais (`_has_display()`, etc.)
-4. Documente na seção de compatibilidade
-
-## 7. Solução de Problemas
-
-### Problemas Comuns
-
-#### "❌ Nenhum repositório Git encontrado"
-**Causa**: Script executado fora de um repositório Git
-**Solução**: Execute `git-ini.sh` primeiro ou navegue para um projeto Git
-
-#### "❌ Mensagem de commit inválida!"
-**Causa**: Mensagem não segue Conventional Commits
-**Solução**: Use um dos prefixos aceitos: `feat:`, `fix:`, `feat!:`, `docs:`, `chore:`, `refactor:`, `test:`, `style:`
-
-#### Scripts não encontrados após instalação
-**Causa**: `/usr/local/bin` não está no PATH
-**Solução**: Adicione ao PATH ou use caminho completo:
-```bash
-export PATH="/usr/local/bin:$PATH"
-```
-
-#### Zenity não disponível em ambiente headless
-**Causa**: Ambiente sem display (servidores, SSH)
-**Solução**: Os scripts automaticamente usam interface de terminal
-
-### Dicas de Depuração
-1. **Modo verboso**: Adicione `set -x` no início do script para debug
-2. **Teste individual**: Execute cada função separadamente
-3. **Verifique dependências**: Use `command -v` para verificar comandos
-4. **Log de execução**: Redirecione saída para arquivo:
-   ```bash
-   ./git-feat.sh 2>&1 | tee debug.log
-   ```
-
-### Compatibilidade entre Versões de Bash
-- **Bash 4.3+**: Suporte completo
-- **Bash 3.x (macOS padrão)**: Problemas com `local -n` (nameref)
-- **Solução**: Instalar Bash 5 via Homebrew no macOS
-
-## 8. Referências
-
-### Documentação do Projeto
-- [git-tools.md](./git-tools.md) - Documentação completa
-- [README.md](./README.md) - Visão geral
-- [CHANGELOG.md](./CHANGELOG.md) - Histórico de mudanças
-
-### Padrões e Especificações
-- [Conventional Commits](https://www.conventionalcommits.org/) - Padrão de mensagens
-- [Semantic Versioning](https://semver.org/) - Versionamento semântico
-- [Bash Reference Manual](https://www.gnu.org/software/bash/manual/) - Documentação Bash
-
-### Ferramentas Relacionadas
-- [Git Documentation](https://git-scm.com/doc) - Documentação oficial do Git
-- [Zenity](https://wiki.gnome.org/Projects/Zenity) - Ferramenta para diálogos GTK
-- [Lazarus IDE](https://www.lazarus-ide.org/) - Ambiente de desenvolvimento Pascal
-
-### Recursos Importantes
-- **Scripts de integração**: `git-lazarus-integrate.sh` para Lazarus
-- **Navegadores de arquivos**: Scripts para Dolphin, Nautilus, Nemo
-- **Workspace**: `git-tools.code-workspace` para VS Code
+**Observações:** cada script tem o seu documento ao lado do fonte, com o nome do script mais `.md` (`git-lib.sh` → `git-lib.sh.md`). Ao criar um documento novo, acrescente a linha correspondente na tabela de scripts abaixo.
 
 ---
-*Este guia foi gerado automaticamente com base na análise do projeto. Revise e edite conforme necessário para refletir mudanças futuras.*
 
-**Próximos passos:**
-1. Revise este arquivo e ajuste conforme necessário
-2. Faça commit no repositório: `git-feat.sh "adiciona guia CONTINUE.md"`
-3. Compartilhe com a equipe para padronização
-4. O Continue carregará automaticamente este contexto ao trabalhar no projeto
+## O que você precisa
 
-Para documentações específicas de componentes, crie arquivos `rules.md` em subdiretórios relevantes.# git-tools
+- Linux com Bash 4.3 ou superior
+- Git instalado
+- `sudo`, pois os scripts são copiados para `/usr/local/bin`
+- Opcionais: `zenity` (janelas gráficas) e `konsole` (integração com o Dolphin)
+
+Sem ambiente gráfico, todos os comandos funcionam com perguntas no terminal.
+
+## Instalação
+
+```bash
+git clone https://github.com/paulosspacheco/git-tools.git
+cd git-tools
+bash git-install.sh
+source ~/.bashrc
+```
+
+Não execute o instalador como root: ele pede `sudo` sozinho quando precisa. Para remover, use `bash git-uninstall.sh`.
+
+## Uso rápido
+
+```bash
+cd /meu/projeto
+git-ini                            # prepara o repositório
+git-feat "adiciona tela de login"
+git-fix "corrige validação de senha"
+git-release                        # calcula a versão e cria a tag
+git-changelog-summary --write      # salva o CHANGELOG.md
+```
+
+Os mesmos comandos aparecem no menu de contexto do Nemo, Nautilus e Dolphin e no menu **Tools** do Lazarus.
+
+---
+
+## Documentação
+
+### Guias
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [git-tools-claude.md](git-tools-claude.md) | Guia completo: instalação, todos os comandos, integrações e pontos de atenção |
+| [git-tools.conf.md](git-tools.conf.md) | Como o `git-tools.conf` define scripts, menus e aliases |
+| [resumo.md](resumo.md) | Guia rápido dos comandos do Git |
+| [CHANGELOG.md](CHANGELOG.md) | Histórico de mudanças, agrupado por tipo |
+| [LICENSE](LICENSE) | Licença MIT |
+
+### Scripts
+
+Os aliases têm o nome do script sem o `.sh` (`git-feat.sh` → `git-feat`).
+
+| Script | Para que serve | Documento |
+|--------|----------------|-----------|
+| `git-ini.sh` | Prepara o projeto: repositório, `.gitignore`, `README.md`, hooks e remoto | [guia](git-tools-claude.md#git-ini) |
+| `git-feat.sh` | Commit de nova funcionalidade (`feat:`) | [guia](git-tools-claude.md#commits) |
+| `git-fix.sh` | Commit de correção (`fix:`) | [guia](git-tools-claude.md#commits) |
+| `git-breaking.sh` | Commit de mudança que quebra compatibilidade (`feat!:`) | [guia](git-tools-claude.md#commits) |
+| `git-refactor.sh` | Commit de refatoração (`refactor:`) | [guia](git-tools-claude.md#commits) |
+| `git-docs.sh` | Commit de documentação (`docs:`) | [guia](git-tools-claude.md#commits) |
+| `git-version.sh` | Calcula a próxima versão, cria a tag e gera o `version-pas.inc` | [guia](git-tools-claude.md#versão-e-release) |
+| `git-release.sh` | Executa o `git-version.sh` e mostra a versão gerada | [guia](git-tools-claude.md#versão-e-release) |
+| `git-changelog.sh` | Mostra os commits agrupados por versão | [guia](git-tools-claude.md#changelog) |
+| `git-changelog-summary.sh` | Gera o `CHANGELOG.md` agrupado por tipo de commit | [guia](git-tools-claude.md#changelog) |
+| `git-reset.sh` | Desfaz o último commit | [guia](git-tools-claude.md#desfazer) |
+| `git-undo-reset.sh` | Recupera um commit desfeito | [guia](git-tools-claude.md#desfazer) |
+| `git-github.sh` | Envia o projeto ao GitHub e cria o repositório se não existir | [git-github.sh.md](git-github.sh.md) |
+| `git-install.sh` | Instala scripts, aliases e menus | [git-install.sh.md](git-install.sh.md) |
+| `git-uninstall.sh` | Remove tudo o que o instalador criou | [guia](git-tools-claude.md#desinstalação) |
+| `git-lib.sh` | Biblioteca de funções usada pelos demais scripts | [git-lib.sh.md](git-lib.sh.md) |
+| `git-config.sh` | Grava o `.gitproject` com nome e versão do projeto | [guia](git-tools-claude.md#git-ini) |
+| `git-hook.sh` | Instala a validação das mensagens de commit | [guia](git-tools-claude.md#hook-de-commit) |
+| `git-add-navigator-nemo.sh`<br>`git-add-navigator-nautilus.sh`<br>`git-add-navigator-dolphin.sh` | Criam o submenu **Git Tools** no gerenciador de arquivos | [guia](git-tools-claude.md#gerenciadores-de-arquivos) |
+| `git-remove-navigator-nemo.sh` | Remove o submenu do Nemo | [guia](git-tools-claude.md#gerenciadores-de-arquivos) |
+| `git-lazarus-integrate.sh` | Integração avulsa com o menu Tools do Lazarus | [guia](git-tools-claude.md#lazarus) |
+| `git-generator-lcl.sh` | Gera os arquivos de versão dos projetos Lazarus | [git-generator-lcl.sh.md](git-generator-lcl.sh.md) |
+
+---
+
+## Licença
+
+Distribuído sob a licença MIT. O texto completo está em [LICENSE](LICENSE).

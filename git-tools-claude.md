@@ -13,7 +13,7 @@ Os comandos funcionam no terminal, com diálogos gráficos (Zenity) quando há a
 - Linux com Bash 4.3 ou superior (a biblioteca usa `local -n`)
 - Git instalado (o instalador e o `git-ini` não instalam o Git)
 - `sudo`, pois os scripts são copiados para `/usr/local/bin`
-- Opcionais: `zenity` (diálogos gráficos), `pandoc` (gerar `CHANGELOG.html`), `konsole` (integração com o Dolphin)
+- Opcionais: `zenity` (diálogos gráficos), `konsole` (integração com o Dolphin)
 
 Sem ambiente gráfico ou sem `zenity`, todos os scripts usam perguntas no terminal.
 
@@ -150,7 +150,7 @@ Em projetos Lazarus/Free Pascal ele pode ser incluído com `{$I version-pas.inc}
 | Script | O que faz |
 |--------|-----------|
 | `git-changelog.sh [-s DATA]` | Agrupa os commits por versão (tags `vX.Y.Z`) e exibe no Zenity ou no `less`. Sem argumento, pergunta a data inicial (`YYYY-MM-DD`); em branco mostra tudo |
-| `git-changelog-summary.sh [--write] [--html] [versão]` | Agrupa por tipo (quebras de compatibilidade, funcionalidades, correções, documentação, refatoração, manutenção, outras). Sem opções imprime no terminal; `--write` salva `CHANGELOG.md`; `--html` também gera `CHANGELOG.html` via `pandoc`. O argumento `versão` (ex.: `v1.2.0`) limita às mudanças desde essa tag |
+| `git-changelog-summary.sh [--write] [versão]` | Agrupa por tipo (quebras de compatibilidade, funcionalidades, correções, documentação, refatoração, manutenção, outras). Sem opções imprime no terminal; `--write` salva `CHANGELOG.md`. O argumento `versão` (ex.: `v1.2.0`) limita às mudanças desde essa tag |
 
 ### Desfazer
 
