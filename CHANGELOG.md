@@ -32,6 +32,7 @@
 - 2026-03-26 21:34 adiciona filtro tree.txt no .gitignore
 - 2026-03-26 21:29 adiciona script git-feat.sh
 - 2026-03-26 21:17 inicialização do projeto
+
 ### 🐛 Correções
 
 - 2026-10-09 09:52 melhora : git-github.sh - mostra um diálogo de andamento enquanto cria o repositório e envia a branch e as tags, para a tela não ficar sem resposta
@@ -51,12 +52,15 @@
 - 2026-03-27 11:33 Alterado o formato do arquivo version.inc para formato pascal
 - 2026-03-26 21:53 Ajuste dos scripts git-version.sh e git-version.sh gerem automaticamente o número da versão
 - 2026-03-26 21:30 ignora tree.txt
+
 ### 📚 Documentação
 
+- 2026-10-09 10:04 atualiza :    CHANGELOG.md e CHANGELOG.html atualizados até a v0.18.1
 - 2026-04-13 16:30 adiciona : Teste da alteração do script git-docs.sh a partir do gerenciador de arquivos.
 - 2026-04-13 16:16 Agora os script que executam no gerenciador de arquivos e no lazarus ficam no arquivo git-tools.conf
 - 2026-04-07 22:16 Existe um problema nos script git-add-navigator-nautilus.sh e  git-add-navigator-dolphin.sh ele não fazem o que devem fazer.
 - 2026-03-28 18:06 O script git-add-navigator-dolphin está com problemas preciso checar depois.
+
 ### ♻️  Refatoração
 
 - 2026-10-09 08:58 reorganiza : git-cloud.sh renomeado para git-github.sh (um script por provedor) e o documento para git-github.sh.md; git-github.sh registrado no git-tools.conf; ao pedir o token, o git-github.sh abre no navegador a página de criação e mostra o passo a passo do formulário
@@ -71,6 +75,7 @@
 - 2026-04-09 08:57 extrai : Apaguei arquivos de cópias usadas quando estou testando modificações de um script.
 - 2026-04-07 17:25 renomeia : O nome do arquivo git-version-inc.sh foi trocado para git-version0oas-inc.sh
 - 2026-03-30 21:07 renomeia : O nome versin.inc foi nomeado para version.pas.inc
+
 ### 🔧 Manutenção
 
 - 2026-10-09 09:59 bump version to v0.18.1
@@ -107,5 +112,6 @@
 - 2026-04-02 17:22 atualiza version.pas.inc para v0.14.0
 - 2026-03-30 21:08 atualiza version.pas.inc para v0.14.0
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
+
 ---
-_Gerado automaticamente em 2026-10-09 10:00:17_
+_Gerado automaticamente em 2026-10-09 10:16:43_

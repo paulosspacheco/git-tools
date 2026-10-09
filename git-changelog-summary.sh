@@ -11,7 +11,13 @@
 #   git-changelog.sh --html     — salva em CHANGELOG.md e CHANGELOG.html
 #   git-changelog.sh v1.2.0     — mudanças desde a versão informada
 #
-# Versão: 1.3.0
+# Data da versão: 2026-10-09
+# Versão: 1.3.1
+# Objetivo da versão: corrigir o CHANGELOG.md, que ficava sem linha em branco
+#   antes dos títulos ### e antes do ---, e por isso o pandoc não gerava os
+#   títulos das seções no CHANGELOG.html.
+# Observações: a substituição de comando $(...) remove as quebras de linha do
+#   final de cada seção; por isso cada bloco inicia com a própria linha em branco.
 # Dependências: git-lib.sh, pandoc (opcional, para --html)
 # =============================================================================
 
@@ -99,13 +105,13 @@ list_section() {
   commits=$(echo "$commits" | grep -vE "(bump version|atualiza version\.inc) para v" || true)
 
   if [ -n "$commits" ]; then
-    printf "\n### %s\n\n" "$title"
+    printf "\n\n### %s\n\n" "$title"
     printf "%s\n" "$commits" | sed -E "s/^/- /" | sed -E "s/^(- [0-9-]+ [0-9:]+) [a-z!]+:/\1/"
   fi
 }
 
 OUTPUT="# 📘 CHANGELOG\n\n"
-OUTPUT+="$HEADER\n"
+OUTPUT+="$HEADER"
 OUTPUT+="$(list_section "feat!:" "⚠ Alterações que quebram compatibilidade")"
 OUTPUT+="$(list_section "fix!:"  "⚠ Alterações que quebram compatibilidade")"
 OUTPUT+="$(list_section "feat:"  "➕ Funcionalidades")"
@@ -121,11 +127,11 @@ else
 fi
 
 if [ -n "$others" ]; then
-  OUTPUT+="\n### 🧩 Outras mudanças\n\n"
+  OUTPUT+="\n\n### 🧩 Outras mudanças\n\n"
   OUTPUT+="$(printf "%s\n" "$others" | sed 's/^/- /')\n"
 fi
 
-OUTPUT+="\n---\n"
+OUTPUT+="\n\n---\n"
 OUTPUT+="_Gerado automaticamente em $(date "+%Y-%m-%d %H:%M:%S")_\n"
 
 
