@@ -1,3 +1,0 @@
-const
-  VERSION_STR = '0.16.0';
-  BUILD_DATE  = '2026-10-08 20:48:46';

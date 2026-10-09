@@ -2,28 +2,6 @@
 # =============================================================================
 # git-version.sh — Atualização automática de versão do projeto + Pascal
 # =============================================================================
-# Versão: 0.1.0
-# Data:   2026-10-08
-#
-# Objetivo da versão:
-#   - version-pas.inc só é gerado quando a pasta é um projeto Pascal/Lazarus
-#     (*.lpi, *.lpr, *.lpk ou *.dpr até 2 níveis de profundidade)
-#   - Atualiza também a versão em package.json, pyproject.toml, Cargo.toml,
-#     gradle.properties e pubspec.yaml, quando existirem na pasta
-#   - Pasta sem linguagem reconhecida não recebe nenhum arquivo de versão
-#   - Demais comportamentos mantidos como na versão anterior
-#
-# Observações de uso:
-#   - Executar na raiz do repositório, que deve conter .git e .gitproject
-#   - .gitproject precisa ter a linha VERSION=x.y.z
-#   - Requer /usr/local/bin/git-lib.sh (instalado pelo git-install.sh)
-#   - feat: sobe MINOR, fix: sobe PATCH, feat! sobe MAJOR
-#   - Só altera arquivos de linguagem que já tenham campo de versão;
-#     versão dinâmica (ex.: setuptools_scm) é preservada
-#   - Um arquivo version-pas.inc já existente em pasta sem projeto Pascal
-#     não é apagado; deve ser removido manualmente (git rm version-pas.inc)
-#   - Usa sed do GNU (Linux)
-# =============================================================================
 
 # =============================================================================
 # CORREÇÃO PARA NEMO/NAUTILUS/DOLPHIN - Propagar variáveis de display
@@ -43,82 +21,40 @@ source "/usr/local/bin/git-lib.sh"
 load_config
 
 # =============================================================================
-# Arquivos de versão por linguagem
-# =============================================================================
-VERSION_FILES=(package.json pyproject.toml Cargo.toml gradle.properties pubspec.yaml)
-GENERATED_FILES=()
-
-is_pascal_project() {
-  [ -n "$(find . -maxdepth 2 -not -path './.git/*' \( -name '*.lpi' -o -name '*.lpr' -o -name '*.lpk' -o -name '*.dpr' \) -print -quit)" ]
-}
-
-version_pattern() {
-  case "$1" in
-    package.json)              echo '"version"[[:space:]]*:[[:space:]]*"[^"]*"' ;;
-    pyproject.toml|Cargo.toml) echo '^version[[:space:]]*=[[:space:]]*"[^"]*"' ;;
-    gradle.properties)         echo '^version[[:space:]]*=.*' ;;
-    pubspec.yaml)              echo '^version:[[:space:]]*[0-9]+\.[0-9]+\.[0-9]+' ;;
-  esac
-}
-
-version_replacement() {
-  case "$1" in
-    package.json)              echo "\"version\": \"$2\"" ;;
-    pyproject.toml|Cargo.toml) echo "version = \"$2\"" ;;
-    gradle.properties)         echo "version=$2" ;;
-    pubspec.yaml)              echo "version: $2" ;;
-  esac
-}
-
-# =============================================================================
 # Função para gerar version-pas.inc (incorporada do version-pas-inc.sh)
-# e atualizar os arquivos de versão das demais linguagens
 # =============================================================================
-generate_version_files() {
+generate_pas_inc() {
   local version="$1"
   local build_date=$(date "+%Y-%m-%d %H:%M:%S")
-  local f
-
-  GENERATED_FILES=()
-
-  if is_pascal_project; then
-    echo ""
-    echo "🔧 Gerando version-pas.inc para Pascal/Lazarus..."
-
-    # Gera o arquivo
-    cat > version-pas.inc <<EOF
+  
+  echo ""
+  echo "🔧 Gerando version-pas.inc para Pascal/Lazarus..."
+  
+  # Gera o arquivo
+  cat > version-pas.inc <<EOF
 const
   VERSION_STR = '$version';
   BUILD_DATE  = '$build_date';
 EOF
-    GENERATED_FILES+=(version-pas.inc)
-  fi
-
-  for f in "${VERSION_FILES[@]}"; do
-    [ -f "$f" ] || continue
-    grep -Eq "$(version_pattern "$f")" "$f" || continue
-    echo ""
-    echo "🔧 Atualizando versão em $f..."
-    sed -E -i "0,/$(version_pattern "$f")/s//$(version_replacement "$f" "$version")/" "$f"
-    GENERATED_FILES+=("$f")
-  done
-
-  [ ${#GENERATED_FILES[@]} -eq 0 ] && return 0
-
-  # Adiciona ao Git
-  git add "${GENERATED_FILES[@]}"
-
-  # Verifica se houve mudança antes de commitar
-  if ! git diff --cached --quiet -- "${GENERATED_FILES[@]}"; then
-    if git commit -m "chore: update ${GENERATED_FILES[*]} to v$version"; then
-      echo "  ✔ ${GENERATED_FILES[*]} gerado e commitado"
+  
+  # Adiciona ao Git se o arquivo existir
+  if [ -f version-pas.inc ]; then
+    git add version-pas.inc
+    
+    # Verifica se houve mudança antes de commitar
+    if ! git diff --cached --quiet version-pas.inc; then
+      if git commit -m "chore: update version-pas.inc to v$version"; then
+        echo "  ✔ version-pas.inc gerado e commitado"
+      else
+        echo "  ⚠ Falha no commit do version-pas.inc"
+      fi
     else
-      echo "  ⚠ Falha no commit do ${GENERATED_FILES[*]}"
+      echo "  ℹ version-pas.inc já está atualizado"
     fi
   else
-    echo "  ℹ ${GENERATED_FILES[*]} já está atualizado"
+    echo "  ⚠ version-pas.inc gerado mas não adicionado ao Git"
   fi
-
+  
   echo "     Versão: $version"
   echo "     Data:   $build_date"
 }
@@ -159,7 +95,7 @@ fi
 
 if [ -z "$COMMITS" ]; then
   notify_info "⚠ Nenhum commit novo desde v$VERSION — versão mantida"
-  generate_version_files "$VERSION"
+  generate_pas_inc "$VERSION"
   exit 0
 fi
 
@@ -185,7 +121,7 @@ elif [ $BUMP_PATCH -eq 1 ]; then
   ((PATCH++))
 else
   notify_info "⚠ Nenhum commit relevante (feat/fix) — versão mantida: $MAJOR.$MINOR.$PATCH"
-  generate_version_files "$VERSION"
+  generate_pas_inc "$VERSION"
   exit 0
 fi
 
@@ -213,19 +149,14 @@ git add .gitproject
 git commit -m "chore: bump version to v$NEW_VERSION"
 git tag "v$NEW_VERSION"
 
-# Gera os arquivos de versão das linguagens encontradas na pasta
-generate_version_files "$NEW_VERSION"
+# Gera o arquivo version-pas.inc com a nova versão
+generate_pas_inc "$NEW_VERSION"
 
 # Mensagem final - com zenity para GUI
-GENERATED_MSG=""
-if [ ${#GENERATED_FILES[@]} -gt 0 ]; then
-  GENERATED_MSG="\n\ne também gerado:\n$(printf '%s\n' "${GENERATED_FILES[@]}")"
-fi
-
 if command -v zenity >/dev/null 2>&1; then
   zenity --info \
     --title="Git Tools" \
-    --text="✔ Versão atualizada com sucesso!\n\nv$VERSION → v$NEW_VERSION$GENERATED_MSG" \
+    --text="✔ Versão atualizada com sucesso!\n\nv$VERSION → v$NEW_VERSION\n\ne também gerado:\nversion-pas.inc" \
     --width=380
 else
   notify_info "✔ Versão atualizada: v$VERSION → v$NEW_VERSION"
