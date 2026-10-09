@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CONFIG Version="3" Count="12">
+<CONFIG Version="3" Count="13">
   <Tool1>
     <Title Value="Inicializar repositório"/>
     <Filename Value="/usr/local/bin/git-ini.sh"/>
@@ -97,4 +97,12 @@
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool12>
+  <Tool13>
+    <Title Value="Enviar ou atualizar no GitHub"/>
+    <Filename Value="/usr/local/bin/git-github.sh"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool13>
 </CONFIG>

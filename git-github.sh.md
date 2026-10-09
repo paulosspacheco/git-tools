@@ -2,15 +2,13 @@
 
 Envia o projeto para o GitHub e cria o repositório quando ele ainda não existe, perguntando o que for necessário.
 
-**Versão:** 0.1.0  
+**Versão:** 0.2.0  
 **Data:** 2026-10-08
 
 **Objetivo da versão:**
 
-- Renomear o `git-cloud.sh`: cada provedor passa a ter o seu próprio script
-- Enviar a branch atual e todas as tags para o GitHub
-- Criar o repositório pela API do GitHub quando ele não existir
-- Deixar o `origin` configurado com o endereço SSH
+- Quando o token for necessário, oferecer abrir no navegador a página de criação do token, com a Nota preenchida e o escopo `repo` marcado
+- Mostrar o passo a passo do formulário no próprio diálogo do token
 
 **Observações de uso:**
 
@@ -123,11 +121,13 @@ Depois faça ao menos um commit, por exemplo com `git-feat.sh`. Sem commit o scr
 
 A chave SSH não consegue criar repositórios. Para isso o script usa a API do GitHub, que exige um token. O token só é pedido quando o repositório ainda não existe.
 
-Atalho direto para a tela de criação:
+Quando o token é necessário, o script pergunta se pode abrir a página de criação no navegador. Respondendo **Sim**, a página abre com a **Nota** já preenchida e a caixa **repositório** já marcada, e o diálogo seguinte mostra o passo a passo e o campo para colar o token. Sem ambiente gráfico, ou respondendo **Não**, o endereço aparece no diálogo para você abrir à mão:
 
 ```
-https://github.com/settings/tokens/new
+https://github.com/settings/tokens/new?scopes=repo&description=git-tools%20-%20criar%20repositorios
 ```
+
+Confira na página se a caixa **repositório** está marcada antes de gerar o token.
 
 Caminho manual: foto do perfil, **Settings**, **Developer settings**, **Personal access tokens**, **Tokens (classic)**, **Generate new token (classic)**.
 

@@ -2,15 +2,13 @@
 # =============================================================================
 # git-github.sh — Envia o projeto para o GitHub e cria o repositório se não existir
 # =============================================================================
-# Versão: 0.1.0
+# Versão: 0.2.0
 # Data:   2026-10-08
 #
 # Objetivo da versão:
-#   - Renomeia o git-cloud.sh: cada provedor passa a ter o seu próprio script
-#   - Envia a branch atual e as tags para o GitHub (origin)
-#   - Se o repositório não existir, pergunta nome, visibilidade e descrição
-#     e o cria pela API do GitHub
-#   - Deixa o origin configurado com o endereço SSH
+#   - Quando o token for necessário, oferece abrir no navegador a página de
+#     criação do token, com a Nota preenchida e o escopo repo marcado
+#   - Mostra o passo a passo do formulário no próprio diálogo do token
 #
 # Observações de uso:
 #   - Uso: git-github.sh
@@ -18,7 +16,9 @@
 #   - Requer chave SSH cadastrada na conta do GitHub (teste: ssh -T git@github.com)
 #   - Criar o repositório exige um token clássico com permissão repo, obtido
 #     de GITHUB_TOKEN, do gh (gh auth login) ou digitado no diálogo
-#   - O token não é gravado em lugar nenhum
+#   - O token é da conta, não da pasta: só é pedido quando o repositório
+#     ainda não existe, e não é gravado em lugar nenhum
+#   - A página é aberta com xdg-open; sem ele, o endereço aparece no diálogo
 #   - Repositórios de organização devem ser criados pelo site do GitHub
 #   - Origin que não seja do GitHub recebe apenas o envio
 #   - Dependências: git-lib.sh, git, ssh, curl
@@ -28,6 +28,7 @@ source "/usr/local/bin/git-lib.sh"
 load_config
 
 API="https://api.github.com"
+TOKEN_URL="https://github.com/settings/tokens/new?scopes=repo&description=git-tools%20-%20criar%20repositorios"
 SSH_HOST="git@github.com"
 RESP=$(mktemp)
 trap 'rm -f "$RESP"' EXIT
@@ -59,7 +60,7 @@ ask_secret() {
 
   if _has_display && command -v zenity >/dev/null; then
     _value=$(zenity --entry --hide-text --title="Git Tools" --text="$_prompt" \
-                    --width=400 2>/dev/null) || return 1
+                    --width=520 2>/dev/null) || return 1
   else
     printf '%b\n' "$_prompt" >&2
     read -rsp "Token: " _value
@@ -77,7 +78,21 @@ get_token() {
   fi
   [ -n "$TOKEN" ] && return 0
 
-  ask_secret TOKEN "Para criar o repositório é preciso um token do GitHub (token clássico com permissão repo).\nCrie em: GitHub > Settings > Developer settings > Personal access tokens.\n\nCole o token"
+  local open_page opened=""
+  ask_confirm open_page "Para criar o repositório é preciso um token do GitHub.\n\nAbrir agora no navegador a página de criação do token?"
+  if [ "${open_page,,}" = "s" ] && open_url "$TOKEN_URL"; then
+    opened="A página de criação do token foi aberta no navegador."
+  else
+    opened="Abra no navegador:\n$TOKEN_URL"
+  fi
+
+  ask_secret TOKEN "$opened\n\nNo formulário:\n  1. Nota: já vem preenchida (git-tools - criar repositorios)\n  2. Expiração: escolha um prazo\n  3. Selecione escopos: confira se a caixa repositório está marcada\n  4. Clique no botão verde de gerar o token, no fim da página\n  5. Copie o token (começa com ghp_); ele aparece uma única vez\n\nCole o token aqui"
+}
+
+open_url() {
+  command -v xdg-open >/dev/null 2>&1 || return 1
+  _has_display || return 1
+  xdg-open "$1" >/dev/null 2>&1 &
 }
 
 api() {

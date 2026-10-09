@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>git-github&period;sh</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<h1 id="git-githubsh"><a href="http://git-github.sh">git-github.sh</a></h1>
+<p>Envia o projeto para o GitHub e cria o repositório quando ele ainda não existe, perguntando o que for necessário.</p>
+<p><strong>Versão:</strong> 0.2.0<br>
+<strong>Data:</strong> 2026-10-08</p>
+<p><strong>Objetivo da versão:</strong></p>
+<ul>
+<li>Quando o token for necessário, oferecer abrir no navegador a página de criação do token, com a Nota preenchida e o escopo <code>repo</code> marcado</li>
+<li>Mostrar o passo a passo do formulário no próprio diálogo do token</li>
+</ul>
+<p><strong>Observações de uso:</strong></p>
+<ul>
+<li>Executar dentro da pasta que contém <code>.git</code>, com pelo menos um commit</li>
+<li>Exige chave SSH cadastrada na conta do GitHub</li>
+<li>Criar um repositório novo exige um token clássico com permissão <code>repo</code></li>
+<li>Só cria repositórios na conta pessoal; repositórios de organização são criados pelo site</li>
+</ul>
+<hr>
+<h2 id="visão-geral">Visão geral</h2>
+<p>O <code>git-github.sh</code> resolve o trabalho repetitivo de levar uma pasta para o GitHub. Cada provedor tem o seu próprio script, porque as APIs de criação de repositório são diferentes. Em cada pasta ele faz o mesmo caminho:</p>
+<ol>
+<li>Confere se a chave SSH está autenticada no GitHub</li>
+<li>Descobre ou pergunta o usuário e o nome do repositório</li>
+<li>Verifica se o repositório existe no GitHub</li>
+<li>Se não existir, pergunta se deve criá-lo e coleta visibilidade e descrição</li>
+<li>Configura o <code>origin</code> com o endereço SSH</li>
+<li>Envia a branch atual e as tags</li>
+</ol>
+<p>Os diálogos usam o <code>zenity</code> quando há ambiente gráfico (ou o Mi.Scripts, que o intercepta) e o terminal quando não há.</p>
+<hr>
+<h2 id="requisitos">Requisitos</h2>
+<ul>
+<li>Linux com Bash 4.3 ou superior</li>
+<li><code>git</code>, <code>ssh</code> e <code>curl</code></li>
+<li>Git Tools instalado (<code>git-lib.sh</code> em <code>/usr/local/bin</code>)</li>
+<li>Conta no GitHub</li>
+<li>Chave SSH cadastrada nessa conta (Passo 1)</li>
+<li>Um token clássico, apenas na primeira vez que criar cada repositório (Passo 4)</li>
+</ul>
+<hr>
+<h2 id="passo-1--chave-ssh-cadastrada-no-github">Passo 1 — Chave SSH cadastrada no GitHub</h2>
+<p>A chave SSH autoriza o envio dos arquivos. Ela é única para a máquina e para a conta: cadastrada uma vez, vale para todos os repositórios.</p>
+<h3 id="verificar-se-você-já-tem-uma-chave">Verificar se você já tem uma chave</h3>
+<pre><code class="language-bash"><span class="hljs-built_in">ls</span> ~/.ssh
+</code></pre>
+<p>Se aparecerem arquivos como <code>id_ed25519</code> e <code>id_ed25519.pub</code> (ou <code>id_rsa</code> e <code>id_rsa.pub</code>), a chave existe. O arquivo sem <code>.pub</code> é a parte privada e nunca deve ser enviado a ninguém. O <code>.pub</code> é a parte pública, a que se cadastra no GitHub.</p>
+<h3 id="criar-uma-chave-somente-se-não-tiver">Criar uma chave (somente se não tiver)</h3>
+<pre><code class="language-bash">ssh-keygen -t ed25519 -C <span class="hljs-string">&quot;seu-email@exemplo.com&quot;</span>
+<span class="hljs-built_in">cat</span> ~/.ssh/id_ed25519.pub
+</code></pre>
+<p>Copie todo o texto que o <code>cat</code> mostrar.</p>
+<h3 id="cadastrar-no-github">Cadastrar no GitHub</h3>
+<p>No site, clique na sua foto, depois em <strong>Settings</strong>, <strong>SSH and GPG keys</strong> e <strong>New SSH key</strong>. Dê um título, cole a chave pública e salve. A interface pode aparecer em português.</p>
+<h3 id="testar">Testar</h3>
+<pre><code class="language-bash">ssh -T git@github.com
+</code></pre>
+<p>Resultado esperado:</p>
+<pre><code>Hi seu-usuario! You've successfully authenticated, but GitHub does not provide shell access.
+</code></pre>
+<p>O nome depois de &quot;Hi&quot; deve ser o seu usuário. Se aparecer o nome de um repositório (<code>Hi seu-usuario/nome-do-repo!</code>), a chave foi cadastrada como <em>deploy key</em>, que vale só para aquele repositório. Cadastre-a na conta e remova a deploy key.</p>
+<hr>
+<h2 id="passo-2--instalar-o-script">Passo 2 — Instalar o script</h2>
+<ol>
+<li>
+<p>Copie o <code>git-github.sh</code> para a pasta do projeto git-tools.</p>
+</li>
+<li>
+<p>Acrescente uma linha ao <code>git-tools.conf</code>, no mesmo formato das outras e seguindo a numeração que o seu arquivo usa:</p>
+<pre><code>git-github.sh|Enviar para o GitHub (github)|Enviar para o GitHub|
+</code></pre>
+</li>
+<li>
+<p>Rode o instalador como usuário comum, sem <code>sudo</code>:</p>
+<pre><code class="language-bash">./git-install.sh
+</code></pre>
+</li>
+</ol>
+<p>O instalador copia o script para <code>/usr/local/bin</code> e passa a oferecê-lo nos menus do gerenciador de arquivos e do Lazarus.</p>
+<hr>
+<h2 id="passo-3--preparar-a-pasta-do-projeto">Passo 3 — Preparar a pasta do projeto</h2>
+<p>A pasta precisa ser um repositório Git com pelo menos um commit. Se ainda não for:</p>
+<pre><code class="language-bash">git-ini.sh
+</code></pre>
+<p>Depois faça ao menos um commit, por exemplo com <code>git-feat.sh</code>. Sem commit o script avisa e não envia nada.</p>
+<hr>
+<h2 id="passo-4--criar-o-token-do-github">Passo 4 — Criar o token do GitHub</h2>
+<p>A chave SSH não consegue criar repositórios. Para isso o script usa a API do GitHub, que exige um token. O token só é pedido quando o repositório ainda não existe.</p>
+<p>Quando o token é necessário, o script pergunta se pode abrir a página de criação no navegador. Respondendo <strong>Sim</strong>, a página abre com a <strong>Nota</strong> já preenchida e a caixa <strong>repositório</strong> já marcada, e o diálogo seguinte mostra o passo a passo e o campo para colar o token. Sem ambiente gráfico, ou respondendo <strong>Não</strong>, o endereço aparece no diálogo para você abrir à mão:</p>
+<pre><code>https://github.com/settings/tokens/new?scopes=repo&amp;description=git-tools%20-%20criar%20repositorios
+</code></pre>
+<p>Confira na página se a caixa <strong>repositório</strong> está marcada antes de gerar o token.</p>
+<p>Caminho manual: foto do perfil, <strong>Settings</strong>, <strong>Developer settings</strong>, <strong>Personal access tokens</strong>, <strong>Tokens (classic)</strong>, <strong>Generate new token (classic)</strong>.</p>
+<p>No formulário:</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>O que fazer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nota</strong></td>
+<td>Um nome para você reconhecer o token, por exemplo <code>git-tools - criar repositórios</code></td>
+</tr>
+<tr>
+<td><strong>Expiração</strong></td>
+<td>Um prazo. Prazo curto é mais seguro; quando vencer, gere outro</td>
+</tr>
+<tr>
+<td><strong>Selecione escopos</strong></td>
+<td>Marque <strong>somente</strong> a caixa <strong>repositório</strong> (<code>repo</code>). As caixas recuadas abaixo dela são marcadas junto</td>
+</tr>
+</tbody>
+</table>
+<p>Não marque as demais, principalmente <code>excluir_repo</code>, <code>administrador:org</code>, <code>fluxo de trabalho</code> e <code>escrever:pacotes</code>.</p>
+<p>Clique no botão de gerar o token, no fim da página. O token começa com <code>ghp_</code> e <strong>é mostrado uma única vez</strong>: copie na hora.</p>
+<h3 id="onde-o-script-procura-o-token">Onde o script procura o token</h3>
+<p>Em ordem:</p>
+<ol>
+<li>Variável de ambiente <code>GITHUB_TOKEN</code> (ou <code>GH_TOKEN</code>)</li>
+<li>O GitHub CLI, se estiver instalado e autenticado (<code>gh auth login</code>)</li>
+<li>Um campo de senha no diálogo, onde você cola o token</li>
+</ol>
+<p>O script <strong>não grava</strong> o token em lugar nenhum. Guarde-o em um gerenciador de senhas se for criar outros repositórios.</p>
+<hr>
+<h2 id="passo-5--executar">Passo 5 — Executar</h2>
+<p>Dentro da pasta do projeto:</p>
+<pre><code class="language-bash">git-github.sh
+</code></pre>
+<p>Ou pelo menu do gerenciador de arquivos ou do Lazarus, que executam o script na pasta atual.</p>
+<h3 id="o-que-será-perguntado-repositório-novo">O que será perguntado (repositório novo)</h3>
+<table>
+<thead>
+<tr>
+<th>Pergunta</th>
+<th>Resposta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Usuário do GitHub</td>
+<td>Já vem sugerido pela chave SSH</td>
+</tr>
+<tr>
+<td>Nome do repositório</td>
+<td>Já vem sugerido pelo <code>PROJECT_NAME</code> do <code>.gitproject</code>. Use letras, números, ponto, hífen ou sublinhado</td>
+</tr>
+<tr>
+<td>Repositório não encontrado. Criar agora?</td>
+<td><strong>Sim</strong></td>
+</tr>
+<tr>
+<td>Visibilidade</td>
+<td>Público ou Privado</td>
+</tr>
+<tr>
+<td>Descrição</td>
+<td>Opcional</td>
+</tr>
+<tr>
+<td>Token</td>
+<td>Cole o token do Passo 4</td>
+</tr>
+</tbody>
+</table>
+<h3 id="resultado-esperado">Resultado esperado</h3>
+<pre><code>To github.com:seu-usuario/seu-projeto.git
+ * [new branch]      main -&gt; main
+branch 'main' set up to track 'origin/main'.
+To github.com:seu-usuario/seu-projeto.git
+ * [new tag]         v0.1.0 -&gt; v0.1.0
+ ...
+</code></pre>
+<p>Em seguida aparece uma mensagem de sucesso com o endereço <code>https://github.com/seu-usuario/seu-projeto</code>. Abra-o no navegador e confira os arquivos, os commits e as tags (<strong>Tags</strong>, na lateral).</p>
+<h3 id="nas-próximas-vezes">Nas próximas vezes</h3>
+<ul>
+<li><strong>Repositório que já existe:</strong> o script só envia, sem pedir token.</li>
+<li><strong>Outra pasta:</strong> repita o Passo 5. Os Passos 1 a 4 não precisam ser refeitos, exceto o token para cada repositório novo.</li>
+</ul>
+<hr>
+<h2 id="problemas-comuns">Problemas comuns</h2>
+<table>
+<thead>
+<tr>
+<th>Mensagem</th>
+<th>Causa e solução</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A chave SSH não está autenticada no GitHub</code></td>
+<td>A chave não foi cadastrada ou não está sendo oferecida. Refaça o Passo 1. Para investigar, <code>ssh -vT git@github.com</code></td>
+</tr>
+<tr>
+<td><code>Repository not found</code> (ao rodar <code>git push</code> direto)</td>
+<td>O repositório não existe ou a chave não tem acesso. O <code>git-github.sh</code> trata esse caso criando o repositório</td>
+</tr>
+<tr>
+<td><code>Password authentication is not supported</code></td>
+<td>O <code>origin</code> está em HTTPS e o GitHub não aceita senha. Rode o <code>git-github.sh</code>, que troca o <code>origin</code> para SSH</td>
+</tr>
+<tr>
+<td><code>remote origin already exists</code></td>
+<td>Não é erro grave: o <code>origin</code> já estava configurado. Veja com <code>git remote -v</code></td>
+</tr>
+<tr>
+<td><code>Token inválido ou expirado</code></td>
+<td>Gere outro token (Passo 4) e confira se não houve espaço sobrando ao colar</td>
+</tr>
+<tr>
+<td><code>O token pertence a 'X', mas o repositório é de 'Y'</code></td>
+<td>O token é de outra conta, ou o repositório é de uma organização. Para organização, crie o repositório pelo site</td>
+</tr>
+<tr>
+<td><code>O GitHub recusou a criação</code></td>
+<td>Geralmente o nome já existe na conta. Se o repositório existir, confira se a chave SSH tem acesso a ele</td>
+</tr>
+<tr>
+<td><code>O repositório ainda não tem nenhum commit</code></td>
+<td>Faça ao menos um commit antes (Passo 3)</td>
+</tr>
+<tr>
+<td><code>Nenhum repositório Git encontrado</code></td>
+<td>Execute na pasta que contém <code>.git</code>, ou rode <code>git-ini.sh</code></td>
+</tr>
+<tr>
+<td>Falha ao enviar a branch</td>
+<td>Se o nome da branch for <code>master</code>, o script já usa o nome real. Veja a mensagem completa no diálogo</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="segurança">Segurança</h2>
+<ul>
+<li>A parte privada da chave SSH (arquivo sem <code>.pub</code>) nunca deve ser compartilhada.</li>
+<li>O token dá acesso à sua conta conforme o escopo marcado. Não o envie em conversas nem o grave em arquivos do projeto.</li>
+<li>Se o token vazar, apague-o em <strong>Settings</strong>, <strong>Developer settings</strong>, <strong>Personal access tokens</strong>.</li>
+<li>Marque só o escopo <code>repo</code> para limitar o estrago em caso de vazamento.</li>
+</ul>
+<hr>
+<h2 id="limitações">Limitações</h2>
+<ul>
+<li>Cria repositórios apenas na conta pessoal do usuário do token.</li>
+<li>Um <code>origin</code> que não seja do GitHub recebe apenas o envio, sem criação.</li>
+<li>Não faz <code>git push --force</code>; se o remoto tiver commits que a pasta local não tem, o envio é recusado.</li>
+</ul>
+
+            
+            
+        </body>
+        </html>
