@@ -2,13 +2,13 @@
 # =============================================================================
 # git-github.sh — Envia o projeto para o GitHub e cria o repositório se não existir
 # =============================================================================
-# Versão: 0.2.0
+# Versão: 0.3.0
 # Data:   2026-10-08
 #
 # Objetivo da versão:
-#   - Quando o token for necessário, oferece abrir no navegador a página de
-#     criação do token, com a Nota preenchida e o escopo repo marcado
-#   - Mostra o passo a passo do formulário no próprio diálogo do token
+#   - Mostra um diálogo de andamento enquanto cria o repositório e envia a
+#     branch e as tags, para a tela não ficar sem resposta durante o envio
+#   - No terminal, informa o que está sendo feito antes de cada etapa demorada
 #
 # Observações de uso:
 #   - Uso: git-github.sh
@@ -18,7 +18,8 @@
 #     de GITHUB_TOKEN, do gh (gh auth login) ou digitado no diálogo
 #   - O token é da conta, não da pasta: só é pedido quando o repositório
 #     ainda não existe, e não é gravado em lugar nenhum
-#   - A página é aberta com xdg-open; sem ele, o endereço aparece no diálogo
+#   - A página do token é aberta com xdg-open; sem ele, o endereço aparece no diálogo
+#   - O diálogo de andamento usa zenity --progress e não pode ser cancelado
 #   - Repositórios de organização devem ser criados pelo site do GitHub
 #   - Origin que não seja do GitHub recebe apenas o envio
 #   - Dependências: git-lib.sh, git, ssh, curl
@@ -31,9 +32,37 @@ API="https://api.github.com"
 TOKEN_URL="https://github.com/settings/tokens/new?scopes=repo&description=git-tools%20-%20criar%20repositorios"
 SSH_HOST="git@github.com"
 RESP=$(mktemp)
-trap 'rm -f "$RESP"' EXIT
+PROGRESS_PID=""
+PROGRESS_FIFO=""
+trap 'progress_stop; rm -f "$RESP"' EXIT
+
+progress_start() {
+  if [ -n "$PROGRESS_PID" ]; then
+    echo "#$1" >&9
+  elif _has_display && command -v zenity >/dev/null 2>&1; then
+    PROGRESS_FIFO=$(mktemp -u)
+    mkfifo "$PROGRESS_FIFO"
+    zenity --progress --pulsate --no-cancel --auto-close --title="Git Tools" \
+           --text="$1" --width=420 < "$PROGRESS_FIFO" 2>/dev/null &
+    PROGRESS_PID=$!
+    exec 9> "$PROGRESS_FIFO"
+  else
+    echo "$1"
+  fi
+}
+
+progress_stop() {
+  [ -n "$PROGRESS_PID" ] || return 0
+  exec 9>&-
+  kill "$PROGRESS_PID" 2>/dev/null
+  wait "$PROGRESS_PID" 2>/dev/null
+  rm -f "$PROGRESS_FIFO"
+  PROGRESS_PID=""
+  PROGRESS_FIFO=""
+}
 
 fail() {
+  progress_stop
   notify_info "❌ $1"
   exit 1
 }
@@ -134,6 +163,7 @@ create_repo() {
 
   get_token || fail "Token do GitHub não informado."
 
+  progress_start "Criando o repositório $REPO_NAME no GitHub..."
   code=$(api GET /user) || fail "Sem conexão com api.github.com."
   case "$code" in
     200) ;;
@@ -157,10 +187,12 @@ create_repo() {
 
 push_all() {
   local out
+  progress_start "Enviando a branch $BRANCH e as tags para o GitHub. Aguarde..."
   out=$(git push -u origin "$BRANCH" 2>&1) || fail "Falha ao enviar a branch $BRANCH:\n\n$out"
   echo "$out"
   out=$(git push origin --tags 2>&1) || fail "Falha ao enviar as tags:\n\n$out"
   echo "$out"
+  progress_stop
 }
 
 [ -d .git ] || fail "Nenhum repositório Git encontrado.\n\nExecute git-ini.sh primeiro."

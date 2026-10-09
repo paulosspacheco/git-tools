@@ -2,13 +2,13 @@
 
 Envia o projeto para o GitHub e cria o repositório quando ele ainda não existe, perguntando o que for necessário.
 
-**Versão:** 0.2.0  
+**Versão:** 0.3.0  
 **Data:** 2026-10-08
 
 **Objetivo da versão:**
 
-- Quando o token for necessário, oferecer abrir no navegador a página de criação do token, com a Nota preenchida e o escopo `repo` marcado
-- Mostrar o passo a passo do formulário no próprio diálogo do token
+- Mostrar um diálogo de andamento enquanto cria o repositório e envia a branch e as tags, para a tela não ficar sem resposta durante o envio
+- No terminal, informar o que está sendo feito antes de cada etapa demorada
 
 **Observações de uso:**
 
@@ -188,6 +188,10 @@ To github.com:seu-usuario/seu-projeto.git
 ```
 
 Em seguida aparece uma mensagem de sucesso com o endereço `https://github.com/seu-usuario/seu-projeto`. Abra-o no navegador e confira os arquivos, os commits e as tags (**Tags**, na lateral).
+
+### Durante o envio
+
+Depois da última pergunta, aparece o diálogo **Enviando a branch ... e as tags para o GitHub. Aguarde...**. Ele não pode ser fechado e some sozinho quando o envio termina. Em seguida surge a mensagem de sucesso, com o botão **OK**. Se o envio falhar, o diálogo de andamento fecha e a mensagem de erro mostra o que o Git respondeu. Projetos grandes, com executáveis e pacotes no histórico, podem levar vários minutos.
 
 ### Nas próximas vezes
 
