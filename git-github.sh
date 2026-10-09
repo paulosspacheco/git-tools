@@ -1,18 +1,19 @@
 #!/bin/bash
 # =============================================================================
-# git-cloud.sh — Envia o projeto para o GitHub e cria o repositório se não existir
+# git-github.sh — Envia o projeto para o GitHub e cria o repositório se não existir
 # =============================================================================
 # Versão: 0.1.0
 # Data:   2026-10-08
 #
 # Objetivo da versão:
+#   - Renomeia o git-cloud.sh: cada provedor passa a ter o seu próprio script
 #   - Envia a branch atual e as tags para o GitHub (origin)
 #   - Se o repositório não existir, pergunta nome, visibilidade e descrição
 #     e o cria pela API do GitHub
 #   - Deixa o origin configurado com o endereço SSH
 #
 # Observações de uso:
-#   - Uso: git-cloud.sh
+#   - Uso: git-github.sh
 #   - Executar na raiz do repositório (pasta com .git), com ao menos um commit
 #   - Requer chave SSH cadastrada na conta do GitHub (teste: ssh -T git@github.com)
 #   - Criar o repositório exige um token clássico com permissão repo, obtido

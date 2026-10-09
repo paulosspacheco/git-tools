@@ -1,23 +1,6 @@
 # git-tools.conf
 # Formato: SCRIPT |  TITULO_MENU  |TITULO_LAZARUS |PARAMS
 #
-# Versão: 1.3.0
-# Data:   2026-10-08
-#
-# Objetivo da versão:
-#   - Adiciona o git-github.sh (item 13): envia o projeto ao GitHub e cria o
-#     repositório se ele não existir
-#
-# Observações de uso:
-#   - Editar este arquivo na pasta do projeto e rodar ./git-install.sh para
-#     atualizar /usr/local/bin, os aliases e os menus
-#   - A cópia instalada em /usr/local/bin é sobrescrita a cada instalação
-#   - Linhas começando com # são ignoradas
-#   - PARAMS pode ficar vazio, mas a linha deve manter o último |
-#   - TITULO_MENU vazio: o item não aparece no menu do gerenciador de arquivos
-#   - TITULO_LAZARUS vazio: o item não aparece no menu Tools do Lazarus
-#   - Não use / nos títulos: eles viram nome de arquivo nos menus
-#
 # ==========================================================================================================================================
 # SCRIPT                  | TITULO_MENU                                    | TITULO_LAZARUS                                  | PARAMS
 # ==========================================================================================================================================
@@ -45,6 +28,3 @@ git-changelog-summary.sh | 10 - Resumo do CHANGELOG-html                 | Git C
 # --- Recuperação ---------------------------------------------------------------------------------------------------------------------------
 git-reset.sh             | 11 - Desfazer último commit (reset)           | Git Reset                                         | 
 git-undo-reset.sh        | 12 - Recuperar commit desfeito (undo reset)   | Git Undo Reset                                    | 
-
-# --- Publicação ----------------------------------------------------------------------------------------------------------------------------
-git-github.sh            | 13 - Enviar ou atualizar no GitHub (github)   | Enviar ou atualizar no GitHub                     |

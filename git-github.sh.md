@@ -1,4 +1,4 @@
-# git-cloud.sh
+# git-github.sh
 
 Envia o projeto para o GitHub e cria o repositório quando ele ainda não existe, perguntando o que for necessário.
 
@@ -7,6 +7,7 @@ Envia o projeto para o GitHub e cria o repositório quando ele ainda não existe
 
 **Objetivo da versão:**
 
+- Renomear o `git-cloud.sh`: cada provedor passa a ter o seu próprio script
 - Enviar a branch atual e todas as tags para o GitHub
 - Criar o repositório pela API do GitHub quando ele não existir
 - Deixar o `origin` configurado com o endereço SSH
@@ -22,7 +23,7 @@ Envia o projeto para o GitHub e cria o repositório quando ele ainda não existe
 
 ## Visão geral
 
-O `git-cloud.sh` resolve o trabalho repetitivo de levar uma pasta para a nuvem. Em cada pasta ele faz o mesmo caminho:
+O `git-github.sh` resolve o trabalho repetitivo de levar uma pasta para o GitHub. Cada provedor tem o seu próprio script, porque as APIs de criação de repositório são diferentes. Em cada pasta ele faz o mesmo caminho:
 
 1. Confere se a chave SSH está autenticada no GitHub
 2. Descobre ou pergunta o usuário e o nome do repositório
@@ -89,11 +90,11 @@ O nome depois de "Hi" deve ser o seu usuário. Se aparecer o nome de um reposit�
 
 ## Passo 2 — Instalar o script
 
-1. Copie o `git-cloud.sh` para a pasta do projeto git-tools.
+1. Copie o `git-github.sh` para a pasta do projeto git-tools.
 2. Acrescente uma linha ao `git-tools.conf`, no mesmo formato das outras e seguindo a numeração que o seu arquivo usa:
 
    ```
-   git-cloud.sh|Enviar para o GitHub (cloud)|Enviar para o GitHub|
+   git-github.sh|Enviar para o GitHub (github)|Enviar para o GitHub|
    ```
 
 3. Rode o instalador como usuário comum, sem `sudo`:
@@ -159,7 +160,7 @@ O script **não grava** o token em lugar nenhum. Guarde-o em um gerenciador de s
 Dentro da pasta do projeto:
 
 ```bash
-git-cloud.sh
+git-github.sh
 ```
 
 Ou pelo menu do gerenciador de arquivos ou do Lazarus, que executam o script na pasta atual.
@@ -200,8 +201,8 @@ Em seguida aparece uma mensagem de sucesso com o endereço `https://github.com/s
 | Mensagem | Causa e solução |
 |----------|-----------------|
 | `A chave SSH não está autenticada no GitHub` | A chave não foi cadastrada ou não está sendo oferecida. Refaça o Passo 1. Para investigar, `ssh -vT git@github.com` |
-| `Repository not found` (ao rodar `git push` direto) | O repositório não existe ou a chave não tem acesso. O `git-cloud.sh` trata esse caso criando o repositório |
-| `Password authentication is not supported` | O `origin` está em HTTPS e o GitHub não aceita senha. Rode o `git-cloud.sh`, que troca o `origin` para SSH |
+| `Repository not found` (ao rodar `git push` direto) | O repositório não existe ou a chave não tem acesso. O `git-github.sh` trata esse caso criando o repositório |
+| `Password authentication is not supported` | O `origin` está em HTTPS e o GitHub não aceita senha. Rode o `git-github.sh`, que troca o `origin` para SSH |
 | `remote origin already exists` | Não é erro grave: o `origin` já estava configurado. Veja com `git remote -v` |
 | `Token inválido ou expirado` | Gere outro token (Passo 4) e confira se não houve espaço sobrando ao colar |
 | `O token pertence a 'X', mas o repositório é de 'Y'` | O token é de outra conta, ou o repositório é de uma organização. Para organização, crie o repositório pelo site |
