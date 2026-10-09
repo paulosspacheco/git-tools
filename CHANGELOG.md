@@ -4,6 +4,10 @@
 
 ### ➕ Funcionalidades
 
+- 2026-10-08 22:34 adiciona : git-cloud.sh - envia o projeto para o GitHub e cria o repositório se não existir, com a documentação em git-cloud.sh.md
+- 2026-10-08 21:30 adiciona : O script git-version.sh gera o arquivo de versão de cada linguagem (ex.: version-pas.inc, package.json, pyproject.toml) somente quando o projeto daquela linguagem existe na pasta do repositório.
+- 2026-10-08 20:47 adiciona : Criado documento git-tools-claude.md baseado na versão de hoje dia 07/10/2026
+- 2026-04-24 21:37 adiciona : Adicionada a autenticação do Git caso ele não esteja autenticado.
 - 2026-03-29 21:30 melhora : git-generator-lcl.sh — feitos os ajustes para que o Lazarus tenha as opções git-reset.sh, git-undo-reset.sh, git-docs.sh e git-refactor.sh
 - 2026-03-29 21:12 adiciona : git-add-navigator-nemo.sh - Adicionadas as opções git-reset.sh, git-undo-reset.sh, git-docs.sh e git-refactor.sh.
 - 2026-03-29 21:03 adiciona : git-install.sh - Instala dependências antes de fazer a cópia dos scripts para /bin/local/bin.
@@ -30,6 +34,10 @@
 - 2026-03-26 21:17 inicialização do projeto
 ### 🐛 Correções
 
+- 2026-10-09 09:52 melhora : git-github.sh - mostra um diálogo de andamento enquanto cria o repositório e envia a branch e as tags, para a tela não ficar sem resposta
+- 2026-04-28 15:15 corrige : A integração com o nemo quando instalado no Trinity Desktop Environment
+- 2026-04-16 09:32 melhora : O script git-version.sh misturava inglês e português na mensagem por isso deixei inglês. A a palavra para deixei em to.
+- 2026-04-16 09:11 corrige : O script git-feat estava com o código do git-changlog.sh e foi corrigido.
 - 2026-04-13 15:16 corrige : Corrigido problema na função Configure_Aliases() do script gitIntsall.sh.
 - 2026-04-09 10:06 melhora : Quando executado pelo gerenciador de arquivos, o script não informava qual versão foi gerada nem aguardava o usuário prosseguir. Agora mostra a mensagem e pausa com "Pressione algo para continuar".
 - 2026-04-09 09:54 corrige : O script git-add-navigator-nautilus.sh não aparecia as 13 opções que apareciam no  git-add-navigator-nemo.sh
@@ -45,11 +53,14 @@
 - 2026-03-26 21:30 ignora tree.txt
 ### 📚 Documentação
 
+- 2026-04-13 16:30 adiciona : Teste da alteração do script git-docs.sh a partir do gerenciador de arquivos.
 - 2026-04-13 16:16 Agora os script que executam no gerenciador de arquivos e no lazarus ficam no arquivo git-tools.conf
 - 2026-04-07 22:16 Existe um problema nos script git-add-navigator-nautilus.sh e  git-add-navigator-dolphin.sh ele não fazem o que devem fazer.
 - 2026-03-28 18:06 O script git-add-navigator-dolphin está com problemas preciso checar depois.
 ### ♻️  Refatoração
 
+- 2026-10-09 08:58 reorganiza : git-cloud.sh renomeado para git-github.sh (um script por provedor) e o documento para git-github.sh.md; git-github.sh registrado no git-tools.conf; ao pedir o token, o git-github.sh abre no navegador a página de criação e mostra o passo a passo do formulário
+- 2026-10-08 22:57 reorganiza : O nome do script git-cloud.sh foi trocado para git-github.sh e o documento git-cloud.sh.md foi trocado para git-github.sh.md, um script por provedor.
 - 2026-04-13 15:40 renomeia : O script  git-version-pas-inc.sh agora gera o arquivo version-pas.inc
 - 2026-04-09 17:30 simplifica : Remove o parâmetro --write do script  git-install.sh e do script  git-add-generator-lcl.sh
 - 2026-04-09 16:39 simplifica : Removido o parâmetro --write da execução do scripot git-changelog.sh dentro do script git-navigator-nautilus.sh
@@ -62,6 +73,17 @@
 - 2026-03-30 21:07 renomeia : O nome versin.inc foi nomeado para version.pas.inc
 ### 🔧 Manutenção
 
+- 2026-10-09 09:59 bump version to v0.18.1
+- 2026-10-08 22:36 bump version to v0.18.0
+- 2026-10-08 21:31 bump version to v0.17.0
+- 2026-10-08 20:48 update version-pas.inc to v0.16.0
+- 2026-10-08 20:48 bump version to v0.16.0
+- 2026-04-28 11:54 update version-pas.inc to v0.15.0
+- 2026-04-24 21:38 atualiza version-pas.inc para v0.15.0
+- 2026-04-24 21:38 bump version to v0.15.0
+- 2026-04-13 16:40 atualiza version-pas.inc para v0.14.4
+- 2026-04-13 16:37 atualiza version-pas.inc para v0.14.4
+- 2026-04-13 16:32 atualiza version-pas.inc para v0.14.4
 - 2026-04-13 15:16 atualiza version-pas-inc para v0.14.4
 - 2026-04-13 15:11 atualiza version-pas-inc para v0.14.3
 - 2026-04-09 17:31 atualiza version-pas-inc para v0.14.3
@@ -86,4 +108,4 @@
 - 2026-03-30 21:08 atualiza version.pas.inc para v0.14.0
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 ---
-_Gerado automaticamente em 2026-04-13 16:18:09_
+_Gerado automaticamente em 2026-10-09 10:00:17_
