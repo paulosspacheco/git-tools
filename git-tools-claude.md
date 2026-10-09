@@ -13,7 +13,8 @@ Os comandos funcionam no terminal, com diálogos gráficos (Zenity) quando há a
 - Linux com Bash 4.3 ou superior (a biblioteca usa `local -n`)
 - Git instalado (o instalador e o `git-ini` não instalam o Git)
 - `sudo`, pois os scripts são copiados para `/usr/local/bin`
-- Opcionais: `zenity` (diálogos gráficos), `konsole` (integração com o Dolphin)
+- Opcionais: `zenity` (diálogos gráficos), `pandoc` (gerar `CHANGELOG.html`), `konsole` (integração com o Dolphin), `gh` (GitHub CLI, fornece o token ao `git-github`)
+- Para o `git-github`: `ssh` e `curl`, além de uma chave SSH cadastrada no GitHub
 
 Sem ambiente gráfico ou sem `zenity`, todos os scripts usam perguntas no terminal.
 
@@ -47,7 +48,7 @@ Execute a partir da pasta do repositório:
 bash git-uninstall.sh
 ```
 
-Remove os scripts de `/usr/local/bin`, o XML do Lazarus, os aliases e os menus dos gerenciadores de arquivos. Veja os [pontos de atenção](#pontos-de-atenção) antes de usar.
+Remove os scripts de `/usr/local/bin`, o XML do Lazarus, os aliases e os menus dos gerenciadores de arquivos (no Nemo, veja o ponto de atenção sobre o `Git Tools.sh`). Veja os [pontos de atenção](#pontos-de-atenção) antes de usar.
 
 ---
 
@@ -66,7 +67,7 @@ SCRIPT|TITULO_MENU|TITULO_LAZARUS|PARAMS
 | `TITULO_LAZARUS` | Texto no menu Tools do Lazarus. Vazio: não aparece lá |
 | `PARAMS` | Parâmetros passados ao script (pode ficar vazio) |
 
-Linhas iniciadas por `#` são ignoradas. Um alias só é criado para linhas que tenham pelo menos um dos dois títulos.
+Linhas iniciadas por `#` são ignoradas. Um alias só é criado para linhas que tenham pelo menos um dos dois títulos. Os aliases e os menus levam os `PARAMS` da linha: o alias `git-changelog-summary`, por exemplo, já executa o script com `--html`.
 
 Para incluir um novo script: crie o arquivo, acrescente uma linha ao `git-tools.conf` e rode `git-install.sh` de novo.
 
@@ -80,6 +81,7 @@ git-ini                          # prepara o repositório
 git-feat "adiciona tela de login"
 git-fix "corrige validação de senha"
 git-release                      # calcula a versão, cria a tag
+git-github                       # envia o projeto ao GitHub
 ```
 
 Os comandos abaixo existem como scripts no repositório. Os que viram alias e item de menu são os listados no `git-tools.conf`. Os aliases têm o formato `alias git-feat='bash "/usr/local/bin/git-feat.sh"'`.
@@ -113,7 +115,7 @@ Prepara o projeto na pasta atual e pode ser executado várias vezes sem sobrescr
 - Exige o Git instalado.
 - Define `user.name` e `user.email` globais se estiverem vazios.
 - Roda `git init` com `init.defaultBranch main` (global), se ainda não houver `.git`.
-- Usa o argumento ou pergunta o nome do projeto (sugere o nome da pasta; não aceita barras).
+- Usa o argumento como nome do projeto; sem argumento, usa o nome da pasta atual, sem perguntar. O nome não pode conter barras.
 - Cria `.gitignore` (binários, arquivos Lazarus/FPC, temporários, segredos) e `README.md` (`# nome`), só se não existirem.
 - Roda `git-config.sh`, que grava `.gitproject` com `PROJECT_NAME` e `VERSION=0.1.0`.
 - Roda `git-hook.sh` e define `core.hooksPath` como `.githooks`.
@@ -131,9 +133,9 @@ Prepara o projeto na pasta atual e pode ser executado várias vezes sem sobrescr
 | começa com `fix:` | PATCH (`1.4.2` → `1.4.3`) |
 | outros tipos | não alteram |
 
-Vale o maior nível encontrado. Depois de confirmar, o script atualiza o `VERSION` no `.gitproject`, cria o commit `chore: bump version to vX.Y.Z`, cria a tag `vX.Y.Z` e gera o `version-pas.inc`. Sem commits novos ou sem `feat`/`fix`, mantém a versão e apenas regenera o `version-pas.inc`.
+Vale o maior nível encontrado. Depois de confirmar, o script atualiza o `VERSION` no `.gitproject`, cria o commit `chore: bump version to vX.Y.Z`, cria a tag `vX.Y.Z` e gera os arquivos de versão das linguagens encontradas na pasta (veja abaixo). Sem commits novos ou sem `feat`/`fix`, mantém a versão e apenas regenera esses arquivos.
 
-**`version-pas.inc`**, gerado na pasta atual e commitado como `chore: update version-pas.inc to vX.Y.Z` quando muda:
+**Arquivos de versão.** O `git-version` só gera o `version-pas.inc` quando a pasta é um projeto Pascal/Lazarus (há `*.lpi`, `*.lpr`, `*.lpk` ou `*.dpr` até 2 níveis de profundidade). Ele também atualiza a versão em `package.json`, `pyproject.toml`, `Cargo.toml`, `gradle.properties` e `pubspec.yaml`, quando existirem na pasta e já tiverem o campo de versão. Os arquivos alterados são commitados como `chore: update <arquivos> to vX.Y.Z`. O `version-pas.inc` tem este formato:
 
 ```pascal
 const
@@ -141,7 +143,7 @@ const
   BUILD_DATE  = '2026-01-01 12:00:00';
 ```
 
-Em projetos Lazarus/Free Pascal ele pode ser incluído com `{$I version-pas.inc}`.
+Em projetos Lazarus/Free Pascal ele pode ser incluído com `{$I version-pas.inc}`. Pasta sem linguagem reconhecida não recebe nenhum arquivo de versão, e um `version-pas.inc` que já exista nela não é apagado (remova com `git rm version-pas.inc`). O script usa o `sed` do GNU (Linux).
 
 **`git-release`** executa o `git-version.sh` e exibe a mensagem de sucesso com a versão. Quando não há ambiente gráfico, aguarda Enter.
 
@@ -150,16 +152,26 @@ Em projetos Lazarus/Free Pascal ele pode ser incluído com `{$I version-pas.inc}
 | Script | O que faz |
 |--------|-----------|
 | `git-changelog.sh [-s DATA]` | Agrupa os commits por versão (tags `vX.Y.Z`) e exibe no Zenity ou no `less`. Sem argumento, pergunta a data inicial (`YYYY-MM-DD`); em branco mostra tudo |
-| `git-changelog-summary.sh [--write] [versão]` | Agrupa por tipo (quebras de compatibilidade, funcionalidades, correções, documentação, refatoração, manutenção, outras). Sem opções imprime no terminal; `--write` salva `CHANGELOG.md`. O argumento `versão` (ex.: `v1.2.0`) limita às mudanças desde essa tag |
+| `git-changelog-summary.sh [--write] [--html] [versão]` | Agrupa por tipo (quebras de compatibilidade, funcionalidades, correções, documentação, refatoração, manutenção, outras). Sem opções imprime no terminal; `--write` salva `CHANGELOG.md`; `--html` também gera `CHANGELOG.html` via `pandoc`. O argumento `versão` (ex.: `v1.2.0`) limita às mudanças desde essa tag. O alias `git-changelog-summary` já inclui `--html`, então grava `CHANGELOG.md` e `CHANGELOG.html` (exige `pandoc`) |
 
 ### Desfazer
 
 | Script | O que faz |
 |--------|-----------|
-| `git-reset.sh` | Avisa e pede confirmação; executa `git reset --hard HEAD~1`, descartando o último commit e as alterações não commitadas. Se o commit removido era `chore: bump version...`, oferece apagar a tag mais recente |
-| `git-undo-reset.sh` | Lista os 15 últimos itens do `reflog`, pergunta a posição (padrão `1`), confirma e executa `git reset --hard HEAD@{N}`. Depois, se a tag `v<VERSION do .gitproject>` não existir, oferece recriá-la |
+| `git-reset.sh` | Avisa e pede confirmação (só `s` ou `sim` prosseguem); exige ao menos 2 commits; executa `git reset --hard HEAD~1`, descartando o último commit e as alterações não commitadas. Se o commit removido era `chore: bump version...`, oferece apagar a tag mais recente |
+| `git-undo-reset.sh` | Lista os 15 últimos itens do `reflog`, usa sempre a posição `1` (não pergunta), pede confirmação e executa `git reset --hard HEAD@{1}`. Depois, se a tag `v<VERSION do .gitproject>` não existir, oferece recriá-la |
 
-Arquivos que nunca foram commitados não são recuperáveis por nenhum dos dois.
+Arquivos que nunca foram commitados não são recuperáveis por nenhum dos dois. No `git-reset`, só `s` ou `sim` confirmam. No `git-undo-reset`, no terminal, só `n` ou `N` cancelam a confirmação; qualquer outra resposta, como "não", executa o reset.
+
+### GitHub
+
+**`git-github`** envia o projeto ao GitHub e cria o repositório se ele não existir. O passo a passo (chave SSH e token) está em [git-github.sh.md](git-github.sh.md).
+
+- Exige um repositório com ao menos um commit e uma chave SSH autenticada no GitHub (`ssh -T git@github.com`).
+- Se não houver `origin`, pergunta o usuário do GitHub (sugerido pela chave SSH) e o nome do repositório (sugerido pelo `PROJECT_NAME`).
+- Se o repositório não existir no GitHub, pergunta se deve criá-lo, a visibilidade e a descrição. Criar exige um token clássico com permissão `repo`, obtido de `GITHUB_TOKEN`/`GH_TOKEN`, do `gh` ou digitado no diálogo. O token não é gravado.
+- Configura o `origin` com o endereço SSH e envia a branch atual e as tags (`git push -u origin <branch>` e `git push origin --tags`). Não usa `--force`.
+- Só cria repositórios na conta pessoal do dono do token. Se o `origin` não for do GitHub, apenas envia.
 
 ### Hook de commit
 
@@ -179,7 +191,7 @@ O instalador procura `nemo`, `nautilus` e `dolphin` e executa o script de integr
 | Nautilus | `git-add-navigator-nautilus.sh` | Cria a pasta `~/.local/share/nautilus/scripts/Git Tools/` com um script por comando. Acesso: botão direito → Scripts → Git Tools |
 | Dolphin | `git-add-navigator-dolphin.sh` | Cria wrappers em `~/.local/share/git-tools/` e o menu de serviço `~/.local/share/kio/servicemenus/git-tools.desktop` (submenu **Git Tools**). Executa os comandos no `konsole`. Instala `zenity`, `git` e `konsole` via `apt` se faltarem |
 
-`git-remove-navigator-nemo.sh` remove apenas a integração do Nemo. Os outros menus saem pelo `git-uninstall.sh`.
+`git-remove-navigator-nemo.sh` remove apenas a integração do Nemo, e o `git-uninstall.sh` remove as dos três gerenciadores. Os dois, porém, só apagam **pastas** `Git Tools`, e o Nemo usa hoje o arquivo `Git Tools.sh`, que não é removido (veja os [pontos de atenção](#pontos-de-atenção)).
 
 ### Lazarus
 
@@ -216,9 +228,10 @@ meu-projeto/
 | `git-add-navigator-*.sh`, `git-remove-navigator-nemo.sh` | Integração com gerenciadores de arquivos |
 | `git-lazarus-integrate.sh` | Integração avulsa com o Lazarus |
 | `git-lib-test.sh` | Pede `REPO` e `BRANCH` usando a biblioteca, para testar as funções de leitura |
-| `test-version.sh`, `check-timeline.sh` | Scripts de diagnóstico que imprimem informações de commits e tags (referências fixas à tag `v0.14.3`) |
+| `git-github.sh` | Envio ao GitHub (veja [GitHub](#github)); instalado pelo `git-install.sh` |
+| `mover-para-semuso.sh` | Utilitário de manutenção do repositório, não instalado. Move para `semuso/` arquivos que não fazem parte do projeto (logs, rascunhos, configuração pessoal, `test-version.sh`, `check-timeline.sh`). Os que estão no Git saem do controle (`git rm --cached`) e `semuso/` entra no `.gitignore`. Com `--simular`, só mostra o que seria movido |
 
-Os scripts que carregam `/usr/local/bin/git-lib.sh` (commits, `git-version`, `git-reset`, `git-undo-reset`, changelogs) só funcionam depois da instalação. `git-ini`, `git-config` e `git-release` carregam a biblioteca da própria pasta.
+Os scripts que carregam `/usr/local/bin/git-lib.sh` (commits, `git-version`, `git-reset`, `git-undo-reset`, changelogs, `git-github`) só funcionam depois da instalação. `git-ini`, `git-config`, `git-release` e `mover-para-semuso` carregam a biblioteca da própria pasta.
 
 ---
 
@@ -226,7 +239,9 @@ Os scripts que carregam `/usr/local/bin/git-lib.sh` (commits, `git-version`, `gi
 
 - **Hook de commit.** O `git-ini` roda o `git-hook.sh`, que grava em `.git/hooks/commit-msg`, e em seguida define `core.hooksPath` como `.githooks`. Nenhum script cria a pasta `.githooks`; com `core.hooksPath` definido o Git ignora `.git/hooks`, então a validação não roda nos projetos criados pelo `git-ini`. Para ativar em um projeto: `mkdir -p .githooks && cp .git/hooks/commit-msg .githooks/`.
 - **`git add .`.** Os scripts de commit incluem tudo o que não estiver no `.gitignore`. Confira o `git status` antes de confirmar.
-- **`git-reset`.** Usa `--hard`: alterações não commitadas são perdidas.
+- **`git-reset` e `git-undo-reset`.** Usam `--hard`: alterações não commitadas são perdidas. O `git-reset` só prossegue com `s` ou `sim`. O `git-undo-reset` ainda prossegue com qualquer resposta que não seja `n` ou `N`, no terminal.
+- **Changelog e commits de versão.** O `git-changelog-summary` esconde commits de versão pelo texto `bump version ... para v`, mas o `git-version` cria `chore: bump version to vX.Y.Z` e `chore: update <arquivos> to vX.Y.Z`. Por isso esses commits aparecem no `CHANGELOG.md`, em Manutenção. O `git-changelog` também só reconhece o commit de versão na forma `... para vX.Y.Z`; as tags `vX.Y.Z` continuam agrupando normalmente.
+- **Menu do Nemo após desinstalar.** O `git-uninstall.sh` e o `git-remove-navigator-nemo.sh` removem só pastas `Git Tools`, e o Nemo usa o arquivo `~/.local/share/nemo/scripts/Git Tools.sh`. Depois de desinstalar, o item continua no menu, mas não funciona. Para tirá-lo: `rm "$HOME/.local/share/nemo/scripts/Git Tools.sh"`.
 - **Desinstalação.**
   - Se não houver backup `environmentoptions.xml.bak`, o bloco `<ExternalTools>` inteiro do Lazarus é removido, inclusive ferramentas externas que não são do git-tools.
   - Do `~/.bashrc`, além do bloco do git-tools, são apagadas todas as linhas que começam com `alias git-` (um backup fica em `~/.bashrc.bak-uninstall`).
@@ -245,7 +260,6 @@ Limites a respeitar na divulgação:
 
 - Arquivos de texto (Markdown, HTML, `.txt`) funcionam melhor. Arquivos Word, LibreOffice e PDF são versionados por inteiro, sem mostrar o que mudou dentro deles.
 - Usar uma pasta por projeto. Os comandos de commit usam `git add .`, então não convém criar o repositório na pasta Documentos inteira.
-- Hoje o `git-release` gera `version-pas.inc` em qualquer pasta. Para quem não usa Pascal isso é ruído; a ideia é gerar o arquivo só em projetos Pascal.
 
 ### Plataforma
 

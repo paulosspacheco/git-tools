@@ -1,15 +1,15 @@
 #!/bin/bash
 # =============================================================================
-# git-changelog.sh — Gera CHANGELOG baseado nos commits Git
+# git-changelog-summary.sh— Gera CHANGELOG baseado nos commits Git
 # =============================================================================
 # Lista commits agrupados por tipo desde a última tag ou versão informada.
 # Opcionalmente salva em CHANGELOG.md e/ou CHANGELOG.html.
 #
-# Uso: git-changelog.sh [--write] [--html] [versão]
-#   git-changelog.sh            — exibe no terminal
-#   git-changelog.sh --write    — salva em CHANGELOG.md
-#   git-changelog.sh --html     — salva em CHANGELOG.md e CHANGELOG.html
-#   git-changelog.sh v1.2.0     — mudanças desde a versão informada
+# Uso: git-changelog-summary.sh[--write] [--html] [versão]
+#   git-changelog-summary.sh           — exibe no terminal
+#   git-changelog-summary.sh--write    — salva em CHANGELOG.md
+#   git-changelog-summary.sh--html     — salva em CHANGELOG.md e CHANGELOG.html
+#   git-changelog-summary.shv1.2.0     — mudanças desde a versão informada
 #
 # Data da versão: 2026-10-09
 # Versão: 1.3.1
@@ -25,7 +25,7 @@ source "/usr/local/bin/git-lib.sh"
 
 show_help() {
   cat <<EOF
-Uso: git-changelog.sh [opções] [versão]
+Uso: git-changelog-summary.sh[opções] [versão]
 
 Gera um CHANGELOG agrupado por tipo de commit seguindo o padrão
 Conventional Commits. Por padrão exibe no terminal.
@@ -51,16 +51,16 @@ Exemplos:
   git-changelog.sh
       Exibe todo o histórico no terminal
 
-  git-changelog.sh v0.2.0
+  git-changelog-summary.shv0.2.0
       Exibe mudanças desde a tag v0.2.0
 
-  git-changelog.sh --write
+  git-changelog-summary.sh--write
       Gera e salva em CHANGELOG.md
 
-  git-changelog.sh --html
+  git-changelog-summary.sh--html
       Gera CHANGELOG.md e CHANGELOG.html
 
-  git-changelog.sh --html v0.2.0
+  git-changelog-summary.sh--html v0.2.0
       Gera desde v0.2.0 em .md e .html
 EOF
 }

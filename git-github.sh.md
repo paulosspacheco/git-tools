@@ -21,7 +21,7 @@ Envia o projeto para o GitHub e cria o repositório quando ele ainda não existe
 
 ## Visão geral
 
-O `git-github.sh` resolve o trabalho repetitivo de levar uma pasta para o GitHub. Cada provedor tem o seu próprio script, porque as APIs de criação de repositório são diferentes. Em cada pasta ele faz o mesmo caminho:
+O `git-github.sh` resolve o trabalho repetitivo de levar uma pasta para o GitHub. Ele atende somente ao GitHub, pois usa a API de criação de repositórios desse serviço. Em cada pasta ele faz o mesmo caminho:
 
 1. Confere se a chave SSH está autenticada no GitHub
 2. Descobre ou pergunta o usuário e o nome do repositório
@@ -38,6 +38,7 @@ Os diálogos usam o `zenity` quando há ambiente gráfico (ou o Mi.Scripts, que 
 
 - Linux com Bash 4.3 ou superior
 - `git`, `ssh` e `curl`
+- `xdg-open` (opcional): abre no navegador a página de criação do token. Sem ele, o endereço aparece no diálogo
 - Git Tools instalado (`git-lib.sh` em `/usr/local/bin`)
 - Conta no GitHub
 - Chave SSH cadastrada nessa conta (Passo 1)
@@ -88,20 +89,20 @@ O nome depois de "Hi" deve ser o seu usuário. Se aparecer o nome de um reposit�
 
 ## Passo 2 — Instalar o script
 
-1. Copie o `git-github.sh` para a pasta do projeto git-tools.
-2. Acrescente uma linha ao `git-tools.conf`, no mesmo formato das outras e seguindo a numeração que o seu arquivo usa:
+O `git-github.sh` já faz parte do git-tools e já consta no `git-tools.conf` (item 13, **Enviar ou atualizar no GitHub (github)**). Basta instalar o git-tools, como usuário comum, sem `sudo`:
 
-   ```
-   git-github.sh|Enviar para o GitHub (github)|Enviar para o GitHub|
-   ```
+```bash
+./git-install.sh
+source ~/.bashrc
+```
 
-3. Rode o instalador como usuário comum, sem `sudo`:
+O instalador copia o script para `/usr/local/bin`, cria o alias `git-github` e passa a oferecer o comando nos menus do gerenciador de arquivos e do Lazarus.
 
-   ```bash
-   ./git-install.sh
-   ```
+Se o seu `git-tools.conf` for de uma versão anterior e não tiver essa linha, acrescente-a no mesmo formato das outras, seguindo a numeração que o seu arquivo usa, e rode o instalador de novo:
 
-O instalador copia o script para `/usr/local/bin` e passa a oferecê-lo nos menus do gerenciador de arquivos e do Lazarus.
+```
+git-github.sh|13 - Enviar ou atualizar no GitHub (github)|Enviar ou atualizar no GitHub|
+```
 
 ---
 
@@ -160,8 +161,10 @@ O script **não grava** o token em lugar nenhum. Guarde-o em um gerenciador de s
 Dentro da pasta do projeto:
 
 ```bash
-git-github.sh
+git-github
 ```
+
+`git-github` é o alias criado pelo instalador; `git-github.sh` faz o mesmo.
 
 Ou pelo menu do gerenciador de arquivos ou do Lazarus, que executam o script na pasta atual.
 
@@ -196,6 +199,7 @@ Depois da última pergunta, aparece o diálogo **Enviando a branch ... e as tags
 ### Nas próximas vezes
 
 - **Repositório que já existe:** o script só envia, sem pedir token.
+- **`origin` já apontando para o GitHub:** o script não pergunta usuário nem nome do repositório; usa os que estão no `origin`.
 - **Outra pasta:** repita o Passo 5. Os Passos 1 a 4 não precisam ser refeitos, exceto o token para cada repositório novo.
 
 ---
@@ -223,6 +227,7 @@ Depois da última pergunta, aparece o diálogo **Enviando a branch ... e as tags
 - O token dá acesso à sua conta conforme o escopo marcado. Não o envie em conversas nem o grave em arquivos do projeto.
 - Se o token vazar, apague-o em **Settings**, **Developer settings**, **Personal access tokens**.
 - Marque só o escopo `repo` para limitar o estrago em caso de vazamento.
+- O script envia o token ao `curl` pela entrada padrão, sem colocá-lo na linha de comando.
 
 ---
 

@@ -1,166 +1,101 @@
-# git-tools.conf
+# `git-tools.conf` — Lista de scripts e menus do git-tools
 
-Arquivo de configuração central do projeto git-tools. Define a lista de scripts, títulos e parâmetros usados por todos os instaladores e integradores do projeto.
+**Versão:** 1.3.0  
+**Data:** 2026-10-08
 
-**Versão:** 1.2.0  
-**Localização após instalação:** `/usr/local/bin/git-tools.conf`  
-**Lido por:** `git-install.sh`, `git-add-navigator-nemo.sh`, `git-add-navigator-dolphin.sh`, `git-lazarus-integrate.sh`
+## Visão geral
 
----
+O `git-tools.conf` define quais scripts o git-tools instala e como cada um aparece nos aliases do terminal, no menu do gerenciador de arquivos e no menu **Tools** do Lazarus. Para incluir ou retirar um comando, basta editar este arquivo e rodar o instalador de novo.
 
 ## Formato
 
-Cada linha define um script no formato:
+Cada linha descreve um script, com campos separados por `|`:
 
-```
-SCRIPT|TITULO_MENU|TITULO_LAZARUS|PARAMS
-```
-
-| Campo | Descrição |
-|-------|-----------|
-| `SCRIPT` | Nome do arquivo `.sh` a instalar |
-| `TITULO_MENU` | Nome exibido no Nemo — inclui número de ordem (vazio = não aparece no menu) |
-| `TITULO_LAZARUS` | Nome amigável exibido no menu Tools do Lazarus (vazio = não aparece) |
-| `PARAMS` | Parâmetros passados ao script (vazio = nenhum) |
-
-Linhas começando com `#` são comentários e são ignoradas.  
-O campo `PARAMS` pode estar vazio — a linha deve terminar com `|` mesmo sem parâmetro.
-
----
-
-## Arquivo
-
-```bash
-# git-tools.conf
-# Formato: SCRIPT|TITULO_MENU|TITULO_LAZARUS|PARAMS
-
-# --- Inicialização ------------------------------------------------------------
-git-ini.sh|01 - Inicializar repositório (ini)|Inicializar repositório|
-
-# --- Commits ------------------------------------------------------------------
-git-feat.sh|02 - Nova funcionalidade (feat)|Adicionar funcionalidade|
-git-fix.sh|03 - Correção (fix)|Corrigir problema|
-git-breaking.sh|04 - Breaking change|Alteração importante|
-git-refactor.sh|05 - Refatoração (refactor)|Refatorar código|
-git-docs.sh|06 - Commit de documentação (docs)|Adicionar documentação|
-
-# --- Versionamento ------------------------------------------------------------
-git-version.sh|07 - Calcular próxima versão|Calcular versão|
-git-version-pas-inc.sh|08 - Incrementar versão|Atualizar informações da versão para ser usada em pascal|
-git-generator-lcl.sh|09 - Gerar version.inc Lazarus|Gerar versão Lazarus|
-
-# --- Release ------------------------------------------------------------------
-git-release.sh|10 - Fazer release|Gerar versão do sistema|
-
-# --- Changelog ----------------------------------------------------------------
-git-changelog.sh|11 - Gerar CHANGELOG|Git Changelog|
-git-changelog-summary.sh|12 - Resumo do CHANGELOG|Git Changelog Resumo|
-
-# --- Recuperação --------------------------------------------------------------
-git-reset.sh|13 - Desfazer último commit (reset)|Git Reset|
-git-undo-reset.sh|14 - Recuperar commit desfeito (undo reset)|Git Undo Reset|
+```text
+SCRIPT | TITULO_MENU | TITULO_LAZARUS | PARAMS
 ```
 
----
+| Campo | Uso |
+|-------|-----|
+| `SCRIPT` | Arquivo `.sh` que será copiado para `/usr/local/bin` |
+| `TITULO_MENU` | Texto no menu do gerenciador de arquivos. Vazio: não aparece lá |
+| `TITULO_LAZARUS` | Texto no menu **Tools** do Lazarus. Vazio: não aparece lá |
+| `PARAMS` | Parâmetros passados ao script. Pode ficar vazio |
 
-## Diferença entre TITULO_MENU e TITULO_LAZARUS
+Regras:
 
-O Nemo/Dolphin e o Lazarus têm convenções diferentes de apresentação:
+- Linhas iniciadas por `#` e linhas em branco são ignoradas.
+- Espaços ao redor dos campos são descartados.
+- Mantenha o `|` final, como nas linhas existentes, mesmo com `PARAMS` vazio.
+- Não use `/` nos títulos: eles viram nome de arquivo nos menus.
+- Um alias só é criado para linhas que tenham pelo menos um dos dois títulos.
 
-| | Nemo / Dolphin | Lazarus |
-|--|----------------|---------|
-| Estilo | Numerado, técnico | Amigável, em português |
-| Exemplo | `02 - Nova funcionalidade (feat)` | `Adicionar funcionalidade` |
-| Ordenação | Pelo número prefixado | Pela ordem no arquivo |
+O prefixo numérico do `TITULO_MENU` (`01 - `, `02 - `...) é só uma convenção de ordem. O Nemo o oculta na lista exibida.
 
----
+## Scripts configurados
 
-## Como os instaladores usam este arquivo
+| Nº | Script | Título no menu | Parâmetros |
+|----|--------|----------------|------------|
+| 01 | `git-ini.sh` | Inicializar repositório (ini) | — |
+| 02 | `git-feat.sh` | Nova funcionalidade (feat) | — |
+| 03 | `git-fix.sh` | Correção (fix) | — |
+| 04 | `git-breaking.sh` | Breaking change | — |
+| 05 | `git-refactor.sh` | Refatoração (refactor) | — |
+| 06 | `git-docs.sh` | Commit de documentação (docs) | — |
+| 07 | `git-version.sh` | Calcular próxima versão | — |
+| 08 | `git-release.sh` | Fazer release | — |
+| 09 | `git-changelog.sh` | Gerar CHANGELOG | — |
+| 10 | `git-changelog-summary.sh` | Resumo do CHANGELOG-html | `--html` |
+| 11 | `git-reset.sh` | Desfazer último commit (reset) | — |
+| 12 | `git-undo-reset.sh` | Recuperar commit desfeito (undo reset) | — |
+| 13 | `git-github.sh` | Enviar ou atualizar no GitHub (github) | — |
 
-Todos os instaladores usam a função `parse_config` da `git-lib.sh`:
+Os títulos do Lazarus são versões em português corrido dos títulos de menu, sem o número.
 
-```bash
-parse_config "menu"    "_callback"   # filtra por TITULO_MENU não vazio
-parse_config "lazarus" "_callback"   # filtra por TITULO_LAZARUS não vazio
-parse_config "all"     "_callback"   # todos os scripts
-```
+## Quem usa este arquivo
 
-### `git-install.sh` — instala os scripts
+| Programa | O que faz com ele |
+|----------|-------------------|
+| `git-install.sh` | Copia todos os scripts listados, cria os aliases no `~/.bashrc` e gera o XML do Lazarus |
+| `git-add-navigator-nemo.sh`, `git-add-navigator-nautilus.sh`, `git-add-navigator-dolphin.sh` | Montam o menu **Git Tools** com as linhas que têm `TITULO_MENU` |
+| `git-uninstall.sh` | Descobre quais scripts remover de `/usr/local/bin` |
 
-Copia para `/usr/local/bin` todos os scripts listados:
+O `git-lazarus-integrate.sh` **não** lê este arquivo: ele tem uma lista própria de ferramentas.
 
-```bash
-_install_script() {
-  local script="$1"
-  sudo cp "$SCRIPT_DIR/$script" "$INSTALL_DIR/$script"
-  sudo chmod +x "$INSTALL_DIR/$script"
-  echo "  ✔ $script"
-}
-parse_config "all" "_install_script"
-```
+## Como funciona
 
-### `git-add-navigator-nemo.sh` — cria wrappers no Nemo
+- Os aliases têm o nome do script sem `.sh`, e levam os `PARAMS` da linha. Exemplo: `git-changelog-summary` equivale a `bash /usr/local/bin/git-changelog-summary.sh --html`.
+- Os menus do gerenciador de arquivos também executam o script com os `PARAMS`.
+- Os menus e o desinstalador leem a cópia instalada em `/usr/local/bin/git-tools.conf`, não a da pasta do repositório.
 
-Usa `TITULO_MENU` como nome do wrapper:
+## Como adicionar um script
 
-```bash
-_install_wrapper() {
-  local script="$1" title_menu="$2" title_laz="$3" params="$4"
-  make_wrapper_git "${title_menu}.sh" "bash \"$INSTALL_DIR/$script\" $params"
-}
-parse_config "menu" "_install_wrapper"
-```
+1. Coloque o arquivo `.sh` na pasta do repositório, junto do `git-install.sh`.
+2. Acrescente uma linha ao `git-tools.conf`:
 
-### `git-add-navigator-dolphin.sh` — cria wrappers no Dolphin
-
-Usa `TITULO_MENU` como nome da entrada no `.desktop`:
-
-```bash
-_install_wrapper() {
-  local script="$1" title_menu="$2" title_laz="$3" params="$4"
-  make_wrapper_git "$(basename $script .sh)-wrapper.sh" "$script" "$params"
-}
-parse_config "menu" "_install_wrapper"
-```
-
-### `git-lazarus-integrate.sh` — gera XML para o Lazarus
-
-Usa `TITULO_LAZARUS` como título da ferramenta:
-
-```bash
-_add_tool() {
-  local script="$1" title_menu="$2" title_laz="$3" params="$4"
-  # gera entrada <ToolN> no XML com $title_laz
-}
-parse_config "lazarus" "_add_tool"
-```
-
----
-
-## Como adicionar um novo script
-
-1. Crie o script seguindo o padrão do projeto
-2. Adicione uma linha no `git-tools.conf`:
+   ```text
+   git-novo.sh | 14 - Meu novo script | Meu novo script |
    ```
-   git-novo.sh|15 - Meu novo script|Meu Script|
-   ```
-3. Execute os instaladores:
+
+3. Rode o instalador como usuário comum, sem `sudo`:
+
    ```bash
-   ./git-install.sh
-   ./git-add-navigator-nemo.sh
-   ./git-add-navigator-dolphin.sh
-   ./git-lazarus-integrate.sh
+   bash git-install.sh
+   source ~/.bashrc
    ```
 
-O novo script aparecerá automaticamente em todos os menus sem precisar editar nenhum outro arquivo.
+O novo comando passa a aparecer nos aliases, nos menus e no XML do Lazarus. O XML precisa ser importado de novo no Lazarus.
 
----
+## Comportamento e segurança
 
-## Compatibilidade
+- **Cópia instalada:** a cada instalação, `/usr/local/bin/git-tools.conf` é sobrescrito pela cópia do repositório. Alterações feitas direto na cópia instalada se perdem.
+- **Arquivo ausente:** se um script listado não existir na pasta do repositório, a instalação para com erro.
+- **Scripts fora da lista:** um `.sh` que não esteja neste arquivo (nem entre os arquivos auxiliares do instalador, como `git-lib.sh` e `git-config.sh`) não é instalado.
+- **Remoção de linha:** retirar uma linha não apaga o script já instalado em `/usr/local/bin`. O alias e o menu só desaparecem na próxima instalação.
 
-| Ambiente | Suporte |
-|----------|---------|
-| Linux (Bash 4.3+) | ✅ |
-| macOS (Bash 5 via Homebrew) | ✅ |
-| Git Bash / MSYS2 (Windows) | ✅ |
-| WSL | ✅ |
+## Arquivos envolvidos
+
+- `git-tools.conf` — este arquivo, na pasta do repositório.
+- `/usr/local/bin/git-tools.conf` — cópia instalada.
+- `~/.bashrc` — recebe os aliases.
+- `lazarus.git-tools.xml` — gerado na pasta do repositório.

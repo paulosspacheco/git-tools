@@ -24,3 +24,5 @@ lib/
 *.pem
 tree.txt
 CHANGELOG.html
+
+semuso/
