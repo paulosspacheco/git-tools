@@ -1,10 +1,56 @@
 # Script git-install.sh
 
-**Versão:** 4.6.0
+- **Data da versão:** 2026-10-10
+- **Versão:** 4.6.0
+- **Objetivo da versão:** acrescentar o passo a passo para iniciantes (abrir o terminal, instalar o Git, senha do `sudo`, ativar os comandos)
+- **Observações:** a versão acompanha a do `git-install.sh`; se este texto divergir do código, vale o código
 
 ## Visão Geral
 
 Script de instalação automatizada para um conjunto de ferramentas auxiliares do Git, projetado para sistemas Linux. O script instala os scripts do git-tools em `/usr/local/bin`, configura aliases no bash, gera o arquivo de importação para a IDE Lazarus e integra com gerenciadores de arquivos populares (Nemo, Nautilus e Dolphin).
+
+## Passo a Passo para Iniciantes
+
+Se você nunca usou o terminal, siga estes passos na ordem. Eles valem para Debian, Ubuntu, Linux Mint e derivados (que usam o `apt`).
+
+1. **Abra o terminal:** pressione `Ctrl + Alt + T`, ou procure por "Terminal" no menu de aplicativos.
+
+2. **Instale o Git** (pule este passo se `git --version` já mostrar uma versão):
+
+   ```bash
+   sudo apt install git
+   ```
+
+   O terminal pede a sua senha. **Ao digitar, nada aparece na tela** (nem asteriscos). Isso é normal: digite a senha e pressione `Enter`.
+
+3. **Baixe o projeto** de uma destas formas:
+
+   - Pelo terminal:
+
+     ```bash
+     git clone https://github.com/paulosspacheco/git-tools.git
+     cd git-tools
+     ```
+
+   - Sem usar o Git: baixe o ZIP na página do projeto no GitHub e extraia. Depois, abra a pasta extraída no gerenciador de arquivos, clique com o botão direito num espaço vazio e escolha **Abrir no terminal**.
+
+4. **Execute o instalador** (sem `sudo`):
+
+   ```bash
+   bash git-install.sh
+   ```
+
+   A senha será pedida uma vez. Se o Git ainda não tiver nome e e-mail configurados, o instalador pergunta.
+
+5. **Ative os comandos** na janela atual do terminal:
+
+   ```bash
+   source ~/.bashrc
+   ```
+
+   Se preferir, feche o terminal e abra outro.
+
+Pronto. Digite `git-ini` para testar.
 
 ## Requisitos
 
