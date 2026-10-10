@@ -8,7 +8,11 @@
 #   - Não duplica remotos
 #
 # Uso: ./git-ini.sh [nome-do-projeto]
-# Versão: 1.4.1 (idempotente)
+# Data da versão: 2026-10-09
+# Versão: 1.4.2 (idempotente)
+# Objetivo da versão: o hook commit-msg passa a ser instalado em .githooks pelo
+#   git-hook.sh; projetos que já tinham core.hooksPath=.githooks sem o hook
+#   recebem o hook ao rodar o git-ini de novo.
 # =============================================================================
 
 source "$(dirname "$0")/git-lib.sh"
@@ -123,12 +127,11 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# Executa git-hook.sh (idempotente via core.hooksPath já configurado)
+# Executa git-hook.sh (idempotente: só instala se o hook ainda não estiver ativo)
 # -----------------------------------------------------------------------------
 if [ -f "$SCRIPT_DIR/git-hook.sh" ]; then
-    if [ "$(git config core.hooksPath)" != ".githooks" ]; then
+    if [ "$(git config core.hooksPath)" != ".githooks" ] || [ ! -x ".githooks/commit-msg" ]; then
         bash "$SCRIPT_DIR/git-hook.sh" || exit 1
-        git config core.hooksPath .githooks
     else
         echo "ℹ Hooks já instalados, ignorados"
     fi

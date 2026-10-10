@@ -1,0 +1,10 @@
+#!/bin/bash
+MSG=$(cat "$1")
+if [[ "$MSG" =~ ^(feat|feat!|fix|docs|chore|refactor|test|style): ]]; then
+  exit 0
+else
+  echo "❌ Mensagem de commit inválida!"
+  echo "   Use um dos prefixos: feat:, fix:, docs:, chore:, refactor:, test:, style:, feat!:"
+  echo "   Exemplo: feat: adiciona tela de login"
+  exit 1
+fi

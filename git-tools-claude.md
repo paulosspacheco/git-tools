@@ -1,5 +1,12 @@
 # git-tools
 
+**Versão:** 1.0.0  
+**Data:** 2026-10-09
+
+**Objetivo da versão:** descrever o hook de commit como ele funciona agora: gravado em `.githooks/commit-msg`, com `core.hooksPath` definido pelo `git-hook.sh`.
+
+**Observações:** guia completo do git-tools; o README.md é o índice dos documentos.
+
 Conjunto de scripts Bash que simplifica o uso do Git. Cada operação (commit de funcionalidade, correção, release, changelog, reset) vira um comando curto que pergunta o necessário, monta a mensagem no padrão [Conventional Commits](https://www.conventionalcommits.org/) e calcula a versão ([SemVer](https://semver.org/)) a partir dos commits.
 
 Os comandos funcionam no terminal, com diálogos gráficos (Zenity) quando há ambiente gráfico, a partir do menu de contexto do gerenciador de arquivos (Nemo, Nautilus ou Dolphin) e a partir do menu **Tools** do Lazarus.
@@ -118,7 +125,7 @@ Prepara o projeto na pasta atual e pode ser executado várias vezes sem sobrescr
 - Usa o argumento como nome do projeto; sem argumento, usa o nome da pasta atual, sem perguntar. O nome não pode conter barras.
 - Cria `.gitignore` (binários, arquivos Lazarus/FPC, temporários, segredos) e `README.md` (`# nome`), só se não existirem.
 - Roda `git-config.sh`, que grava `.gitproject` com `PROJECT_NAME` e `VERSION=0.1.0`.
-- Roda `git-hook.sh` e define `core.hooksPath` como `.githooks`.
+- Roda `git-hook.sh`, que grava o hook em `.githooks/commit-msg` e define `core.hooksPath` como `.githooks`. Se o projeto já tinha `core.hooksPath` apontando para `.githooks` mas sem o hook, o `git-ini` o instala.
 - Se o repositório não tem commits, mostra os arquivos, pede confirmação e cria o commit `feat: inicialização do projeto <nome>`.
 - Pergunta a URL do remoto; se informada, configura `origin` e faz `git push -u origin main`.
 
@@ -175,7 +182,7 @@ Arquivos que nunca foram commitados não são recuperáveis por nenhum dos dois.
 
 ### Hook de commit
 
-`git-hook.sh` grava `.git/hooks/commit-msg`, que só aceita mensagens começando por `feat:`, `feat!:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:` ou `style:`. Veja o [ponto de atenção](#pontos-de-atenção) sobre quando ele é de fato executado.
+`git-hook.sh` grava `.githooks/commit-msg`, define `core.hooksPath` como `.githooks` e, a partir daí, só são aceitas mensagens começando por `feat:`, `feat!:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:` ou `style:`. Veja o [ponto de atenção](#pontos-de-atenção) sobre clones e mensagens automáticas.
 
 ---
 
@@ -213,6 +220,8 @@ O `git-install.sh` gera `lazarus.git-tools.xml` com as entradas do `git-tools.co
 meu-projeto/
 ├── .git/
 ├── .gitignore         # criado pelo git-ini se não existir
+├── .githooks/
+│   └── commit-msg     # valida o prefixo das mensagens de commit
 ├── .gitproject        # PROJECT_NAME e VERSION
 ├── README.md          # criado pelo git-ini se não existir
 └── version-pas.inc    # gerado pelo git-version / git-release
@@ -237,7 +246,11 @@ Os scripts que carregam `/usr/local/bin/git-lib.sh` (commits, `git-version`, `gi
 
 ## Pontos de atenção
 
-- **Hook de commit.** O `git-ini` roda o `git-hook.sh`, que grava em `.git/hooks/commit-msg`, e em seguida define `core.hooksPath` como `.githooks`. Nenhum script cria a pasta `.githooks`; com `core.hooksPath` definido o Git ignora `.git/hooks`, então a validação não roda nos projetos criados pelo `git-ini`. Para ativar em um projeto: `mkdir -p .githooks && cp .git/hooks/commit-msg .githooks/`.
+- **Hook de commit.**
+  - A pasta `.githooks` entra no repositório, mas o Git não ativa o `core.hooksPath` em quem clona. Quem clonar o projeto deve rodar `git config core.hooksPath .githooks` uma vez.
+  - O `git-hook.sh` substitui um `core.hooksPath` que o projeto já tenha.
+  - Mensagens automáticas do Git, como `Merge branch ...` e `Revert ...`, não começam por um prefixo e são bloqueadas.
+  - Em projetos criados antes da versão 1.1.0 do `git-hook.sh`, o hook não executava. Rode `git-ini` na pasta para corrigir.
 - **`git add .`.** Os scripts de commit incluem tudo o que não estiver no `.gitignore`. Confira o `git status` antes de confirmar.
 - **`git-reset` e `git-undo-reset`.** Usam `--hard`: alterações não commitadas são perdidas. O `git-reset` só prossegue com `s` ou `sim`. O `git-undo-reset` ainda prossegue com qualquer resposta que não seja `n` ou `N`, no terminal.
 - **Changelog e commits de versão.** O `git-changelog-summary` esconde commits de versão pelo texto `bump version ... para v`, mas o `git-version` cria `chore: bump version to vX.Y.Z` e `chore: update <arquivos> to vX.Y.Z`. Por isso esses commits aparecem no `CHANGELOG.md`, em Manutenção. O `git-changelog` também só reconhece o commit de versão na forma `... para vX.Y.Z`; as tags `vX.Y.Z` continuam agrupando normalmente.

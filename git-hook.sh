@@ -8,7 +8,16 @@
 #
 # Uso: ./git-hook.sh
 #
-# Versão: 1.0.0
+# Data da versão: 2026-10-09
+# Versão: 1.1.0
+# Objetivo da versão: gravar o hook em .githooks/commit-msg e definir
+#   core.hooksPath, para que a validação de fato execute (antes ficava em
+#   .git/hooks, ignorado quando core.hooksPath aponta para .githooks).
+# Observações:
+#   - Executar na raiz do repositório
+#   - .githooks/ é versionada: quem clonar o projeto recebe o hook, mas precisa
+#     rodar este script (ou git config core.hooksPath .githooks) uma vez
+#   - Sobrescreve .githooks/commit-msg se já existir
 # Dependências: repositório Git inicializado (.git)
 # =============================================================================
 
@@ -17,7 +26,10 @@ if [ ! -d ".git" ]; then
   exit 1
 fi
 
-HOOK=".git/hooks/commit-msg"
+HOOK_DIR=".githooks"
+HOOK="$HOOK_DIR/commit-msg"
+
+mkdir -p "$HOOK_DIR" || exit 1
 
 cat > "$HOOK" <<'EOF'
 #!/bin/bash
@@ -33,4 +45,5 @@ fi
 EOF
 
 chmod +x "$HOOK"
-echo "✔ Hook instalado"
+git config core.hooksPath "$HOOK_DIR"
+echo "✔ Hook instalado em $HOOK"

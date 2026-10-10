@@ -1,8 +1,13 @@
 # `git-ini.sh` — Inicialização de Repositório Git
 
-**Versão:** 1.4.1  
+**Versão:** 1.4.2  
+**Data:** 2026-10-09  
 **Linguagem:** Bash  
 **Finalidade:** Inicializar e configurar um repositório Git local de maneira idempotente.
+
+**Objetivo da versão:** o hook `commit-msg` passa a ser instalado em `.githooks` pelo `git-hook.sh`, e o `git-ini` reinstala o hook em projetos que já tinham `core.hooksPath` apontando para `.githooks` sem o arquivo.
+
+**Observações:** para corrigir um projeto criado antes desta versão, basta executar `git-ini` nele de novo.
 
 ## Sumário
 
@@ -125,7 +130,7 @@ O script aplica essa estratégia em diferentes etapas:
 | `.gitignore` | Cria somente se o arquivo não existir. |
 | `README.md` | Cria somente se o arquivo não existir. |
 | Configuração adicional | Usa um marcador em `.git/` para evitar nova execução. Sem o marcador, o `git-config.sh` recria o `.gitproject` e a versão volta a `0.1.0`. |
-| Hooks | Verifica `core.hooksPath` antes de executar o instalador. |
+| Hooks | Executa o instalador somente se `core.hooksPath` não for `.githooks` ou se `.githooks/commit-msg` não for executável. |
 | Commit inicial | Não cria outro commit inicial quando `HEAD` já existe. |
 | Remoto `origin` | Adiciona se não existir; caso exista, atualiza sua URL. |
 
@@ -362,25 +367,19 @@ O script verifica a configuração local do Git:
 git config core.hooksPath
 ```
 
-Se o valor não for `.githooks` e o arquivo `git-hook.sh` existir, executa o instalador:
+Também verifica se o arquivo `.githooks/commit-msg` existe e é executável. Se o valor não for `.githooks` ou o hook estiver ausente, e o arquivo `git-hook.sh` existir, executa o instalador:
 
 ```bash
 bash "$SCRIPT_DIR/git-hook.sh"
 ```
 
-Depois da execução bem-sucedida, define:
+O `git-hook.sh` grava o hook em `.githooks/commit-msg` e define `core.hooksPath` como `.githooks`. O `git-ini` não define mais esse valor por conta própria.
 
-```bash
-git config core.hooksPath .githooks
-```
-
-Se `core.hooksPath` já estiver definido como `.githooks`, a instalação será ignorada.
+Se `core.hooksPath` já for `.githooks` e o hook existir, a instalação é ignorada.
 
 Caso `git-hook.sh` não exista, o script apresenta um aviso.
 
-**Observação:** a simples configuração de `core.hooksPath` não garante que todos os hooks necessários estejam presentes, sejam executáveis ou funcionem corretamente. Isso depende do conteúdo de `.githooks` e da implementação do instalador.
-
-**No git-tools, o hook fica inativo:** o `git-hook.sh` grava o hook em `.git/hooks/commit-msg`, e nenhum script cria a pasta `.githooks`. Como `core.hooksPath` passa a apontar para `.githooks`, o Git ignora `.git/hooks`, e mensagens de commit sem prefixo são aceitas. Para ativar a validação: `mkdir -p .githooks && cp .git/hooks/commit-msg .githooks/`.
+**Observação:** o `git-hook.sh` substitui um `core.hooksPath` que o projeto já tenha. A pasta `.githooks` entra no commit inicial, mas quem clonar o projeto precisa rodar `git config core.hooksPath .githooks` uma vez, pois o Git não ativa esse valor em clones.
 
 ### 6.9. Criação do commit inicial
 
@@ -477,8 +476,7 @@ A execução do `push` não é obrigatória: deixar a URL em branco permite fina
 | `git-hook.sh` | Instalação dos hooks Git. |
 | `.git/` | Metadados e configurações internas do repositório. |
 | `.git/git-tools-configured` | Marcador de execução bem-sucedida de `git-config.sh`. |
-| `.git/hooks/commit-msg` | Hook criado pelo `git-hook.sh`. |
-| `.githooks/` | Diretório para onde `core.hooksPath` passa a apontar. Nenhum script o cria. |
+| `.githooks/commit-msg` | Hook criado pelo `git-hook.sh`, que também cria a pasta `.githooks` e define `core.hooksPath`. |
 | `.gitproject` | Criado pelo `git-config.sh`, com `PROJECT_NAME` e `VERSION=0.1.0`. |
 | `.gitignore` | Regras de exclusão de arquivos do controle de versão. |
 | `README.md` | Documentação inicial do projeto. |
