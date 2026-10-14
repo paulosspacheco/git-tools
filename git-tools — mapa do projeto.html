@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>git-tools — mapa do projeto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f2f5ef;--card:#ffffff;--ink:#12262a;--muted:#4d6266;--line:#cfdad6;--on-teal:#f2f5ef;
+  --teal:#0f5257;--mustard:#b97c00;--plum:#6b2f63;--leaf:#2f6b3a;--slate:#5a6b70;
+  --teal-bg:#dcecea;--mustard-bg:#f6ead0;--plum-bg:#eddcea;--leaf-bg:#dcebdd;--slate-bg:#e3e8e9;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0e1d20;--card:#152a2e;--ink:#e8f0ee;--muted:#9db3b5;--line:#2a4448;--on-teal:#0e1d20;
+    --teal:#6fc7c0;--mustard:#e9b64a;--plum:#d49acb;--leaf:#8fd09a;--slate:#a9babd;
+    --teal-bg:#17383b;--mustard-bg:#3a3017;--plum-bg:#3a2438;--leaf-bg:#1b3523;--slate-bg:#213a3e;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0e1d20;--card:#152a2e;--ink:#e8f0ee;--muted:#9db3b5;--line:#2a4448;--on-teal:#0e1d20;
+  --teal:#6fc7c0;--mustard:#e9b64a;--plum:#d49acb;--leaf:#8fd09a;--slate:#a9babd;
+  --teal-bg:#17383b;--mustard-bg:#3a3017;--plum-bg:#3a2438;--leaf-bg:#1b3523;--slate-bg:#213a3e;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:40px 20px 72px}
+h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0}
+h1{font-size:clamp(2.2rem,6vw,3.8rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.7rem;font-weight:800}
+h3{font-size:1.2rem;font-weight:800}
+code{font-family:var(--mono);font-size:.88em;background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:0 5px}
+.lead{max-width:60ch;color:var(--muted);margin:14px 0 0}
+
+.ruler-box{margin-top:36px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:18px 18px 8px}
+.ruler-box>p{margin:0 0 6px;font-family:var(--display);font-weight:500;font-size:.95rem;color:var(--muted)}
+.lin{list-style:none;margin:10px 0 0;padding:0}
+.lin>li{position:relative;padding:0 0 24px 38px}
+.lin>li::before{content:"";position:absolute;left:10px;top:20px;bottom:-4px;width:4px;background:var(--teal);border-radius:2px}
+.lin>li:last-child::before{display:none}
+.lin .dot{position:absolute;left:1px;top:6px;width:22px;height:22px;border-radius:50%;background:var(--mustard);border:4px solid var(--card);box-shadow:0 0 0 2px var(--mustard);z-index:1}
+.lin>li.pending>.dot{background:var(--card);border-color:var(--mustard);box-shadow:none}
+.lin>li.hoje>.dot{background:var(--teal);box-shadow:0 0 0 2px var(--teal)}
+.lin .row{display:flex;flex-wrap:wrap;gap:2px 12px;align-items:baseline}
+.lin .yr{font:800 1.15rem var(--display);color:var(--teal);min-width:74px}
+.lin>li.pending .yr{color:var(--mustard)}
+.lin .t{font:800 1.15rem var(--display)}
+.lin .fx{font:500 .78rem var(--mono);padding:2px 9px;border-radius:999px;background:var(--slate-bg);color:var(--slate);white-space:nowrap}
+.lin .h{margin:2px 0 0;font-size:.98rem}
+.lin .secbox{margin:10px 0 0;padding:10px 14px;background:var(--paper);border:1px dashed var(--line);border-radius:8px}
+.lin .secbox .st{margin:0 0 6px;font:700 .8rem var(--display);color:var(--muted)}
+.lin .secbox ul{list-style:none;margin:0;padding:0}
+.lin .secbox li{position:relative;display:flex;flex-wrap:wrap;gap:0 10px;padding:3px 0 3px 20px;font-size:.9rem;line-height:1.45}
+.lin .secbox li::before{content:"";position:absolute;left:2px;top:.6em;width:9px;height:9px;border-radius:50%;border:2px solid var(--slate);background:var(--paper)}
+.lin .secbox li.ok::before{background:var(--slate)}
+.lin .secbox .sy{font:500 .8rem var(--mono);color:var(--slate);min-width:150px}
+.lin .secbox .sg{color:var(--muted);font-style:italic}
+
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;margin-top:28px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.method div{padding:14px 16px;border-right:1px solid var(--line);font-family:var(--display);font-weight:800;font-size:1rem}
+.method div:last-child{border-right:0}
+.method small{display:block;font-family:var(--body);font-weight:400;font-size:.85rem;color:var(--muted);margin-top:2px;line-height:1.35}
+.method-title{margin:28px 0 0;font-family:var(--display);font-size:.95rem;color:var(--muted);font-weight:500}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:44px 0 8px}
+.filters button{font:600 .9rem var(--display);padding:7px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:var(--on-teal)}
+.filters button:focus-visible,summary:focus-visible{outline:3px solid var(--mustard);outline-offset:2px}
+.count{margin:0 0 6px;color:var(--muted);font-size:.9rem}
+
+.act{margin-top:44px}
+.act-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;border-bottom:3px solid var(--ink);padding-bottom:10px}
+.act-head p{margin:0;color:var(--muted);flex-basis:100%}
+.tracks{list-style:none;margin:0;padding:0;position:relative}
+.track{position:relative;margin:16px 0 0 44px}
+.track::before{content:"";position:absolute;left:-30px;top:0;bottom:-16px;width:2px;background:var(--line)}
+.track:last-child::before{bottom:auto;height:30px}
+.num{position:absolute;left:-46px;top:12px;width:32px;height:32px;border-radius:50%;background:var(--card);border:2.5px solid var(--teal);color:var(--teal);font:800 .95rem var(--display);display:flex;align-items:center;justify-content:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.card summary{list-style:none;cursor:pointer;padding:14px 18px;display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:start}
+.card summary::-webkit-details-marker{display:none}
+.card summary::after{content:"+";grid-column:2;grid-row:1;font:500 1.5rem/1 var(--display);color:var(--muted);justify-self:end}
+.card[open] summary::after{content:"–"}
+.card summary h3{font-family:var(--mono);font-size:1.05rem;font-weight:700}
+.badge{font:700 .78rem var(--display);padding:3px 10px;border-radius:999px;white-space:nowrap;justify-self:start}
+.s-pronta{background:var(--leaf-bg);color:var(--leaf)}
+.s-decisao{background:var(--teal-bg);color:var(--teal)}
+.s-atencao{background:var(--mustard-bg);color:var(--mustard)}
+.s-planejado{background:var(--plum-bg);color:var(--plum)}
+.s-avulso{background:var(--slate-bg);color:var(--slate)}
+.meta{grid-column:1/-1;color:var(--muted);font-size:.93rem;margin:0}
+.body{padding:2px 18px 18px;border-top:1px dashed var(--line)}
+.body h4{font:800 .92rem var(--display);margin:16px 0 4px}
+.body p,.body li{margin:0 0 6px;font-size:.98rem}
+.body ul{margin:0;padding-left:20px}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px}
+.flow div{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.88rem;line-height:1.35}
+.flow b{display:block;font:800 .8rem var(--display);color:var(--teal);margin-bottom:2px}
+.caution{margin-top:12px;padding:10px 12px;border-left:4px solid var(--mustard);background:var(--mustard-bg);font-size:.92rem;border-radius:0 8px 8px 0}
+.files{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.files span{font:500 .78rem var(--mono);padding:2px 9px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
+
+.refrao{margin-top:48px;display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:760px){.refrao{grid-template-columns:1.1fr 1fr}}
+.refrao .box{background:var(--teal);color:var(--on-teal);border-radius:12px;padding:26px 28px}
+.refrao .box p{margin:0;font-family:var(--display);font-weight:500;font-size:1.25rem;line-height:1.6}
+.refrao .box p b{font-family:var(--mono);font-size:1rem;font-weight:700}
+.refrao .box small{display:block;margin-top:14px;font-family:var(--body);font-size:.85rem;opacity:.9}
+.rules{display:grid;gap:12px}
+.rules div{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:14px 16px}
+.rules b{font-family:var(--display)}
+.rules p{margin:4px 0 0;font-size:.93rem;color:var(--muted)}
+
+.legend{margin-top:40px;display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.9rem;color:var(--muted);align-items:center}
+footer{margin-top:28px;color:var(--muted);font-size:.85rem}
+@media(max-width:520px){.track{margin-left:36px}.num{left:-40px;width:28px;height:28px}.track::before{left:-26px}.lin .secbox .sy{min-width:100%}}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}.card:hover{border-color:var(--teal)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>git-tools</h1>
+  <p class="lead">Scripts Bash que transformam cada operação do Git em um comando curto. Eles perguntam o necessário, montam a mensagem no padrão Conventional Commits e calculam a versão a partir dos commits. Funcionam no terminal, em diálogos gráficos, no menu do gerenciador de arquivos e no menu Tools do Lazarus. Foco em Linux.</p>
+
+  <div class="ruler-box">
+    <p>Leia de cima para baixo: é o caminho de um trabalho, da pasta solta até o GitHub. Ponto cheio: já funciona. Ponto vazio: planejado. No quadro tracejado ficam as ações que acontecem ao lado do passo principal.</p>
+    <ol class="lin" id="lin"></ol>
+  </div>
+
+  <p class="method-title">Como cada comando de commit trabalha (feat, fix, breaking, refactor, docs)</p>
+  <div class="method">
+    <div>Repositório<small>exige um repositório Git na pasta atual</small></div>
+    <div>Tipo<small>lista no Zenity ou menu numerado no terminal</small></div>
+    <div>Mensagem<small>usa o argumento ou pergunta</small></div>
+    <div>Confirmação<small>mostra <code>tipo: ação : mensagem</code></small></div>
+    <div>Commit<small><code>git add .</code> e <code>git commit</code></small></div>
+  </div>
+</header>
+
+<div class="filters" id="filters" role="group" aria-label="Filtrar por situação"></div>
+<p class="count" id="count" aria-live="polite"></p>
+
+<main id="acts"></main>
+
+<section class="refrao" aria-label="Regra da versão e cuidados">
+  <div class="box">
+    <p><b>feat!:</b> sobe o MAJOR, 1.4.2 vira 2.0.0<br><b>feat:</b> sobe o MINOR, 1.4.2 vira 1.5.0<br><b>fix:</b> sobe o PATCH, 1.4.2 vira 1.4.3<br>Os outros tipos não mudam a versão.</p>
+    <small>A regra do git-version. Vale o maior nível encontrado entre os commits desde a última tag vX.Y.Z.</small>
+  </div>
+  <div class="rules">
+    <div><b>Uma pasta por projeto</b><p>Os commits usam <code>git add .</code>. Não crie o repositório na pasta Documentos inteira.</p></div>
+    <div><b>Confira antes de confirmar</b><p>Tudo o que não está no <code>.gitignore</code> entra no commit. Olhe o <code>git status</code> antes.</p></div>
+    <div><b>Texto simples mostra o que mudou</b><p>Markdown, HTML e .txt funcionam melhor. Word, LibreOffice e PDF são guardados por inteiro, sem mostrar o que mudou dentro.</p></div>
+    <div><b>O código vale mais que o documento</b><p>Se algum .md divergir do que os scripts fazem, vale o código.</p></div>
+    <div><b>Sem recuperação para o que nunca foi commitado</b><p>Nem o git-reset nem o git-undo-reset trazem de volta arquivos que nunca entraram em um commit.</p></div>
+  </div>
+</section>
+
+<div class="legend" aria-label="Legenda">
+  <span class="badge s-pronta">Funciona como descrito</span>
+  <span class="badge s-atencao">Com ponto de atenção</span>
+  <span class="badge s-planejado">Planejado</span>
+  <span class="badge s-decisao">Decisão de projeto</span>
+  <span class="badge s-avulso">Avulso, fora do instalador</span>
+</div>
+<footer>Baseado em git-tools-claude.md, git-tools.conf (versão 1.3.0) e CHANGELOG.md do projeto. Licença MIT.</footer>
+
+</div>
+
+<script>
+var STATUS={
+  pronta:"Funciona como descrito",
+  atencao:"Com ponto de atenção",
+  planejado:"Planejado",
+  decisao:"Decisão de projeto",
+  avulso:"Avulso, fora do instalador"
+};
+
+var ACTS=[
+{id:"preparar",titulo:"Ato 1 — Instalar e preparar",sub:"Do clone do repositório até uma pasta pronta para receber commits.",faixas:[
+ {n:1,t:"git-install",s:"pronta",meta:"Único passo que exige terminal · bash git-install.sh",
+  fluxo:[["1","Copia os scripts e auxiliares para /usr/local/bin"],["2","Gera lazarus.git-tools.xml"],["3","Mostra como importar o XML no Lazarus"],["4","Pede user.name e user.email globais, se faltarem"],["5","Grava os aliases no ~/.bashrc"],["6","Integra com Nemo, Nautilus e Dolphin encontrados"]],
+  nota:"Não use sudo bash git-install.sh nem execute como root: o instalador recusa e pede sudo sozinho quando precisa. Se um arquivo listado no git-tools.conf não existir na pasta, a instalação para com erro.",
+  arq:["git-install.sh","git-uninstall.sh"]},
+ {n:2,t:"git-tools.conf",s:"pronta",meta:"Define o que é instalado e como aparece nos menus",
+  corpo:"<p>Cada linha tem o formato <code>SCRIPT|TITULO_MENU|TITULO_LAZARUS|PARAMS</code>. Título vazio significa que o item não aparece naquele menu. Linhas com # são ignoradas.</p><p>Para incluir um novo script: crie o arquivo, acrescente uma linha ao conf e rode o git-install de novo. O alias <code>git-changelog-summary</code>, por exemplo, já leva o parâmetro <code>--html</code>.</p>",
+  arq:["git-tools.conf","versão 1.3.0"]},
+ {n:3,t:"git-ini",s:"atencao",meta:"Prepara a pasta atual · pode rodar várias vezes sem sobrescrever",
+  corpo:"<ul><li>Define user.name e user.email globais se estiverem vazios.</li><li>Roda git init com a branch padrão main, se ainda não houver .git.</li><li>Usa o argumento como nome do projeto; sem argumento, usa o nome da pasta.</li><li>Cria .gitignore e README.md só se não existirem.</li><li>Grava .gitproject com PROJECT_NAME e VERSION=0.1.0 (via git-config).</li><li>Se não há commits, cria <code>feat: inicialização do projeto &lt;nome&gt;</code>.</li><li>Pergunta a URL do remoto e, se informada, faz o primeiro push.</li></ul>",
+  nota:"O git-ini define core.hooksPath como .githooks, mas nenhum script cria essa pasta. Por isso a validação do hook não roda nos projetos criados por ele. Para ativar: mkdir -p .githooks && cp .git/hooks/commit-msg .githooks/",
+  arq:["git-ini.sh","git-config.sh","git-hook.sh"]},
+ {n:4,t:"git-hook",s:"atencao",meta:"Grava .git/hooks/commit-msg",
+  corpo:"<p>Só aceita mensagens que começam por <code>feat:</code>, <code>feat!:</code>, <code>fix:</code>, <code>docs:</code>, <code>chore:</code>, <code>refactor:</code>, <code>test:</code> ou <code>style:</code>.</p>",
+  nota:"Depende do ajuste de core.hooksPath descrito no git-ini para de fato ser executado.",
+  arq:["git-hook.sh"]},
+ {n:5,t:"git-uninstall",s:"atencao",meta:"Executar a partir da pasta do repositório",
+  corpo:"<p>Remove os scripts de /usr/local/bin, o XML do Lazarus, os aliases e os menus dos gerenciadores de arquivos.</p>",
+  nota:"No Nemo, o item Git Tools.sh continua no menu, mas não funciona; remova com rm \"$HOME/.local/share/nemo/scripts/Git Tools.sh\". Sem backup environmentoptions.xml.bak, o bloco ExternalTools inteiro do Lazarus é removido. Do ~/.bashrc saem todas as linhas que começam com alias git- (backup em ~/.bashrc.bak-uninstall).",
+  arq:["git-uninstall.sh","git-remove-navigator-nemo.sh"]}
+]},
+{id:"trabalhar",titulo:"Ato 2 — Trabalhar e versionar",sub:"Cada ação do dia a dia vira um commit padronizado, e a versão sai dos próprios commits.",faixas:[
+ {n:1,t:"git-feat",s:"pronta",meta:"Prefixo feat: · efeito MINOR",
+  corpo:"<p>Ações oferecidas: adiciona, implementa, integra, refatora. Exemplo de mensagem gerada: <code>feat: adiciona : tela de login</code>.</p>",
+  arq:["git-feat.sh"]},
+ {n:2,t:"git-fix",s:"pronta",meta:"Prefixo fix: · efeito PATCH",
+  corpo:"<p>Ações oferecidas: corrige, ajusta, resolve, melhora.</p>",
+  arq:["git-fix.sh"]},
+ {n:3,t:"git-breaking",s:"pronta",meta:"Prefixo feat!: · efeito MAJOR",
+  corpo:"<p>Ações oferecidas: remove, altera, renomeia, reestrutura. Use quando a mudança quebra a compatibilidade.</p>",
+  arq:["git-breaking.sh"]},
+ {n:4,t:"git-refactor",s:"pronta",meta:"Prefixo refactor: · não altera a versão",
+  corpo:"<p>Ações oferecidas: reorganiza, extrai, simplifica, renomeia.</p>",
+  arq:["git-refactor.sh"]},
+ {n:5,t:"git-docs",s:"pronta",meta:"Prefixo docs: · não altera a versão",
+  corpo:"<p>Ações oferecidas: adiciona, atualiza, corrige, remove, reorganiza.</p>",
+  nota:"Os cinco scripts de commit usam git add .: todos os arquivos modificados e novos da pasta entram, exceto os ignorados pelo .gitignore.",
+  arq:["git-docs.sh"]},
+ {n:6,t:"git-version",s:"pronta",meta:"Calcula a próxima versão a partir dos commits",
+  fluxo:[["Lê","os commits desde a última tag vX.Y.Z, ou todos se não houver tag"],["Calcula","o maior nível encontrado: MAJOR, MINOR ou PATCH"],["Confirma","pede confirmação ao usuário"],["Grava","VERSION no .gitproject e o commit chore: bump version to vX.Y.Z"],["Cria","a tag vX.Y.Z e os arquivos de versão da linguagem"]],
+  corpo:"<p>O version-pas.inc só é gerado em projetos Pascal/Lazarus (há *.lpi, *.lpr, *.lpk ou *.dpr até 2 níveis de profundidade). Também atualiza package.json, pyproject.toml, Cargo.toml, gradle.properties e pubspec.yaml quando existirem e já tiverem o campo de versão. Sem commits novos ou sem feat/fix, mantém a versão e só regenera esses arquivos.</p>",
+  arq:["git-version.sh","version-pas.inc","uso do sed do GNU"]},
+ {n:7,t:"git-release",s:"pronta",meta:"Executa o git-version e mostra a versão",
+  corpo:"<p>Exibe a mensagem de sucesso com a versão. Sem ambiente gráfico, aguarda Enter.</p>",
+  arq:["git-release.sh"]}
+]},
+{id:"registrar",titulo:"Ato 3 — Registrar, recuperar e publicar",sub:"O histórico vira relatório, erros podem ser desfeitos e o trabalho sobe para o GitHub.",faixas:[
+ {n:1,t:"git-changelog",s:"atencao",meta:"Agrupa os commits por versão",
+  corpo:"<p>Mostra no Zenity ou no less. Sem argumento, pergunta a data inicial (AAAA-MM-DD); em branco mostra tudo. Aceita <code>-s DATA</code>.</p>",
+  nota:"Só reconhece o commit de versão na forma “... para vX.Y.Z”. As tags vX.Y.Z continuam agrupando normalmente.",
+  arq:["git-changelog.sh"]},
+ {n:2,t:"git-changelog-summary",s:"atencao",meta:"Agrupa por tipo de mudança · exige pandoc para o HTML",
+  corpo:"<p>Grupos: quebras de compatibilidade, funcionalidades, correções, documentação, refatoração, manutenção e outras. Sem opções imprime no terminal; <code>--write</code> salva o CHANGELOG.md; <code>--html</code> também gera o CHANGELOG.html. O argumento de versão, como v1.2.0, limita às mudanças desde essa tag.</p>",
+  nota:"Os commits chore: bump version to vX.Y.Z e chore: update ... to vX.Y.Z aparecem em Manutenção, porque o filtro procura o texto “bump version ... para v”.",
+  arq:["git-changelog-summary.sh","CHANGELOG.md","CHANGELOG.html"]},
+ {n:3,t:"git-reset",s:"pronta",meta:"Desfaz o último commit · git reset --hard HEAD~1",
+  corpo:"<p>Avisa e pede confirmação: só <code>s</code> ou <code>sim</code> prosseguem. Exige ao menos 2 commits. Descarta o último commit e as alterações não commitadas. Se o commit removido era de versão, oferece apagar a tag mais recente.</p>",
+  arq:["git-reset.sh"]},
+ {n:4,t:"git-undo-reset",s:"atencao",meta:"Recupera o commit desfeito · git reset --hard HEAD@{1}",
+  corpo:"<p>Lista os 15 últimos itens do reflog, usa sempre a posição 1 e pede confirmação. Depois, se a tag da versão do .gitproject não existir, oferece recriá-la.</p>",
+  nota:"No terminal, só n ou N cancelam. Qualquer outra resposta, inclusive “não”, executa o reset. Alterações não commitadas são perdidas.",
+  arq:["git-undo-reset.sh"]},
+ {n:5,t:"git-github",s:"pronta",meta:"Envia o projeto e cria o repositório se ele não existir",
+  fluxo:[["Exige","repositório com ao menos um commit e chave SSH autenticada no GitHub"],["Pergunta","usuário e nome do repositório, se não houver origin"],["Cria","o repositório, se faltar, com token clássico de permissão repo"],["Envia","a branch atual e as tags, sem --force"]],
+  corpo:"<p>O token vem de GITHUB_TOKEN, GH_TOKEN, do gh ou do diálogo, e não é gravado. Só cria repositórios na conta pessoal do dono do token. Se o origin não for do GitHub, apenas envia. Mostra um diálogo de andamento durante o envio.</p>",
+  arq:["git-github.sh","git-github.sh.md"]}
+]},
+{id:"integracoes",titulo:"Ato 4 — Integrações e base",sub:"Os mesmos comandos, a um clique no gerenciador de arquivos ou no Lazarus.",faixas:[
+ {n:1,t:"Nemo",s:"atencao",meta:"Botão direito → Scripts → Git Tools",
+  corpo:"<p>Cria o arquivo <code>~/.local/share/nemo/scripts/Git Tools.sh</code>, que abre uma lista no Zenity com os comandos. Instala zenity e git via apt se faltarem.</p>",
+  nota:"A desinstalação só apaga pastas Git Tools, e o Nemo usa um arquivo. Veja o ajuste no git-uninstall.",
+  arq:["git-add-navigator-nemo.sh"]},
+ {n:2,t:"Nautilus",s:"pronta",meta:"Botão direito → Scripts → Git Tools",
+  corpo:"<p>Cria a pasta <code>~/.local/share/nautilus/scripts/Git Tools/</code> com um script por comando.</p>",
+  arq:["git-add-navigator-nautilus.sh"]},
+ {n:3,t:"Dolphin",s:"pronta",meta:"Submenu Git Tools · executa no konsole",
+  corpo:"<p>Cria wrappers em ~/.local/share/git-tools/ e o menu de serviço <code>git-tools.desktop</code>. Instala zenity, git e konsole via apt se faltarem.</p>",
+  arq:["git-add-navigator-dolphin.sh"]},
+ {n:4,t:"Lazarus",s:"pronta",meta:"Menu Tools → Configure External Tools",
+  corpo:"<p>O git-install gera o lazarus.git-tools.xml com as entradas que têm título para o Lazarus. A importação é manual:</p><ul><li>Tools → Configure External Tools...</li><li>Import e escolha o XML</li><li>OK e reinicie o Lazarus</li></ul><p>Em pastas que não são repositórios, os menus oferecem inicializar com o git-ini antes de executar o comando.</p>",
+  arq:["lazarus.git-tools.xml"]},
+ {n:5,t:"git-lazarus-integrate",s:"avulso",meta:"Não é usado pelo instalador",
+  corpo:"<p>Tem lista própria de ferramentas e não lê o git-tools.conf. Pode exportar o XML com <code>--export</code> ou editar o environmentoptions.xml diretamente, com backup .bak.</p>",
+  arq:["git-lazarus-integrate.sh"]},
+ {n:6,t:"git-lib",s:"pronta",meta:"Biblioteca carregada pelos demais scripts",
+  corpo:"<p>Funções: ask_required, ask_optional, ask_confirm, ask_select, notify_info, view_file, load_config e parse_config. Usa Zenity ou terminal conforme o ambiente. Exige Bash 4.3 ou superior, por causa do <code>local -n</code>.</p><p>Commits, git-version, reset, undo-reset, changelogs e git-github carregam /usr/local/bin/git-lib.sh e só funcionam depois da instalação. git-ini, git-config, git-release e mover-para-semuso carregam a biblioteca da própria pasta.</p>",
+  arq:["git-lib.sh","git-lib-test.sh"]},
+ {n:7,t:"mover-para-semuso",s:"avulso",meta:"Utilitário de manutenção do repositório, não instalado",
+  corpo:"<p>Move para semuso/ os arquivos que não fazem parte do projeto: logs, rascunhos, configuração pessoal e scripts de teste. Os que estão no Git saem do controle (git rm --cached) e semuso/ entra no .gitignore. Com <code>--simular</code>, só mostra o que seria movido.</p>",
+  arq:["mover-para-semuso.sh"]}
+]},
+{id:"direcao",titulo:"Ato 5 — Para onde vai",sub:"Decisões de planejamento. Não descrevem o comportamento atual dos scripts.",faixas:[
+ {n:1,t:"Instalador gráfico",s:"planejado",meta:"Em Lazarus, como o instalador do CopyTo",
+  corpo:"<p>Janelas para substituir o <code>bash git-install.sh</code>, o único passo que exige terminal. Deve fazer o mesmo que o git-install faz hoje: copiar os scripts, configurar user.name e user.email, criar os aliases, ligar o menu do gerenciador de arquivos e gerar o XML do Lazarus.</p><div class='caution'>Ponto a resolver: a permissão de administrador para gravar em /usr/local/bin, que hoje vem do sudo do script.</div>",
+  arq:["a criar"]},
+ {n:2,t:"Público: quem mantém um trabalho",s:"decisao",meta:"Não é só para quem programa",
+  corpo:"<p>Serve a qualquer pessoa que mantém documentos, textos e páginas HTML e quer guardar cada versão do próprio trabalho, voltar a uma versão antiga e saber o que mudou e quando. Na divulgação, falar em “trabalho” e “projeto”, não em “código”.</p>",
+  arq:["divulgação"]},
+ {n:3,t:"Plataforma: Linux",s:"decisao",meta:"Windows e macOS ficam fora do escopo por enquanto",
+  corpo:"<p>O foco é o que já está feito. A divulgação deve dizer que o projeto é para Linux.</p>",
+  arq:["Bash 4.3+","Git","sudo"]}
+]}
+];
+
+var LINHA=[
+ {y:"Início",t:"Uma pasta com o seu trabalho",f:"",ok:1,hoje:1,h:"Documentos, textos, páginas HTML ou um projeto de código. Uma pasta por projeto.",s:[]},
+ {y:"Passo 1",t:"Instalar",f:"git-install",ok:1,h:"Copia os scripts para /usr/local/bin, grava os aliases e liga os menus. É o único passo que exige terminal.",s:[
+  {y:"Nemo, Nautilus, Dolphin",d:"menu de botão direito no gerenciador de arquivos",g:"gerado a partir do git-tools.conf",ok:1},
+  {y:"Lazarus",d:"menu Tools, com importação manual do XML",g:"gerado a partir do git-tools.conf",ok:1}]},
+ {y:"Passo 2",t:"Inicializar",f:"git-ini",ok:1,h:"Cria o repositório, o .gitignore, o README.md e o .gitproject com a versão 0.1.0.",s:[]},
+ {y:"Passo 3",t:"Registrar o trabalho",f:"git-feat · git-fix · git-breaking · git-refactor · git-docs",ok:1,h:"Cada ação vira um commit no padrão tipo: ação : mensagem.",s:[
+  {y:"git-reset",d:"desfaz o último commit",g:"só prossegue com s ou sim",ok:1},
+  {y:"git-undo-reset",d:"recupera o commit desfeito",g:"usa o reflog",ok:1}]},
+ {y:"Passo 4",t:"Calcular a versão",f:"git-version",ok:1,h:"Os tipos de commit definem MAJOR, MINOR ou PATCH. O script cria a tag vX.Y.Z.",s:[]},
+ {y:"Passo 5",t:"Fazer o release",f:"git-release",ok:1,h:"Roda o git-version e mostra a versão ao usuário.",s:[]},
+ {y:"Passo 6",t:"Gerar o changelog",f:"git-changelog · git-changelog-summary",ok:1,h:"Relatório por versão ou por tipo de mudança, em Markdown e em HTML.",s:[]},
+ {y:"Passo 7",t:"Publicar",f:"git-github",ok:1,h:"Envia a branch e as tags e cria o repositório no GitHub se ele não existir.",s:[]},
+ {y:"Planejado",t:"Instalar com janelas",f:"instalador em Lazarus",h:"Substituir o bash git-install.sh e eliminar o último passo no terminal.",s:[]}
+];
+
+(function linha(){
+  var ol=document.getElementById("lin");
+  LINHA.forEach(function(n){
+    var li=document.createElement("li");
+    li.className=n.hoje?"hoje":(n.ok?"ok":"pending");
+    var sec="";
+    if(n.s.length){
+      sec='<div class="secbox"><p class="st">Acontece ao lado deste passo</p><ul>'+n.s.map(function(x){
+        return '<li'+(x.ok?' class="ok"':'')+'><span class="sy">'+x.y+'</span><span>'+x.d+'</span><span class="sg">'+x.g+'</span></li>';
+      }).join("")+'</ul></div>';
+    }
+    li.innerHTML='<span class="dot"></span><div class="row"><span class="yr">'+n.y+'</span><span class="t">'+n.t+'</span>'+(n.f?'<span class="fx">'+n.f+'</span>':'')+'</div><p class="h">'+n.h+'</p>'+sec;
+    ol.appendChild(li);
+  });
+})();
+
+var filtro="todos";
+
+function renderFiltros(){
+  var f=document.getElementById("filters");
+  var itens=[["todos","Todos"]].concat(Object.keys(STATUS).map(function(k){return [k,STATUS[k]]}));
+  f.innerHTML="";
+  itens.forEach(function(i){
+    var b=document.createElement("button");
+    b.type="button";b.textContent=i[1];
+    b.setAttribute("aria-pressed",String(filtro===i[0]));
+    b.onclick=function(){filtro=i[0];renderFiltros();renderAtos()};
+    f.appendChild(b);
+  });
+}
+
+function renderAtos(){
+  var cont=document.getElementById("acts"),total=0,geral=0;
+  ACTS.forEach(function(a){geral+=a.faixas.length});
+  cont.innerHTML="";
+  ACTS.forEach(function(ato){
+    var fx=ato.faixas.filter(function(x){return filtro==="todos"||x.s===filtro});
+    if(!fx.length)return;
+    total+=fx.length;
+    var sec=document.createElement("section");sec.className="act";
+    sec.innerHTML='<div class="act-head"><h2>'+ato.titulo+'</h2><p>'+ato.sub+'</p></div>';
+    var ol=document.createElement("ol");ol.className="tracks";
+    fx.forEach(function(x){
+      var li=document.createElement("li");li.className="track";
+      var corpo="";
+      if(x.fluxo){
+        corpo+='<div class="flow">'+x.fluxo.map(function(p){return '<div><b>'+p[0]+'</b>'+p[1]+'</div>'}).join("")+'</div>';
+      }
+      if(x.corpo)corpo+=x.corpo;
+      if(x.nota)corpo+='<div class="caution">'+x.nota+'</div>';
+      corpo+='<div class="files">'+x.arq.map(function(a){return '<span>'+a+'</span>'}).join("")+'</div>';
+      li.innerHTML='<div class="num" aria-hidden="true">'+x.n+'</div>'+
+        '<details class="card"><summary><h3>'+x.t+'</h3><span class="badge s-'+x.s+'">'+STATUS[x.s]+'</span><p class="meta">'+x.meta+'</p></summary><div class="body">'+corpo+'</div></details>';
+      ol.appendChild(li);
+    });
+    sec.appendChild(ol);cont.appendChild(sec);
+  });
+  document.getElementById("count").textContent="Mostrando "+total+" de "+geral+" itens. Toque num item para ver o detalhe.";
+}
+
+renderFiltros();renderAtos();
+</script>
+</body>
+</html>
