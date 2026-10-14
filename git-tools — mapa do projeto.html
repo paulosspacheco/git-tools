@@ -42,6 +42,12 @@ h2{font-size:1.7rem;font-weight:800}
 h3{font-size:1.2rem;font-weight:800}
 code{font-family:var(--mono);font-size:.88em;background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:0 5px}
 .lead{max-width:60ch;color:var(--muted);margin:14px 0 0}
+.repo{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
+.repo a{font:700 .95rem var(--display);padding:8px 16px;border-radius:999px;border:1.5px solid var(--teal);color:var(--teal);text-decoration:none}
+.repo a:first-child{background:var(--teal);color:var(--on-teal)}
+.repo a:hover{text-decoration:underline}
+.repo a:focus-visible,footer a:focus-visible{outline:3px solid var(--mustard);outline-offset:2px}
+footer a{color:var(--teal)}
 
 .ruler-box{margin-top:36px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:18px 18px 8px}
 .ruler-box>p{margin:0 0 6px;font-family:var(--display);font-weight:500;font-size:.95rem;color:var(--muted)}
@@ -134,6 +140,10 @@ footer{margin-top:28px;color:var(--muted);font-size:.85rem}
 <header>
   <h1>git-tools</h1>
   <p class="lead">Scripts Bash que transformam cada operação do Git em um comando curto. Eles perguntam o necessário, montam a mensagem no padrão Conventional Commits e calculam a versão a partir dos commits. Funcionam no terminal, em diálogos gráficos, no menu do gerenciador de arquivos e no menu Tools do Lazarus. Foco em Linux.</p>
+  <nav class="repo" aria-label="Links do projeto">
+    <a href="https://github.com/paulosspacheco/git-tools" target="_blank" rel="noopener">Projeto no GitHub</a>
+    <a href="https://github.com/paulosspacheco/git-tools/blob/main/git-tools%20%E2%80%94%20mapa%20do%20projeto.html" target="_blank" rel="noopener">Este mapa no repositório</a>
+  </nav>
 
   <div class="ruler-box">
     <p>Leia de cima para baixo: é o caminho de um trabalho, da pasta solta até o GitHub. Ponto cheio: já funciona. Ponto vazio: planejado. No quadro tracejado ficam as ações que acontecem ao lado do passo principal.</p>
@@ -176,7 +186,7 @@ footer{margin-top:28px;color:var(--muted);font-size:.85rem}
   <span class="badge s-decisao">Decisão de projeto</span>
   <span class="badge s-avulso">Avulso, fora do instalador</span>
 </div>
-<footer>Baseado em git-tools-claude.md, git-tools.conf (versão 1.3.0) e CHANGELOG.md do projeto. Licença MIT.</footer>
+<footer>Baseado em git-tools-claude.md, git-tools.conf (versão 1.3.0) e CHANGELOG.md do projeto. Licença MIT. Código-fonte: <a href="https://github.com/paulosspacheco/git-tools" target="_blank" rel="noopener">github.com/paulosspacheco/git-tools</a>.</footer>
 
 </div>
 
