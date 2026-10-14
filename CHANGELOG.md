@@ -35,6 +35,9 @@
 
 ### 🐛 Correções
 
+- 2026-10-09 22:55 corrige : hook commit-msg gravado em .githooks para a validação executar
+- 2026-10-09 15:39 corrige : git-reset.sh só prossegue com sim e não apaga a tag quando o reset falha
+- 2026-10-09 10:22 corrige : git-changelog-summary.sh - adicionada linha em branco antes dos títulos ### e do ---, para o pandoc gerar os títulos das seções no CHANGELOG.html
 - 2026-10-09 09:52 melhora : git-github.sh - mostra um diálogo de andamento enquanto cria o repositório e envia a branch e as tags, para a tela não ficar sem resposta
 - 2026-04-28 15:15 corrige : A integração com o nemo quando instalado no Trinity Desktop Environment
 - 2026-04-16 09:32 melhora : O script git-version.sh misturava inglês e português na mensagem por isso deixei inglês. A a palavra para deixei em to.
@@ -55,6 +58,10 @@
 
 ### 📚 Documentação
 
+- 2026-10-14 11:59 atualiza : Criado o link do projeto no github na página: git-tools — mapa do projeto.html
+- 2026-10-14 11:52 adiciona : git-tools — mapa do projeto.html
+- 2026-10-10 15:55 adiciona : acrescentar o passo a passo para iniciantes (abrir o terminal, instalar o Git, senha do `sudo`, ativar os comandos)
+- 2026-10-09 10:52 reorganiza : Apaguei todos os arquivos .html pq no githun os mesmos não são necessários
 - 2026-10-09 10:04 atualiza :    CHANGELOG.md e CHANGELOG.html atualizados até a v0.18.1
 - 2026-04-13 16:30 adiciona : Teste da alteração do script git-docs.sh a partir do gerenciador de arquivos.
 - 2026-04-13 16:16 Agora os script que executam no gerenciador de arquivos e no lazarus ficam no arquivo git-tools.conf
@@ -78,6 +85,9 @@
 
 ### 🔧 Manutenção
 
+- 2026-10-09 22:57 bump version to v0.18.4
+- 2026-10-09 16:02 bump version to v0.18.3
+- 2026-10-09 10:22 bump version to v0.18.2
 - 2026-10-09 09:59 bump version to v0.18.1
 - 2026-10-08 22:36 bump version to v0.18.0
 - 2026-10-08 21:31 bump version to v0.17.0
@@ -114,4 +124,4 @@
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 
 ---
-_Gerado automaticamente em 2026-10-09 10:16:43_
+_Gerado automaticamente em 2026-10-14 16:16:55_

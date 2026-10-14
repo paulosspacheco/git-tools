@@ -1,7 +1,14 @@
 #!/bin/bash
 # =============================================================================
 # git-uninstall.sh — Remoção global das ferramentas Git + integrações
-# Versão: 2.1.0 (corrige ordem de remoção)
+# =============================================================================
+# Versão: 2.2.0
+# Data da versão: 2026-10-14
+# Objetivo da versão: remover do Nemo a Nemo Action "Git Tools" e o script
+#   mestre criados pelo git-add-navigator-nemo.sh 4.0.0, além do que restou
+#   das instalações antigas em Scripts.
+# Observações:
+#   - Uso: ./git-uninstall.sh (sem sudo; ele pede sudo só para /usr/local/bin)
 # =============================================================================
 
 set -e
@@ -225,12 +232,22 @@ remove_navigator_integrations() {
     echo "🗑 Removendo integrações com gerenciadores de arquivos..."
 
     # Nemo
-    local nemo_dir="$HOME/.local/share/nemo/scripts/Git Tools"
-    if [ -d "$nemo_dir" ]; then
-        rm -rf "$nemo_dir"
-        echo "  ✔ Removido: $nemo_dir"
-    else
-        echo "  ⚠ Nemo: pasta não encontrada (ignorado)"
+    local nemo_found=0
+    local nemo_item
+    for nemo_item in \
+        "$HOME/.local/share/nemo/actions"/git-*.nemo_action \
+        "$HOME/.local/share/nemo/actions/git-tools-nemo.sh" \
+        "$HOME/.local/share/nemo/scripts/Git Tools.sh" \
+        "$HOME/.local/share/nemo/scripts/Git Tools"
+    do
+        if [ -e "$nemo_item" ]; then
+            rm -rf "$nemo_item"
+            echo "  ✔ Removido: $nemo_item"
+            nemo_found=1
+        fi
+    done
+    if [ "$nemo_found" -eq 0 ]; then
+        echo "  ⚠ Nemo: integração não encontrada (ignorado)"
     fi
 
     # Nautilus

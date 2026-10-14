@@ -1,13 +1,15 @@
 #!/bin/bash
 # =============================================================================
-# git-add-navigator-nemo.sh — Integração git-tools no Nemo (com submenu)
+# git-add-navigator-nemo.sh — Integração git-tools no Nemo
 # =============================================================================
-# Instala um script mestre no Nemo que cria um submenu "Git Tools"
-# com todas as opções disponíveis.
-#
-# Uso: ./git-add-navigator-nemo.sh
-#
-# Versão: 3.2.0
+# Versão: 4.0.0
+# Data da versão: 2026-10-14
+# Objetivo da versão: o item "Git Tools" aparece direto no menu de contexto
+#   do Nemo (Nemo Action), sem passar pelo submenu "Scripts".
+# Observações:
+#   - Uso: ./git-add-navigator-nemo.sh
+#   - O script mestre fica em ~/.local/share/nemo/actions, pasta que nenhum
+#     outro instalador do git-tools apaga
 # =============================================================================
 
 set -e
@@ -15,6 +17,9 @@ set -e
 INSTALL_DIR="/usr/local/bin"
 CONF_FILE="$INSTALL_DIR/git-tools.conf"
 NEMO_SCRIPTS_DIR="$HOME/.local/share/nemo/scripts"
+NEMO_ACTIONS_DIR="$HOME/.local/share/nemo/actions"
+MASTER_SCRIPT="$NEMO_ACTIONS_DIR/git-tools-nemo.sh"
+ACTION_FILE="$NEMO_ACTIONS_DIR/git-tools.nemo_action"
 
 # =============================================================================
 # Pré-verificações
@@ -50,9 +55,9 @@ check_conf() {
 # =============================================================================
 
 create_master_script() {
-    local master_script="$NEMO_SCRIPTS_DIR/Git Tools.sh"
+    local master_script="$MASTER_SCRIPT"
 
-    echo "  Criando script mestre com submenu..."
+    echo "  Criando script mestre..."
 
     cat > "$master_script" << 'MASTER_EOF'
 #!/bin/bash
@@ -65,15 +70,17 @@ CONF_FILE="$INSTALL_DIR/git-tools.conf"
 
 # ---------------------------------------------------------------------------
 # Resolve o diretório de trabalho
-# Preferência: arquivo/pasta selecionado; fallback: URI atual do Nemo
+# $1 = pasta atual do Nemo (%P); $2... = itens selecionados (%F)
+# Preferência: primeiro item selecionado; fallback: pasta atual
 # ---------------------------------------------------------------------------
-TARGET="${NEMO_SCRIPT_SELECTED_FILE_PATHS%%$'\n'*}"
+CURRENT_DIR="$1"
+shift || true
 
-if [ -z "$TARGET" ] && [ -n "$NEMO_SCRIPT_CURRENT_URI" ]; then
-    TARGET=$(python3 -c \
-        "import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1][7:]))" \
-        "$NEMO_SCRIPT_CURRENT_URI" 2>/dev/null || echo "$HOME")
-fi
+TARGET=""
+for item in "$@"; do
+    [ -n "$item" ] && { TARGET="$item"; break; }
+done
+[ -z "$TARGET" ] && TARGET="$CURRENT_DIR"
 
 if [ -d "$TARGET" ]; then
     cd "$TARGET"
@@ -160,7 +167,7 @@ done < "$CONF_FILE"
 # ---------------------------------------------------------------------------
 CHOICE=$(zenity --list \
     --title="Git Tools" \
-    --text="Selecione a operação Git desejada:" \
+    --text="Pasta: $(pwd)\n\nSelecione a operação Git desejada:" \
     --column="Comandos Git" \
     "${OPTIONS[@]}" \
     --width=400 \
@@ -181,7 +188,28 @@ done
 MASTER_EOF
 
     chmod +x "$master_script"
-    echo "  ✔ Git Tools.sh (script mestre com submenu)"
+    echo "  ✔ Script mestre: $master_script"
+}
+
+# =============================================================================
+# Criar Nemo Action (item "Git Tools" direto no menu de contexto)
+# =============================================================================
+
+create_action() {
+    cat > "$ACTION_FILE" << EOF
+[Nemo Action]
+Active=true
+Name=Git Tools
+Comment=Operações Git do git-tools nesta pasta
+Exec=bash "$MASTER_SCRIPT" %P %F
+Icon-Name=git
+Selection=any
+Extensions=any;
+Quote=double
+Dependencies=zenity;git;
+EOF
+
+    echo "  ✔ Nemo Action: $ACTION_FILE"
 }
 
 # =============================================================================
@@ -215,30 +243,12 @@ clean_old_installations() {
     done
 
     # Remove apenas o script mestre anterior (não toca em scripts de terceiros)
-    rm -f "$scripts_base/Git Tools.sh" 2>/dev/null || true
-}
-
-# =============================================================================
-# Habilitar menu Scripts no Nemo
-# =============================================================================
-
-enable_scripts_menu() {
-    echo ""
-    echo "  🔧 Habilitando menu Scripts no Nemo..."
-
-    if command -v gsettings >/dev/null 2>&1; then
-        for key in show-scripts-in-context-menus scripts-in-context-menu show-scripts-menu; do
-            if gsettings list-keys org.nemo.preferences 2>/dev/null | grep -q "$key"; then
-                gsettings set org.nemo.preferences "$key" true 2>/dev/null && \
-                echo "    ✔ Menu Scripts habilitado via gsettings ($key)"
-                break
-            fi
-        done
+    if [ -f "$scripts_base/Git Tools.sh" ]; then
+        rm -f "$scripts_base/Git Tools.sh"
+        echo "    🗑 Removido: $scripts_base/Git Tools.sh"
     fi
 
-    echo "    ℹ Se o menu 'Scripts' não aparecer, ative manualmente:"
-    echo "      Nemo → Editar → Preferências → Comportamento"
-    echo "      → Marque 'Mostrar scripts no menu de contexto'"
+    rm -f "$MASTER_SCRIPT" 2>/dev/null || true
 }
 
 # =============================================================================
@@ -246,37 +256,30 @@ enable_scripts_menu() {
 # =============================================================================
 
 install_nemo() {
-    echo "🔧 Configurando Nemo (com submenu Git Tools)..."
+    echo "🔧 Configurando Nemo..."
 
-    mkdir -p "$NEMO_SCRIPTS_DIR"
+    mkdir -p "$NEMO_ACTIONS_DIR"
 
     clean_old_installations
 
     echo ""
-    echo "  Criando estrutura de menus..."
-
     create_master_script
-
-    echo ""
-    echo "✔ Script mestre instalado em: $NEMO_SCRIPTS_DIR/Git Tools.sh"
-    echo ""
-
-    enable_scripts_menu
+    create_action
 
     echo ""
     echo "👉 Reinicie o Nemo: nemo -q && nemo &"
     echo ""
     echo "📌 Como usar:"
     echo "   → Clique direito em qualquer pasta"
-    echo "   → Vá em 'Scripts' → 'Git Tools'"
-    echo "   → Escolha a operação desejada no submenu"
+    echo "   → Escolha 'Git Tools'"
+    echo "   → Escolha a operação desejada na lista"
 }
 
 # =============================================================================
 # Principal
 # =============================================================================
 
-echo "🚀 Instalando integração git-tools no Nemo (com submenu)"
+echo "🚀 Instalando integração git-tools no Nemo"
 echo ""
 
 check_deps
@@ -284,4 +287,4 @@ check_conf
 install_nemo
 
 echo ""
-echo "✔ Concluído! Botão direito em qualquer pasta → Scripts → Git Tools"
+echo "✔ Concluído! Botão direito em qualquer pasta → Git Tools"
