@@ -2,8 +2,8 @@
 
 Comandos curtos para guardar cada versão do seu trabalho — documentos, páginas e programas — usando o Git. Cada operação (nova funcionalidade, correção, release, changelog, desfazer) pergunta o necessário, monta a mensagem no padrão [Conventional Commits](https://www.conventionalcommits.org/) e calcula a versão ([SemVer](https://semver.org/)) a partir do que foi feito.
 
-**Versão:** 1.0.2  
-**Data:** 2026-10-09
+**Versão:** 0.19.0 
+**Data:** 2026-10-14
 
 **Objetivo da versão:** corrigir a tabela de scripts: remove os que não existem no projeto, inclui o `mover-para-semuso.sh` e liga cada script ao seu próprio documento. O uso rápido ganha o `git-github`, e o texto de conversa que estava no fim do arquivo foi retirado.
 
