@@ -9,6 +9,15 @@ Comandos curtos para guardar cada versão do seu trabalho — documentos, págin
 
 **Observações:** cada script tem o seu documento ao lado do fonte, com o nome do script mais `.md` (`git-lib.sh` → `git-lib.sh.md`). Ao criar um documento novo, acrescente a linha correspondente na tabela de scripts abaixo.
 
+
+## Aprenda ouvindo
+
+As ideias do git-tools também foram explicadas em canção, no canal [Vozes do Ofício](https://www.youtube.com/@VozesDoOficio):
+
+- [🎵 Git-tools — Parte 1 — Começar: A Pasta Que Aprendeu a Lembrar](https://youtu.be/EdXLCSjA2ug?si=lyBlgKrVklLcxb8E)
+- [🎵 Git-tools — Parte 2 — Salvar: Um Commit de Cada Vez](https://youtu.be/WVzNsbN5V6s?si=iMQ7ARi7iXFqG-qJ)
+- 
+
 ---
 
 ## O que você precisa
