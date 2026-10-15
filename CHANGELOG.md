@@ -59,6 +59,8 @@
 
 ### 📚 Documentação
 
+- 2026-10-15 09:48 corrige : Link do readme.md para a parte 4 agora é: 🎵 Git-tools — Parte 4 — Compartilhar : Lá Fora Também É Casa | Vozes do Ofício
+- 2026-10-15 09:27 adiciona : Criado link no arquivo readme.md para a canção no youtube: Git-tools, Parte 4: Lá Fora Também É Casa — Compartilhar | Vozes do Ofício
 - 2026-10-14 21:48 adiciona : No arquivo readme.com foi criado o link para a canção: 🎵 Git-tools — Parte 3 — Marcar a Versão: O Número da Etapa
 - 2026-10-14 17:29 adiciona : adiciona seção com link das canções do YouTube no readme
 - 2026-10-14 17:07 adiciona : Atualizada a verão e data do arquivo readme.md
@@ -129,4 +131,4 @@
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 
 ---
-_Gerado automaticamente em 2026-10-15 09:24:09_
+_Gerado automaticamente em 2026-10-15 10:09:12_
