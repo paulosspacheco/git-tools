@@ -4,6 +4,7 @@
 
 ### ➕ Funcionalidades
 
+- 2026-10-15 17:01 adiciona : git-state.sh — Mostra o estado da pasta antes de voltar atrás
 - 2026-10-14 16:19 adiciona : git-add-navigator-nemo.sh - o item Git Tools aparece direto no menu de contexto do Nemo, sem passar por Scripts
 - 2026-10-08 22:34 adiciona : git-cloud.sh - envia o projeto para o GitHub e cria o repositório se não existir, com a documentação em git-cloud.sh.md
 - 2026-10-08 21:30 adiciona : O script git-version.sh gera o arquivo de versão de cada linguagem (ex.: version-pas.inc, package.json, pyproject.toml) somente quando o projeto daquela linguagem existe na pasta do repositório.
@@ -91,6 +92,7 @@
 
 ### 🔧 Manutenção
 
+- 2026-10-15 17:01 bump version to v0.20.0
 - 2026-10-14 17:08 bump version to v0.19.0
 - 2026-10-09 22:57 bump version to v0.18.4
 - 2026-10-09 16:02 bump version to v0.18.3
@@ -131,4 +133,4 @@
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 
 ---
-_Gerado automaticamente em 2026-10-15 10:09:12_
+_Gerado automaticamente em 2026-10-15 17:36:20_
