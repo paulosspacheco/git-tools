@@ -4,6 +4,7 @@
 
 ### ➕ Funcionalidades
 
+- 2026-10-14 16:19 adiciona : git-add-navigator-nemo.sh - o item Git Tools aparece direto no menu de contexto do Nemo, sem passar por Scripts
 - 2026-10-08 22:34 adiciona : git-cloud.sh - envia o projeto para o GitHub e cria o repositório se não existir, com a documentação em git-cloud.sh.md
 - 2026-10-08 21:30 adiciona : O script git-version.sh gera o arquivo de versão de cada linguagem (ex.: version-pas.inc, package.json, pyproject.toml) somente quando o projeto daquela linguagem existe na pasta do repositório.
 - 2026-10-08 20:47 adiciona : Criado documento git-tools-claude.md baseado na versão de hoje dia 07/10/2026
@@ -58,6 +59,9 @@
 
 ### 📚 Documentação
 
+- 2026-10-14 21:48 adiciona : No arquivo readme.com foi criado o link para a canção: 🎵 Git-tools — Parte 3 — Marcar a Versão: O Número da Etapa
+- 2026-10-14 17:29 adiciona : adiciona seção com link das canções do YouTube no readme
+- 2026-10-14 17:07 adiciona : Atualizada a verão e data do arquivo readme.md
 - 2026-10-14 11:59 atualiza : Criado o link do projeto no github na página: git-tools — mapa do projeto.html
 - 2026-10-14 11:52 adiciona : git-tools — mapa do projeto.html
 - 2026-10-10 15:55 adiciona : acrescentar o passo a passo para iniciantes (abrir o terminal, instalar o Git, senha do `sudo`, ativar os comandos)
@@ -85,6 +89,7 @@
 
 ### 🔧 Manutenção
 
+- 2026-10-14 17:08 bump version to v0.19.0
 - 2026-10-09 22:57 bump version to v0.18.4
 - 2026-10-09 16:02 bump version to v0.18.3
 - 2026-10-09 10:22 bump version to v0.18.2
@@ -124,4 +129,4 @@
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 
 ---
-_Gerado automaticamente em 2026-10-14 16:16:55_
+_Gerado automaticamente em 2026-10-15 09:24:09_
