@@ -11,13 +11,20 @@
 #   git-changelog-summary.sh--html     — salva em CHANGELOG.md e CHANGELOG.html
 #   git-changelog-summary.shv1.2.0     — mudanças desde a versão informada
 #
-# Data da versão: 2026-10-09
-# Versão: 1.3.1
-# Objetivo da versão: corrigir o CHANGELOG.md, que ficava sem linha em branco
-#   antes dos títulos ### e antes do ---, e por isso o pandoc não gerava os
-#   títulos das seções no CHANGELOG.html.
-# Observações: a substituição de comando $(...) remove as quebras de linha do
-#   final de cada seção; por isso cada bloco inicia com a própria linha em branco.
+# Data da versão: 2026-10-15
+# Versão: 1.4.0
+# Objetivo da versão: registrar no Git o CHANGELOG.md (e o CHANGELOG.html, se
+#   gerado) logo após gravá-los, com o commit "chore: atualiza CHANGELOG", para
+#   que o git-github.sh envie a versão atual ao GitHub. Antes o arquivo ficava
+#   só modificado na pasta e o GitHub recebia a versão anterior.
+# Observações:
+#   - Ordem de uso: commit (feat, fix, docs...) → este script → git-github.sh
+#   - O commit inclui somente os arquivos do CHANGELOG, mesmo que haja outras
+#     alterações na pasta
+#   - Arquivos listados no .gitignore não entram no commit
+#   - O commit "chore: atualiza CHANGELOG" não aparece no próprio CHANGELOG
+#   - A substituição de comando $(...) remove as quebras de linha do final de
+#     cada seção; por isso cada bloco inicia com a própria linha em branco.
 # Dependências: git-lib.sh, pandoc (opcional, para --html)
 # =============================================================================
 
@@ -102,7 +109,7 @@ list_section() {
     commits=$(git log --pretty=format:"%ad %s" --date=format:"%Y-%m-%d %H:%M" | grep " $pattern" || true)
   fi
 
-  commits=$(echo "$commits" | grep -vE "(bump version|atualiza version\.inc) para v" || true)
+  commits=$(echo "$commits" | grep -vE "((bump version|atualiza version\.inc) para v|chore: atualiza CHANGELOG)" || true)
 
   if [ -n "$commits" ]; then
     printf "\n\n### %s\n\n" "$title"
@@ -164,6 +171,23 @@ if [ "$WRITE" = true ]; then
       echo "✔ CHANGELOG.html gerado"
     else
       echo "⚠ pandoc não encontrado — CHANGELOG.html não gerado" >&2
+    fi
+  fi
+
+  FILES=()
+  for f in CHANGELOG.md CHANGELOG.html; do
+    [ "$f" = CHANGELOG.html ] && [ "$HTML" != true ] && continue
+    [ -f "$f" ] && ! git check-ignore -q "$f" && FILES+=("$f")
+  done
+
+  if [ ${#FILES[@]} -gt 0 ]; then
+    git add -- "${FILES[@]}"
+    if git diff --cached --quiet -- "${FILES[@]}"; then
+      echo "ℹ CHANGELOG sem alterações para registrar"
+    elif git commit -m "chore: atualiza CHANGELOG" -- "${FILES[@]}" >/dev/null; then
+      notify_info "✔ CHANGELOG registrado no Git:\n${FILES[*]}\n\nUse o git-github.sh para enviá-lo ao GitHub."
+    else
+      notify_info "❌ Falha ao registrar o CHANGELOG no Git"
     fi
   fi
 else

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CONFIG Version="3" Count="13">
+<CONFIG Version="3" Count="14">
   <Tool1>
     <Title Value="Inicializar repositório"/>
     <Filename Value="/usr/local/bin/git-ini.sh"/>
@@ -82,27 +82,35 @@
     </Scanners>
   </Tool10>
   <Tool11>
-    <Title Value="Git Reset"/>
-    <Filename Value="/usr/local/bin/git-reset.sh"/>
+    <Title Value="Ver estado da pasta"/>
+    <Filename Value="/usr/local/bin/git-state.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool11>
   <Tool12>
-    <Title Value="Git Undo Reset"/>
-    <Filename Value="/usr/local/bin/git-undo-reset.sh"/>
+    <Title Value="Git Reset"/>
+    <Filename Value="/usr/local/bin/git-reset.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
   </Tool12>
   <Tool13>
+    <Title Value="Git Undo Reset"/>
+    <Filename Value="/usr/local/bin/git-undo-reset.sh"/>
+    <WorkingDirectory Value="$ProjPath()"/>
+    <Scanners Count="1">
+      <Item1 Value="FPC"/>
+    </Scanners>
+  </Tool13>
+  <Tool14>
     <Title Value="Enviar ou atualizar no GitHub"/>
     <Filename Value="/usr/local/bin/git-github.sh"/>
     <WorkingDirectory Value="$ProjPath()"/>
     <Scanners Count="1">
       <Item1 Value="FPC"/>
     </Scanners>
-  </Tool13>
+  </Tool14>
 </CONFIG>
