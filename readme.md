@@ -17,7 +17,7 @@ As ideias do git-tools também foram explicadas em canção, no canal [Vozes do 
 - [🎵 Git-tools — Parte 1 — Começar: A Pasta Que Aprendeu a Lembrar | Vozes do Ofício](https://youtu.be/EdXLCSjA2ug?si=lyBlgKrVklLcxb8E)
 - [🎵 Git-tools — Parte 2 — Salvar: Um Commit de Cada Vez | Vozes do Ofício](https://youtu.be/WVzNsbN5V6s?si=iMQ7ARi7iXFqG-qJ)
 - [🎵 Git-tools — Parte 3 — Marcar a Versão: O Número da Etapa | Vozes do Ofício](https://youtu.be/2PbqC-7b_w8)
-- [🎵 Git-tools, Parte 4: Lá Fora Também É Casa — Compartilhar | Vozes do Ofício](https://youtu.be/hguS6w2OCNw)
+- [🎵 Git-tools — Parte 4 — Compartilhar : Lá Fora Também É Casa | Vozes do Ofício](https://youtu.be/hguS6w2OCNw)
 
 ---
 
