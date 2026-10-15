@@ -1,66 +1,87 @@
 # `git-reset.sh` — Desfaz o último commit e descarta alterações
 
-**Versão:** 1.3.1  
-**Data:** 2026-10-09
+**Versão:** 1.4.0  
+**Data:** 2026-10-15
+
+**Objetivo da versão:**
+
+- Usar o relatório do `git-state.sh` como confirmação: a pessoa vê o que será descartado e qual commit será desfeito antes de decidir
+- Não desfazer um commit que já está no GitHub, porque isso deixaria a pasta diferente do GitHub e faria o próximo envio falhar
+- Mostrar o resultado em janela, para quem usa o menu do gerenciador de arquivos
+
+**Observações de uso:**
+
+- Executar na raiz do repositório (pasta com `.git`), com ao menos 2 commits
+- Depende do `git-state.sh` instalado em `/usr/local/bin`
+- Com janela, o botão **Desfazer** só libera depois de marcar a caixa de confirmação; no terminal, Enter cancela e só `s` ou `sim` confirmam
+
+---
 
 ## Visão geral
 
-O `git-reset.sh` reverte o repositório para o estado do penúltimo commit, descartando permanentemente todas as alterações não commitadas. Ele também detecta se o commit removido era um bump de versão e oferece remover a tag correspondente.
+O `git-reset.sh` volta o repositório para o penúltimo commit e descarta as alterações não commitadas. Antes de fazer qualquer coisa, ele mostra o estado da pasta com o `git-state.sh`. Se o último commit já foi enviado ao GitHub, ele não deixa desfazer.
 
-O commit removido pode ser recuperado com `git-undo-reset.sh`. No entanto, arquivos que nunca foram commitados serão perdidos permanentemente.
+O commit desfeito pode ser recuperado com o `git-undo-reset.sh`.
 
 ## Pré-requisitos
 
-- Bash.
-- `git-lib.sh` disponível em `/usr/local/bin/git-lib.sh`, com a função `ask_confirm`.
-- Um repositório Git inicializado no diretório atual (deve existir a pasta `.git`).
-- Pelo menos dois commits no histórico (o script usa `HEAD~1`). Com apenas um, o script avisa e encerra com código `1`, sem alterar nada.
+- Bash e Git.
+- `git-lib.sh` e `git-state.sh` em `/usr/local/bin`.
+- Um repositório Git na pasta atual, com pelo menos dois commits.
 
 ## Como utilizar
 
+Pelo menu do gerenciador de arquivos, escolha **Desfazer último commit (reset)**. No terminal, dentro da pasta do projeto:
+
 ```bash
-./git-reset.sh
+git-reset
 ```
 
-O script não aceita parâmetros. Deve ser executado na raiz do repositório.
+O script não aceita parâmetros.
 
-Durante a execução, o script pergunta:
-
-1. **Confirmação inicial** — a resposta padrão é `n` (Enter cancela). Responda `s` ou `sim` para prosseguir. Qualquer outra resposta, como `nao` ou `x`, cancela.
-2. **Remoção da tag** (somente se o commit removido for um bump de versão) — a resposta padrão é `s`. Responda `s` ou `sim` para remover; qualquer outra resposta mantém a tag.
+Recomendação: antes de desfazer, olhe o **Ver estado da pasta (state)**. O próprio reset mostra o mesmo relatório, mas olhar antes ajuda a decidir com calma.
 
 ## Como funciona
 
-1. Verifica se o diretório `.git` existe.
-2. Verifica se existe um commit anterior (`HEAD~1`). Se não existir, avisa e encerra com código `1`.
-3. Exibe um aviso detalhado sobre o que será feito.
-4. Pede confirmação. Só `s` ou `sim` (maiúsculas ou minúsculas) prosseguem; qualquer outra resposta cancela.
-5. Captura a mensagem do último commit e a última tag antes do reset.
-6. Executa `git reset --hard HEAD~1`, descartando o último commit e todas as alterações não commitadas. Se o `git reset` falhar, informa o erro e encerra com código `1`.
-7. Se a mensagem do commit removido começar com `chore: bump version` e houver alguma tag, pergunta se a tag correspondente deve ser removida.
-8. Remove a tag, se confirmado.
+1. Confere se a pasta tem `.git` e se o `git-state.sh` está instalado.
+2. Chama o `git-state.sh --reset`, que mostra o relatório e:
+   - **se o reset é permitido:** pede a confirmação (caixa e botão **Desfazer** na janela, `s` ou `sim` no terminal);
+   - **se o último commit já está no GitHub:** mostra o aviso ⛔ e encerra sem alterar nada;
+   - **se não há commit anterior:** mostra o aviso ↩ e encerra sem alterar nada.
+3. Guarda a mensagem do último commit e a última tag.
+4. Executa `git reset --hard HEAD~1`.
+5. Se o commit desfeito era uma marcação de versão (`chore: bump version`), pergunta se a tag deve ser removida.
+6. Mostra o resultado numa janela: o commit desfeito, a situação da tag e o lembrete do `git-undo-reset`.
+
+## O que é descartado
+
+| Situação do arquivo | O que acontece |
+|---------------------|----------------|
+| Alterado e não commitado | As alterações são descartadas e não podem ser recuperadas |
+| Novo, adicionado e nunca commitado | O arquivo é apagado e não pode ser recuperado |
+| Fora do Git (nunca adicionado) | Não é tocado |
+| Conteúdo do commit desfeito | Sai da pasta, mas pode ser recuperado com o `git-undo-reset` |
 
 ## Comportamento e segurança
 
-- **Operação destrutiva:** `git reset --hard` descarta permanentemente as alterações não commitadas. Não há forma de recuperá-las.
-- **Commit removido é recuperável:** o commit apagado pode ser restaurado com `git-undo-reset.sh`, desde que o script esteja disponível.
-- **Arquivos nunca commitados são perdidos:** arquivos que nunca passaram por um commit não podem ser recuperados.
-- **Confirmação obrigatória:** a operação só prossegue com `s` ou `sim`. Enter, `n` ou qualquer outra resposta cancelam, e nada é alterado. Com janela (`zenity`), use os botões **Sim** e **Não**.
-- **Falha do reset:** se o `git reset --hard` falhar, o script não informa sucesso e não oferece remover a tag.
-- **Detecção de bump de versão:** a verificação é feita pela mensagem do commit (`chore: bump version...`). Outros formatos de bump não são reconhecidos.
-- **Remoção de tag:** a tag sugerida é a última em ordem de versão (`git tag --sort=-version:refname | head -1`). Se o commit removido não estiver associado a essa tag, a remoção pode afetar outra versão.
+- **Commit já enviado:** o reset é bloqueado. Para corrigir algo já enviado, faça um commit novo com a correção (`git-fix` ou `git-docs`). Para uma versão já publicada, lance a próxima versão em vez de voltar.
+- **Verificação sem internet:** o script usa o que o Git guardou no último envio. Uma pasta nunca enviada pode ser desfeita à vontade.
+- **Confirmação protegida:** na janela, o **Desfazer** fica desativado até marcar a caixa; um Enter apressado não executa o reset.
+- **Tag de versão:** a tag sugerida para remoção é a última em ordem de versão. Ela só é oferecida quando o commit desfeito é uma marcação de versão.
+- **Falha do reset:** se o `git reset --hard` falhar, o script avisa e não oferece remover a tag.
 
 ## Arquivos envolvidos
 
-- `.git/` — repositório onde o reset e a remoção de tag são executados.
-- `git-lib.sh` — biblioteca externa de funções, exigida em `/usr/local/bin/`.
+- `.git/` — onde o reset e a remoção da tag acontecem.
+- `git-state.sh` — relatório e confirmação.
+- `git-lib.sh` — funções de janela e confirmação.
 
 ## Solução de problemas
 
-- **`❌ Nenhum repositório Git encontrado`** — execute o script dentro de um repositório Git inicializado.
-- **`❌ O repositório não tem um commit anterior para voltar (HEAD~1)`** — o repositório tem apenas um commit. Não é possível desfazer o último commit com este script.
-- **`❌ Falha ao executar git reset --hard HEAD~1`** — o Git recusou o reset. Leia a mensagem do Git exibida logo acima.
-- **`⚠ Operação cancelada pelo usuário`** — a resposta à confirmação não foi `s` nem `sim` (inclusive Enter, que assume `n`). Nenhuma alteração foi feita.
-- **`⚠ Tag ... mantida`** — a tag não foi removida. Verifique manualmente se a versão continua consistente com o estado atual do projeto.
-- **Recuperar o commit removido** — use `git-undo-reset.sh`, se disponível no ambiente.
-- **Arquivos não commitados perdidos** — não há recuperação possível por meio deste script.
+- **`❌ Nenhum repositório Git encontrado`** — execute na pasta que contém `.git`.
+- **`❌ git-state.sh não encontrado em /usr/local/bin`** — rode o `git-install.sh` de novo.
+- **⛔ O git-reset não pode desfazer o último commit** — o commit já está no GitHub. Nada foi alterado.
+- **↩ Não há commit anterior para voltar** — a pasta tem um único commit. Nada foi alterado.
+- **`⚠ Operação cancelada pelo usuário`** — a confirmação não foi dada. Nada foi alterado.
+- **`⚠ Tag ... mantida`** — a tag continua apontando para um commit que saiu da pasta. Rode o `git-version` com cuidado.
+- **Desfiz por engano** — use o **Recuperar commit desfeito (undo reset)**.

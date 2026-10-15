@@ -1,7 +1,16 @@
 # `git-tools.conf` — Lista de scripts e menus do git-tools
 
-**Versão:** 1.3.0  
-**Data:** 2026-10-08
+**Versão:** 1.4.0  
+**Data:** 2026-10-15
+
+**Objetivo da versão:**
+
+- Incluir o `git-state.sh` (Ver estado da pasta) na lista, logo antes do `git-reset.sh`
+
+**Observações de uso:**
+
+- A ordem das linhas é a ordem do menu do gerenciador de arquivos
+- O `git-reset.sh` depende do `git-state.sh`; os dois precisam estar na lista
 
 ## Visão geral
 
@@ -30,7 +39,7 @@ Regras:
 - Não use `/` nos títulos: eles viram nome de arquivo nos menus.
 - Um alias só é criado para linhas que tenham pelo menos um dos dois títulos.
 
-O prefixo numérico do `TITULO_MENU` (`01 - `, `02 - `...) é só uma convenção de ordem. O Nemo o oculta na lista exibida.
+O prefixo numérico do `TITULO_MENU` (`01 - `, `02 - `...) é só uma convenção de ordem. O Nemo o oculta na lista exibida. Quem define a posição no menu é a ordem das linhas no arquivo.
 
 ## Scripts configurados
 
@@ -46,9 +55,10 @@ O prefixo numérico do `TITULO_MENU` (`01 - `, `02 - `...) é só uma convençã
 | 08 | `git-release.sh` | Fazer release | — |
 | 09 | `git-changelog.sh` | Gerar CHANGELOG | — |
 | 10 | `git-changelog-summary.sh` | Resumo do CHANGELOG-html | `--html` |
-| 11 | `git-reset.sh` | Desfazer último commit (reset) | — |
-| 12 | `git-undo-reset.sh` | Recuperar commit desfeito (undo reset) | — |
-| 13 | `git-github.sh` | Enviar ou atualizar no GitHub (github) | — |
+| 11 | `git-state.sh` | Ver estado da pasta (state) | — |
+| 12 | `git-reset.sh` | Desfazer último commit (reset) | — |
+| 13 | `git-undo-reset.sh` | Recuperar commit desfeito (undo reset) | — |
+| 14 | `git-github.sh` | Enviar ou atualizar no GitHub (github) | — |
 
 Os títulos do Lazarus são versões em português corrido dos títulos de menu, sem o número.
 
@@ -74,7 +84,7 @@ O `git-lazarus-integrate.sh` **não** lê este arquivo: ele tem uma lista própr
 2. Acrescente uma linha ao `git-tools.conf`:
 
    ```text
-   git-novo.sh | 14 - Meu novo script | Meu novo script |
+   git-novo.sh | 15 - Meu novo script | Meu novo script |
    ```
 
 3. Rode o instalador como usuário comum, sem `sudo`:

@@ -1,72 +1,85 @@
-# `git-undo-reset.sh` — Recuperação de commits após `git reset --hard`
+# `git-undo-reset.sh` — Recupera commits desfeitos pelo `git-reset`
 
-**Versão:** 1.2.0
+**Versão:** 1.3.0  
+**Data:** 2026-10-15
+
+**Objetivo da versão:**
+
+- Mostrar numa lista os commits desfeitos, com data e mensagem, e deixar escolher qual recuperar
+- Devolver o commit original quando nada foi feito depois do reset, e copiá-lo por cima (cherry-pick) quando houve commits depois, sem perder nada
+- Em caso de conflito, desistir da tentativa e deixar a pasta como estava
+- Recriar a tag no commit que marcou a versão, não no commit atual
+- Mostrar as mensagens em janela, para quem usa o menu do gerenciador de arquivos
+
+**Observações de uso:**
+
+- Executar na raiz do repositório (pasta com `.git`), sem alterações não commitadas
+- Arquivos fora do Git não são tocados nem impedem a recuperação
+- O Git apaga do histórico as entradas antigas com o tempo; recupere logo depois do engano
+
+---
 
 ## Visão geral
 
-O `git-undo-reset.sh` recupera commits removidos por um `git reset --hard`, usando o `git reflog` para localizar e restaurar o estado anterior ao reset. Também verifica se a tag de versão esperada existe e oferece recriá-la.
+O `git-undo-reset.sh` traz de volta commits que saíram da pasta por um `git-reset`. Ele procura no histórico de ações do Git (o reflog) os commits que não estão mais na pasta, mostra numa lista e recupera o escolhido.
 
-Arquivos que nunca foram commitados não podem ser recuperados por este script.
+Até a versão 1.2.0, ele voltava sempre para o estado anterior à última ação. Isso só funcionava se o reset fosse a última coisa feita. Agora a pessoa escolhe o commit, e o script decide sozinho como recuperar.
+
+Ele não recupera arquivos que nunca foram commitados.
 
 ## Pré-requisitos
 
-- Bash.
-- `git-lib.sh` disponível em `/usr/local/bin/git-lib.sh`, com as funções `ask_required`, `ask_confirm` e `load_config`.
-- Um repositório Git inicializado no diretório atual (deve existir a pasta `.git`).
-- Reflog com entradas suficientes para localizar o estado anterior ao reset.
+- Bash e Git.
+- `git-lib.sh` em `/usr/local/bin/git-lib.sh`.
+- Um repositório Git na pasta atual, sem alterações não commitadas.
 
 ## Como utilizar
 
-```bash
-./git-undo-reset.sh
-```
-
-O script não aceita parâmetros. Deve ser executado na raiz do repositório.
-
-Durante a execução, o script pergunta:
-
-1. **Confirmação** do reset — a resposta padrão é `n` (Enter cancela). No terminal, só `n` ou `N` cancelam; qualquer outra resposta, como `nao`, executa o reset.
-2. **Recriação da tag** (somente se a tag esperada estiver ausente) — a resposta padrão é `s`.
-
-A **posição do reflog não é perguntada**: o script usa sempre `1` (`HEAD@{1}`), que normalmente é o estado anterior ao reset. Para outra posição, execute manualmente `git reset --hard HEAD@{N}`.
-
-### Exemplo
+Pelo menu do gerenciador de arquivos, escolha **Recuperar commit desfeito (undo reset)**. No terminal, dentro da pasta do projeto:
 
 ```bash
-./git-undo-reset.sh
+git-undo-reset
 ```
 
-O script exibe as últimas 15 entradas do reflog, pede confirmação e restaura a posição `1` (`HEAD@{1}`).
+1. **Escolha o commit.** A lista mostra até 15 commits desfeitos, do mais recente para o mais antigo, e o mais recente já vem marcado. No terminal, digite o número; Enter escolhe o 1.
+2. **Confira o plano e confirme.** A janela explica o que vai acontecer. O **Não** é o padrão; no terminal, Enter cancela e só `s` ou `sim` confirmam.
+3. **Tag de versão** (só se faltar a tag da versão do `.gitproject`): confirme se ela deve ser recriada.
 
 ## Como funciona
 
-1. Verifica se o diretório `.git` existe.
-2. Exibe as últimas 15 entradas do `git reflog --oneline`.
-3. Define a posição do reflog como `1`. O script chama `ask_required` com o valor `1` já preenchido e, por isso, não pergunta.
-4. Pede confirmação antes de executar `git reset --hard HEAD@{1}`.
-5. Executa o reset e, em caso de falha, orienta a tentativa manual.
-6. Carrega as configurações com `load_config`.
-7. Se `VERSION` estiver definida e a tag `v$VERSION` não existir, pergunta se deseja recriá-la.
+1. Confere se a pasta tem `.git`, se há commits e se não há alterações não commitadas.
+2. Percorre o histórico de ações e separa os commits que não estão na pasta. Ficam de fora os commits cujo conteúdo já está nela, por exemplo os que já foram recuperados com cherry-pick.
+3. Mostra a lista e recebe a escolha.
+4. Escolhe o jeito de recuperar:
+
+| Situação | O que faz | Resultado |
+|----------|-----------|-----------|
+| Nada foi feito depois do reset | Avança a pasta até o commit escolhido | O commit volta com o código original, e a tag continua válida |
+| Houve commits depois do reset | Copia os commits desfeitos por cima dos atuais (`git cherry-pick`) | Nada se perde; os commits copiados ganham códigos novos |
+
+5. Mostra o plano e pede confirmação.
+6. Recupera. Se o cherry-pick der conflito, desiste da tentativa (`git cherry-pick --abort`) e a pasta fica como estava.
+7. Se o `.gitproject` indica uma versão sem tag, procura o commit `chore: bump version to vX.Y.Z` e oferece recriar a tag nele.
+8. Mostra o resultado numa janela.
 
 ## Comportamento e segurança
 
-- **Uso do reflog:** a recuperação depende do histórico de ações do reflog. Entradas antigas podem ser removidas pelo Git com o tempo.
-- **Reset destrutivo:** `git reset --hard HEAD@{1}` descarta alterações não commitadas presentes no estado atual.
-- **Confirmação:** a operação é cancelada apenas com `n` ou `N` (padrão `n`). No terminal, qualquer outra resposta, como `nao` ou `x`, executa o reset. Com janela (`zenity`), os botões **Sim** e **Não** funcionam normalmente.
-- **Arquivos nunca commitados:** não podem ser recuperados. O script avisa sobre essa limitação.
-- **Verificação de tag:** a tag só é recriada se o `.gitproject` contiver `VERSION` e a tag correspondente não existir.
-- **Recriação de tag:** a tag é recriada no commit atual (após o reset), o que pode não corresponder ao commit original da versão.
+- **Nada é apagado:** a recuperação só acrescenta commits. O que foi feito depois do reset é mantido.
+- **Commits encadeados:** recuperar um commit traz junto os commits desfeitos que vêm antes dele.
+- **Pasta com alterações:** o script para e pede o commit delas antes, para não misturar as mudanças.
+- **Conflito:** quando o commit desfeito e os commits posteriores mexem nas mesmas linhas, o script não tenta resolver. A pasta fica como estava.
+- **GitHub:** a recuperação só acrescenta commits, então o próximo `git-github` envia normalmente. Se um commit já enviado foi desfeito, recuperá-lo deixa a pasta de novo igual ao GitHub.
+- **Histórico limitado:** o Git apaga com o tempo as entradas antigas do histórico de ações. Commits muito antigos podem não aparecer mais.
 
 ## Arquivos envolvidos
 
-- `.git/` — repositório onde o reset e a recriação de tag são executados.
-- `.gitproject` — lido por `load_config` para obter a variável `VERSION`.
-- `git-lib.sh` — biblioteca externa de funções, exigida em `/usr/local/bin/`.
+- `.git/` — histórico de ações (reflog), commits e tags.
+- `.gitproject` — versão usada para conferir a tag.
+- `git-lib.sh` — funções de janela e leitura do `.gitproject`.
 
 ## Solução de problemas
 
-- **`❌ Nenhum repositório Git encontrado`** — execute o script dentro de um repositório Git inicializado.
-- **`❌ Falha na recuperação`** — a posição `1` pode não existir no reflog. Verifique o reflog exibido e execute manualmente `git reset --hard HEAD@{N}` com a posição correta.
-- **Posição errada recuperada** — o script usa sempre `HEAD@{1}`. Se houve outras ações depois do reset, essa posição pode não ser a desejada. Verifique as entradas exibidas antes de confirmar e, se necessário, responda `n` e use `git reset --hard HEAD@{N}` manualmente.
-- **`⚠ Tag vX.Y.Z ausente`** — a tag não foi recriada. Execute `git-version.sh` com cuidado ou crie a tag manualmente.
-- **Arquivos perdidos** — arquivos nunca commitados não podem ser recuperados. Restaure-os a partir de backup, se houver.
+- **`❌ Há alterações não commitadas nesta pasta`** — faça o commit delas e rode de novo. Confira com o **Ver estado da pasta (state)**.
+- **`ℹ️ Não há commits desfeitos para recuperar`** — tudo o que está no histórico recente já está na pasta.
+- **`❌ Não foi possível recuperar automaticamente`** — houve conflito entre o commit desfeito e o que veio depois. A pasta não mudou. A recuperação, nesse caso, precisa ser feita à mão, juntando as mudanças.
+- **`⚠ Tag ... ausente`** — a tag não foi recriada. Rode o `git-version` com cuidado.

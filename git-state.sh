@@ -10,17 +10,19 @@
 # Uso: git-state.sh            (apenas mostra)
 #      git-state.sh --reset    (mostra e pede a confirmação do git-reset.sh)
 #
-# Versão: 1.2.0
+# Versão: 1.2.1
 # Data:   2026-10-15
 #
 # Objetivo da versão:
-#   - Mostra se a pasta está em dia com o GitHub, quantos commits faltam
-#     enviar e se o GitHub tem commits que a pasta não tem
-#   - Avisa que o git-reset não pode desfazer um commit que já está no
-#     GitHub, porque o próximo envio falharia, e indica o caminho certo
-#   - Modo --reset: o próprio relatório vira a confirmação do git-reset.sh;
-#     com janela, o botão Desfazer só libera depois de marcar a caixa de
-#     confirmação
+#   - Nomes de arquivo com acento ou espaço aparecem como são, sem códigos
+#     como \303\241 nem aspas
+#   - A janela usa fonte de largura fixa, para alinhar código, data e mensagem
+#   - Com o reset bloqueado, os títulos das alterações não dizem mais o que o
+#     git-reset faria com elas
+#   - Uma única linha em branco entre os grupos de arquivos
+#   - Versão 1.2.0: mostra se a pasta está em dia com o GitHub, bloqueia o
+#     reset de commit já enviado e vira a confirmação do git-reset.sh
+#     (modo --reset)
 #   - Versão 1.1.0: data e hora dos commits e mensagens cortadas em 70
 #     caracteres
 #   - Versão 1.0.0: conferir o estado da pasta pelo menu do gerenciador de
@@ -99,10 +101,15 @@ fi
 MODIFIED=()
 STAGED_NEW=()
 UNTRACKED=()
-while IFS= read -r line; do
-  [ -z "$line" ] && continue
-  code="${line:0:2}"
-  file="${line:3}"
+SKIP_NEXT=0
+while IFS= read -r -d '' entry; do
+  if [ $SKIP_NEXT -eq 1 ]; then
+    SKIP_NEXT=0
+    continue
+  fi
+  code="${entry:0:2}"
+  file="${entry:3}"
+  [[ "$code" == R* || "$code" == C* ]] && SKIP_NEXT=1
   if [ "$code" = "??" ]; then
     UNTRACKED+=("$file")
   elif [ "${code:0:1}" = "A" ]; then
@@ -110,9 +117,38 @@ while IFS= read -r line; do
   else
     MODIFIED+=("$file")
   fi
-done < <(git status --porcelain 2>/dev/null)
+done < <(git status --porcelain -z 2>/dev/null)
+
+REMOVED_MSG=""
+[ $HAS_HEAD -eq 1 ] && REMOVED_MSG=$(git log --format="%s" HEAD -1)
+
+HAS_PREVIOUS=0
+git rev-parse --verify HEAD~1 >/dev/null 2>&1 && HAS_PREVIOUS=1
 
 RESET_ALLOWED=0
+[ $HAS_PREVIOUS -eq 1 ] && [ $HEAD_SHARED -eq 0 ] && RESET_ALLOWED=1
+
+if [ $RESET_ALLOWED -eq 1 ]; then
+  T_MODIFIED="✏️  Alterados e não commitados (o git-reset descarta):"
+  T_STAGED="⚠️  Novos, adicionados e nunca commitados (o git-reset apaga):"
+  T_UNTRACKED="📄 Fora do Git (o git-reset não mexe):"
+else
+  T_MODIFIED="✏️  Alterados e não commitados:"
+  T_STAGED="⚠️  Novos, adicionados e nunca commitados:"
+  T_UNTRACKED="📄 Fora do Git:"
+fi
+
+FIRST_GROUP=1
+print_group() {
+  local title="$1"
+  shift
+  [ $# -eq 0 ] && return 0
+  [ $FIRST_GROUP -eq 0 ] && echo ""
+  FIRST_GROUP=0
+  echo "$title"
+  printf '   %s\n' "$@"
+}
+
 {
   echo "📁 Pasta: $(pwd)"
   echo "🌿 Ramo: ${BRANCH:-(sem ramo)}"
@@ -145,29 +181,15 @@ RESET_ALLOWED=0
   if [ ${#MODIFIED[@]} -eq 0 ] && [ ${#STAGED_NEW[@]} -eq 0 ] && [ ${#UNTRACKED[@]} -eq 0 ]; then
     echo "✔ Tudo salvo: não há alterações fora de commit."
   else
-    if [ ${#MODIFIED[@]} -gt 0 ]; then
-      echo "✏️  Alterados e não commitados (o git-reset descarta):"
-      printf '   %s\n' "${MODIFIED[@]}"
-      echo ""
-    fi
-    if [ ${#STAGED_NEW[@]} -gt 0 ]; then
-      echo "⚠️  Novos, adicionados e nunca commitados (o git-reset apaga):"
-      printf '   %s\n' "${STAGED_NEW[@]}"
-      echo ""
-    fi
-    if [ ${#UNTRACKED[@]} -gt 0 ]; then
-      echo "📄 Fora do Git (o git-reset não mexe):"
-      printf '   %s\n' "${UNTRACKED[@]}"
-    fi
+    print_group "$T_MODIFIED" "${MODIFIED[@]}"
+    print_group "$T_STAGED" "${STAGED_NEW[@]}"
+    print_group "$T_UNTRACKED" "${UNTRACKED[@]}"
   fi
   echo ""
 
-  REMOVED_MSG=""
-  [ $HAS_HEAD -eq 1 ] && REMOVED_MSG=$(git log --format="%s" HEAD -1)
-
-  if ! git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+  if [ $HAS_PREVIOUS -eq 0 ]; then
     echo "↩  Não há commit anterior para voltar: o git-reset não pode ser usado."
-  elif [ $HEAD_SHARED -eq 1 ]; then
+  elif [ $RESET_ALLOWED -eq 0 ]; then
     echo "⛔ O git-reset não pode desfazer o último commit:"
     echo "   $(commit_line HEAD)"
     echo "   Ele já está no $SERVER. Desfazer só aqui deixaria esta pasta"
@@ -177,7 +199,6 @@ RESET_ALLOWED=0
       echo "   A versão $LAST_TAG já foi publicada: se precisar corrigir, lance a próxima."
     fi
   else
-    RESET_ALLOWED=1
     echo "↩  Se rodar o git-reset agora:"
     echo "   desfaz:  $(commit_line HEAD)"
     echo "   volta a: $(commit_line HEAD~1)"
@@ -196,7 +217,8 @@ if [ "$MODE" = "view" ] || [ $RESET_ALLOWED -eq 0 ]; then
     zenity --text-info \
            --title="Git Tools — Estado da pasta" \
            --filename="$REPORT" \
-           --width=700 \
+           --font="monospace" \
+           --width=760 \
            --height=500 2>/dev/null
   else
     cat "$REPORT"
@@ -209,10 +231,11 @@ if [ $GUI -eq 1 ]; then
   zenity --text-info \
          --title="Git Tools — Desfazer último commit" \
          --filename="$REPORT" \
+         --font="monospace" \
          --checkbox="Conferi o estado da pasta e quero desfazer o último commit" \
          --ok-label="Desfazer" \
          --cancel-label="Cancelar" \
-         --width=700 \
+         --width=760 \
          --height=520 2>/dev/null && exit 0
   exit 1
 fi

@@ -2,13 +2,13 @@
 
 Envia o projeto para o GitHub e cria o repositório quando ele ainda não existe, perguntando o que for necessário.
 
-**Versão:** 0.3.0  
-**Data:** 2026-10-08
+**Versão:** 0.4.0  
+**Data:** 2026-10-15
 
 **Objetivo da versão:**
 
-- Mostrar um diálogo de andamento enquanto cria o repositório e envia a branch e as tags, para a tela não ficar sem resposta durante o envio
-- No terminal, informar o que está sendo feito antes de cada etapa demorada
+- Quando o GitHub recusa o envio porque tem commits que a pasta não tem, explicar a causa em português e indicar a saída
+- Versão 0.3.0: diálogo de andamento durante a criação do repositório e o envio
 
 **Observações de uso:**
 
@@ -16,6 +16,7 @@ Envia o projeto para o GitHub e cria o repositório quando ele ainda não existe
 - Exige chave SSH cadastrada na conta do GitHub
 - Criar um repositório novo exige um token clássico com permissão `repo`
 - Só cria repositórios na conta pessoal; repositórios de organização são criados pelo site
+- Nunca força o envio: se o GitHub estiver à frente da pasta, o script explica e para
 
 ---
 
@@ -194,13 +195,27 @@ Em seguida aparece uma mensagem de sucesso com o endereço `https://github.com/s
 
 ### Durante o envio
 
-Depois da última pergunta, aparece o diálogo **Enviando a branch ... e as tags para o GitHub. Aguarde...**. Ele não pode ser fechado e some sozinho quando o envio termina. Em seguida surge a mensagem de sucesso, com o botão **OK**. Se o envio falhar, o diálogo de andamento fecha e a mensagem de erro mostra o que o Git respondeu. Projetos grandes, com executáveis e pacotes no histórico, podem levar vários minutos.
+Depois da última pergunta, aparece o diálogo **Enviando a branch ... e as tags para o GitHub. Aguarde...**. Ele não pode ser fechado e some sozinho quando o envio termina. Em seguida surge a mensagem de sucesso, com o botão **OK**. Se o envio falhar, o diálogo de andamento fecha e a mensagem de erro mostra o que o Git respondeu. Quando a falha é porque o GitHub tem commits que a pasta não tem, a mensagem explica a causa em português (veja **Envio recusado** abaixo). Projetos grandes, com executáveis e pacotes no histórico, podem levar vários minutos.
 
 ### Nas próximas vezes
 
 - **Repositório que já existe:** o script só envia, sem pedir token.
 - **`origin` já apontando para o GitHub:** o script não pergunta usuário nem nome do repositório; usa os que estão no `origin`.
 - **Outra pasta:** repita o Passo 5. Os Passos 1 a 4 não precisam ser refeitos, exceto o token para cada repositório novo.
+
+---
+
+## Envio recusado
+
+O GitHub recusa o envio quando tem commits que a pasta não tem. O script nunca força o envio, porque isso apagaria esses commits do GitHub. Em vez disso, ele busca o estado do GitHub (`git fetch`), descobre a causa e mostra a saída:
+
+| Causa | Mensagem e saída |
+|-------|------------------|
+| Um commit já enviado foi desfeito com o `git-reset`, e nada foi feito depois | Rode o `git-undo-reset` para voltar ao estado anterior e envie de novo |
+| Um commit já enviado foi desfeito, e houve outros commits depois | No terminal, nesta pasta, `git pull --rebase` junta os dois lados sem perder nada. Se aparecer conflito, `git rebase --abort` desfaz a tentativa. Depois envie de novo |
+| As mudanças vieram de outro computador ou foram feitas no site do GitHub | No terminal, nesta pasta, `git pull` traz as mudanças. Depois envie de novo |
+
+O `git-reset` 1.4.0 já impede desfazer um commit enviado. Os dois primeiros casos só acontecem quando o reset foi feito por outro caminho, como o terminal.
 
 ---
 
@@ -217,6 +232,8 @@ Depois da última pergunta, aparece o diálogo **Enviando a branch ... e as tags
 | `O GitHub recusou a criação` | Geralmente o nome já existe na conta. Se o repositório existir, confira se a chave SSH tem acesso a ele |
 | `O repositório ainda não tem nenhum commit` | Faça ao menos um commit antes (Passo 3) |
 | `Nenhum repositório Git encontrado` | Execute na pasta que contém `.git`, ou rode `git-ini.sh` |
+| `O GitHub tem commits que esta pasta não tem mais` | Um commit já enviado foi desfeito na pasta. Veja **Envio recusado** |
+| `O GitHub tem alterações que esta pasta ainda não tem` | Houve mudanças em outro computador ou no site. Veja **Envio recusado** |
 | Falha ao enviar a branch | Se o nome da branch for `master`, o script já usa o nome real. Veja a mensagem completa no diálogo |
 
 ---
