@@ -16,7 +16,7 @@ As ideias do git-tools também foram explicadas em canção, no canal [Vozes do 
 
 - [🎵 Git-tools — Parte 1 — Começar: A Pasta Que Aprendeu a Lembrar](https://youtu.be/EdXLCSjA2ug?si=lyBlgKrVklLcxb8E)
 - [🎵 Git-tools — Parte 2 — Salvar: Um Commit de Cada Vez](https://youtu.be/WVzNsbN5V6s?si=iMQ7ARi7iXFqG-qJ)
-- 
+- [🎵 Git-tools — Parte 3 — Marcar a Versão: O Número da Etapa](https://youtu.be/2PbqC-7b_w8)
 
 ---
 
