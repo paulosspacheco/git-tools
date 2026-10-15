@@ -3,83 +3,82 @@
 # git-reset.sh — Desfaz o último commit e descarta todas as alterações
 # =============================================================================
 # Reverte o repositório para o estado do penúltimo commit, descartando
-# permanentemente todas as mudanças não commitadas.
+# permanentemente as alterações não commitadas.
+# Antes de desfazer, mostra o estado da pasta com o git-state.sh e só
+# continua se o último commit ainda não foi enviado ao GitHub.
 # Detecta automaticamente se o commit removido era um bump de versão e
 # oferece remover a tag correspondente.
 #
 # ℹ️  Commits podem ser recuperados com git-undo-reset.sh
-# ⚠️  Arquivos NUNCA commitados serão perdidos permanentemente
+# ⚠️  Alterações não commitadas e arquivos novos adicionados e nunca
+#     commitados são perdidos permanentemente
 #
 # Uso: git-reset.sh
 #
-# Versão: 1.3.1
-# Data:   2026-10-09
+# Versão: 1.4.0
+# Data:   2026-10-15
 #
 # Objetivo da versão:
-#   - A confirmação só prossegue com resposta afirmativa (s ou sim); antes,
-#     qualquer resposta diferente de n/N (como "nao") executava o reset --hard
-#   - Não executa o reset quando o repositório tem apenas um commit, e não
-#     informa sucesso nem oferece apagar a tag se o git reset falhar
+#   - A confirmação passa a ser o relatório do git-state.sh: a pessoa vê o
+#     que será descartado e qual commit será desfeito antes de decidir
+#   - Não desfaz um commit que já está no GitHub, porque isso deixaria a
+#     pasta diferente do GitHub e faria o próximo envio falhar
+#   - Mostra o resultado em janela, para quem usa o menu do gerenciador de
+#     arquivos, onde a saída do terminal não aparece
+#   - Versão 1.3.1: só s ou sim confirmam; não executa com um único commit
 #
 # Observações de uso:
 #   - Executar na raiz do repositório (pasta com .git), com ao menos 2 commits
-#   - A resposta padrão da confirmação é n: Enter cancela
-#   - Com janela (zenity), os botões Sim e Não funcionam como antes
+#   - Com janela, o botão Desfazer só libera depois de marcar a caixa de
+#     confirmação; no terminal, Enter cancela e só s ou sim confirmam
+#   - Arquivos fora do Git (nunca adicionados) não são tocados
+#   - A verificação do GitHub usa o que o Git guardou no último envio
 #   - A tag sugerida para remoção é a última em ordem de versão
-# Dependências: git-lib.sh
+# Dependências: git-lib.sh, git-state.sh
 # =============================================================================
 
 source "/usr/local/bin/git-lib.sh"
 
+STATE="/usr/local/bin/git-state.sh"
+
 if [ ! -d ".git" ]; then
-  echo "❌ Nenhum repositório Git encontrado. Execute git-ini.sh primeiro." >&2
+  notify_info "❌ Nenhum repositório Git encontrado. Execute git-ini.sh primeiro."
   exit 1
 fi
 
-if ! git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
-  echo "❌ O repositório não tem um commit anterior para voltar (HEAD~1)." >&2
+if [ ! -f "$STATE" ]; then
+  notify_info "❌ git-state.sh não encontrado em /usr/local/bin.\n\nRode o git-install.sh de novo."
   exit 1
 fi
 
-echo "⚠️  ATENÇÃO: Este comando vai fazer o seguinte:"
-echo "   • Apagar o último commit"
-echo "   • Descartar TODAS as alterações nos arquivos não commitadas"
-echo ""
-echo "ℹ️  O commit pode ser recuperado com git-undo-reset.sh"
-echo "   Arquivos NUNCA commitados serão perdidos permanentemente"
-echo ""
+bash "$STATE" --reset
+case $? in
+  0) ;;
+  2) exit 1 ;;
+  *) echo "⚠ Operação cancelada pelo usuário."
+     exit 0 ;;
+esac
 
-ask_confirm CONFIRM "Tem certeza que deseja continuar?" "n"
-if [[ ! "${CONFIRM,,}" =~ ^(s|sim)$ ]]; then
-  echo "⚠ Operação cancelada pelo usuário."
-  exit 0
-fi
-
-# Captura informações do commit antes do reset
 REMOVED_MSG=$(git log --format="%s" HEAD -1)
 LAST_TAG=$(git tag --sort=-version:refname | head -1)
 
 echo ""
 echo "Executando git reset --hard HEAD~1 ..."
 if ! git reset --hard HEAD~1; then
-  echo "" >&2
-  echo "❌ Falha ao executar git reset --hard HEAD~1." >&2
+  notify_info "❌ Falha ao executar git reset --hard HEAD~1."
   exit 1
 fi
 
-echo ""
-echo "✔ Reset concluído — você está 1 commit atrás."
+RESULT="✔ Reset concluído: você está 1 commit atrás.\n\nDesfeito: $REMOVED_MSG\n\nO commit pode ser recuperado com o git-undo-reset."
 
-# Detecta se o commit removido era um bump de versão
 if [[ "$REMOVED_MSG" == "chore: bump version"* ]] && [ -n "$LAST_TAG" ]; then
-  echo ""
-  echo "ℹ️  O commit removido era um bump de versão ($LAST_TAG)"
-  echo "   Manter a tag pode causar inconsistência com a versão atual."
-  ask_confirm TAG_CONFIRM "Remover a tag $LAST_TAG?" "s"
+  ask_confirm TAG_CONFIRM "O commit desfeito era a marcação da versão $LAST_TAG.\n\nManter a tag pode causar inconsistência com a versão atual.\n\nRemover a tag $LAST_TAG?" "s"
   if [[ "${TAG_CONFIRM,,}" =~ ^(s|sim)$ ]]; then
     git tag -d "$LAST_TAG"
-    echo "✔ Tag $LAST_TAG removida"
+    RESULT="$RESULT\n\nTag $LAST_TAG removida."
   else
-    echo "⚠ Tag $LAST_TAG mantida — execute git-version.sh com cuidado"
+    RESULT="$RESULT\n\n⚠ Tag $LAST_TAG mantida: execute git-version.sh com cuidado."
   fi
 fi
+
+notify_info "$RESULT"

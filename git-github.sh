@@ -2,13 +2,18 @@
 # =============================================================================
 # git-github.sh — Envia o projeto para o GitHub e cria o repositório se não existir
 # =============================================================================
-# Versão: 0.3.0
-# Data:   2026-10-08
+# Versão: 0.4.0
+# Data:   2026-10-15
 #
 # Objetivo da versão:
-#   - Mostra um diálogo de andamento enquanto cria o repositório e envia a
-#     branch e as tags, para a tela não ficar sem resposta durante o envio
-#   - No terminal, informa o que está sendo feito antes de cada etapa demorada
+#   - Quando o envio é recusado porque o GitHub tem commits que a pasta não
+#     tem, explica a causa em português e indica a saída: se o commit foi
+#     desfeito com o git-reset, recuperá-lo com o git-undo-reset (ou com
+#     git pull --rebase, se houve commits depois); se veio de outro
+#     computador ou do site, trazê-lo com git pull
+#   - Versão 0.3.0: mostra um diálogo de andamento enquanto cria o
+#     repositório e envia a branch e as tags; no terminal, informa cada
+#     etapa demorada
 #
 # Observações de uso:
 #   - Uso: git-github.sh
@@ -22,6 +27,8 @@
 #   - O diálogo de andamento usa zenity --progress e não pode ser cancelado
 #   - Repositórios de organização devem ser criados pelo site do GitHub
 #   - Origin que não seja do GitHub recebe apenas o envio
+#   - Envio recusado: busca o estado do GitHub (git fetch) para explicar a
+#     causa; não força o envio nem altera os commits da pasta
 #   - Dependências: git-lib.sh, git, ssh, curl
 # =============================================================================
 
@@ -185,10 +192,31 @@ create_repo() {
   esac
 }
 
+explain_rejected() {
+  local remote_tip pos
+  git fetch -q origin "$BRANCH" 2>/dev/null || return 0
+  remote_tip=$(git rev-parse -q --verify "refs/remotes/origin/$BRANCH") || return 0
+  git merge-base --is-ancestor "$remote_tip" HEAD 2>/dev/null && return 0
+
+  pos=$(git rev-list -g HEAD 2>/dev/null | grep -nx "$remote_tip" | head -1 | cut -d: -f1)
+  if [ -n "$pos" ]; then
+    pos=$((pos - 1))
+    if [ "$pos" -eq 1 ]; then
+      fail "O GitHub tem commits que esta pasta não tem mais.\n\nIsso acontece quando um commit já enviado é desfeito com o git-reset.\n\nRode o git-undo-reset para voltar ao estado anterior e depois envie de novo.\n\nPara corrigir algo já enviado, faça um commit novo com a correção."
+    fi
+    fail "O GitHub tem commits que esta pasta não tem mais.\n\nIsso acontece quando um commit já enviado é desfeito com o git-reset e, depois, outros commits são feitos.\n\nPara juntar os dois sem perder nada, no terminal, nesta pasta:\n\ngit pull --rebase\n\nSe aparecer conflito, git rebase --abort desfaz a tentativa.\n\nDepois rode o git-github de novo."
+  fi
+
+  fail "O GitHub tem alterações que esta pasta ainda não tem, feitas em outro computador ou no site do GitHub.\n\nTraga essas alterações antes de enviar. No terminal, nesta pasta:\n\ngit pull\n\nDepois rode o git-github de novo."
+}
+
 push_all() {
   local out
   progress_start "Enviando a branch $BRANCH e as tags para o GitHub. Aguarde..."
-  out=$(git push -u origin "$BRANCH" 2>&1) || fail "Falha ao enviar a branch $BRANCH:\n\n$out"
+  if ! out=$(git push -u origin "$BRANCH" 2>&1); then
+    explain_rejected
+    fail "Falha ao enviar a branch $BRANCH:\n\n$out"
+  fi
   echo "$out"
   out=$(git push origin --tags 2>&1) || fail "Falha ao enviar as tags:\n\n$out"
   echo "$out"
