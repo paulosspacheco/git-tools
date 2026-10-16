@@ -4,6 +4,7 @@
 
 ### ➕ Funcionalidades
 
+- 2026-10-15 17:30 implementa : git-reset confirma pelo relatório do git-state e bloqueia commit já enviado; git-state mostra a situação do GitHub; git-github explica envio recusado
 - 2026-10-15 17:01 adiciona : git-state.sh — Mostra o estado da pasta antes de voltar atrás
 - 2026-10-14 16:19 adiciona : git-add-navigator-nemo.sh - o item Git Tools aparece direto no menu de contexto do Nemo, sem passar por Scripts
 - 2026-10-08 22:34 adiciona : git-cloud.sh - envia o projeto para o GitHub e cria o repositório se não existir, com a documentação em git-cloud.sh.md
@@ -60,6 +61,9 @@
 
 ### 📚 Documentação
 
+- 2026-10-15 21:19 adiciona : CONTRIBUTING.md com o guia para contribuir, só em português, e link no readme
+- 2026-10-15 19:07 adiciona : Criar link no arquivo readme.md  para acesso ao youtube . Canção: 🎵 Git-tools — Parte 5 — Um Passo Pra Trás : Voltar atrás | Vozes do Ofício
+- 2026-10-15 18:21 atualiza : Documentos dos arquivos:  git-github.sh.md    git-reset.sh.md    git-state.sh    git-tools-conf.md    git-undo-reset.sh    git-undo-reset.sh.md
 - 2026-10-15 09:48 corrige : Link do readme.md para a parte 4 agora é: 🎵 Git-tools — Parte 4 — Compartilhar : Lá Fora Também É Casa | Vozes do Ofício
 - 2026-10-15 09:27 adiciona : Criado link no arquivo readme.md para a canção no youtube: Git-tools, Parte 4: Lá Fora Também É Casa — Compartilhar | Vozes do Ofício
 - 2026-10-14 21:48 adiciona : No arquivo readme.com foi criado o link para a canção: 🎵 Git-tools — Parte 3 — Marcar a Versão: O Número da Etapa
@@ -92,6 +96,7 @@
 
 ### 🔧 Manutenção
 
+- 2026-10-15 19:08 bump version to v0.21.0
 - 2026-10-15 17:01 bump version to v0.20.0
 - 2026-10-14 17:08 bump version to v0.19.0
 - 2026-10-09 22:57 bump version to v0.18.4
@@ -133,4 +138,4 @@
 - 2026-03-26 21:20 ignora arquivos md com nome inválido
 
 ---
-_Gerado automaticamente em 2026-10-15 17:36:20_
+_Gerado automaticamente em 2026-10-15 21:19:48_
